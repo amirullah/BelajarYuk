@@ -1,1 +1,8 @@
 BelajarYuk-*.apk
+
+# Rahasia — JANGAN pernah commit kredensial
+backend/config.php
+**/config.php
+*.secret
+.env
+.env.*
