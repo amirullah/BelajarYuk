@@ -163,6 +163,7 @@ class StorageService {
     final Map<String, dynamic>? state = (pushState && _statePulled)
         ? <String, dynamic>{
             'coins': profile.coins,
+            'coinsSpent': profile.coinsSpent,
             'streak': profile.streak,
             'lastPlayedDate': profile.lastPlayedDate,
             'badges': profile.badges,
@@ -201,10 +202,37 @@ class StorageService {
 
   /// Gabungkan state server ke profil lokal (ambil yang lebih banyak; setelah
   /// pasang-ulang lokal kosong → adopsi nilai server).
+  /// Gabungkan saldo koin dua sumber tanpa me-refund belanja. Kembalikan
+  /// (coins, coinsSpent). earned = coins + spent (monoton di kedua sisi);
+  /// ambil max earned & max spent, saldo = earned − spent.
+  static (int, int) mergeCoins({
+    required int localCoins,
+    required int localSpent,
+    required int srvCoins,
+    required int srvSpent,
+  }) {
+    final earned = (localCoins + localSpent) > (srvCoins + srvSpent)
+        ? (localCoins + localSpent)
+        : (srvCoins + srvSpent);
+    final spent = localSpent > srvSpent ? localSpent : srvSpent;
+    final coins = earned - spent;
+    return (coins < 0 ? 0 : coins, spent);
+  }
+
   void _mergeState(ChildProfile p, Map<String, dynamic> s) {
     int mx(int a, dynamic b) =>
         b is num && b.toInt() > a ? b.toInt() : a;
-    p.coins = mx(p.coins, s['coins']);
+    // Koin: gabung lewat (earned, spent) yang keduanya monoton, lalu
+    // saldo = earned − spent. Ini me-restore koin saat pasang ulang TAPI tak
+    // me-refund belanja yang dilakukan saat offline.
+    final merged = mergeCoins(
+      localCoins: p.coins,
+      localSpent: p.coinsSpent,
+      srvCoins: (s['coins'] as num?)?.toInt() ?? 0,
+      srvSpent: (s['coinsSpent'] as num?)?.toInt() ?? 0,
+    );
+    p.coins = merged.$1;
+    p.coinsSpent = merged.$2;
     p.streak = mx(p.streak, s['streak']);
     for (final b in (s['badges'] as List?)?.cast<String>() ?? const []) {
       if (!p.badges.contains(b)) p.badges.add(b);

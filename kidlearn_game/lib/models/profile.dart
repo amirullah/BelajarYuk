@@ -14,6 +14,12 @@ class ChildProfile {
   /// Koin virtual (dari menyelesaikan level) — untuk kustomisasi avatar.
   int coins;
 
+  /// Total koin yang PERNAH dibelanjakan (monoton naik). Dipakai agar
+  /// penggabungan state lintas-perangkat tidak me-refund belanja: koin bersih
+  /// = (koin yang pernah didapat) − (koin yang pernah dibelanjakan), kedua sisi
+  /// digabung dengan max sehingga saldo konvergen dengan benar.
+  int coinsSpent;
+
   /// Avatar yang sudah dimiliki (bisa dibeli dengan koin di toko).
   final List<String> ownedAvatars;
 
@@ -39,6 +45,7 @@ class ChildProfile {
     Map<String, int>? stars,
     this.unlockedGrade = 1,
     this.coins = 0,
+    this.coinsSpent = 0,
     List<String>? ownedAvatars,
     this.streak = 0,
     this.lastPlayedDate,
@@ -61,6 +68,7 @@ class ChildProfile {
   bool buyAvatar(String a, int cost) {
     if (ownsAvatar(a) || coins < cost) return false;
     coins -= cost;
+    coinsSpent += cost; // catat belanja (monoton) untuk merge anti-refund
     ownedAvatars.add(a);
     return true;
   }
@@ -87,6 +95,7 @@ class ChildProfile {
         'stars': stars,
         'unlockedGrade': unlockedGrade,
         'coins': coins,
+        'coinsSpent': coinsSpent,
         'ownedAvatars': ownedAvatars,
         'streak': streak,
         'lastPlayedDate': lastPlayedDate,
@@ -111,6 +120,7 @@ class ChildProfile {
             {},
         unlockedGrade: (j['unlockedGrade'] as num?)?.toInt() ?? 1,
         coins: (j['coins'] as num?)?.toInt() ?? 0,
+        coinsSpent: (j['coinsSpent'] as num?)?.toInt() ?? 0,
         ownedAvatars: (j['ownedAvatars'] as List?)?.cast<String>(),
         streak: (j['streak'] as num?)?.toInt() ?? 0,
         lastPlayedDate: j['lastPlayedDate'] as String?,

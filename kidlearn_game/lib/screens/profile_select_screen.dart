@@ -105,7 +105,10 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
     final avatar = result['avatar']!;
     final token = await _storage.getToken();
 
-    // Coba buat di server bila login; kalau gagal/offline → buat lokal.
+    // Bila LOGIN: profil WAJIB dibuat di server. Jangan pernah membuat profil
+    // lokal saat login (profil local-* tak akan pernah sinkron, lalu terlantar
+    // oleh ensureLocalProfile → progres anak HILANG). Bila server tak terjangkau,
+    // minta pengguna coba lagi saat online alih-alih membuat "profil hantu".
     if (token != null) {
       try {
         final res = await _api.createProfile(token, name, avatar);
@@ -120,12 +123,15 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
           await _pick(created);
           return;
         }
+        _snack(res['error']?.toString() ?? 'Gagal membuat profil. Coba lagi.');
       } catch (_) {
-        // jatuh ke pembuatan lokal di bawah
+        _snack('Tidak bisa membuat profil saat offline. '
+            'Sambungkan internet lalu coba lagi ya.');
       }
+      return;
     }
 
-    // Fallback lokal — pengguna tetap bisa lanjut walau server tak terjangkau.
+    // Tamu (belum login): profil lokal wajar — progres memang tersimpan di HP.
     final local = ChildProfile(
       id: 'local-${DateTime.now().millisecondsSinceEpoch}',
       name: name,
@@ -134,7 +140,7 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
     await _storage.upsertProfile(local);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Profil dibuat. (Tersimpan di HP; akan disinkronkan bila online)')));
+          content: Text('Profil dibuat. (Tersimpan di HP; login agar aman)')));
     }
     await _pick(local);
   }
