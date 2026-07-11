@@ -516,7 +516,7 @@
     <h1>BelajarYuk! <span>2.0</span></h1>
     <div class="meta">
       <b>Pengembang:</b> Amirullah &nbsp;·&nbsp;
-      <b>Status:</b> v2.0.0 — sudah dibangun &amp; terpasang (dalam penyempurnaan) &nbsp;·&nbsp;
+      <b>Status:</b> v2.0.1 — sudah dibangun &amp; terpasang (dalam penyempurnaan) &nbsp;·&nbsp;
       <b>Tanggal:</b> Juli 2026 &nbsp;·&nbsp;
       <b>Target:</b> SD Kelas 1–6 &nbsp;·&nbsp;
       <b>Platform:</b> Android (iOS opsional) &nbsp;·&nbsp;
@@ -527,12 +527,21 @@
   <!-- 0. STATUS IMPLEMENTASI (CHANGELOG) -->
   <section>
     <div class="section-label">Status Terkini</div>
-    <h2>Status Implementasi (v2.0.0)</h2>
+    <h2>Status Implementasi (v2.0.1)</h2>
     <p>Bagian ini mencatat <strong>apa yang sudah benar-benar dibuat</strong> dan terpasang, sebagai sumber kebenaran agar tidak ada yang terlupa atau tidak konsisten dengan bagian rencana di bawah. Aplikasi dibangun dengan <strong>Flutter</strong>, backend <strong>PHP + MySQL</strong> di Hostinger.</p>
 
     <div class="callout teal">
       <div class="callout-label">Sudah Live di Hosting</div>
       <p>🌐 Landing page: <strong>belajaryuk.mkz.my.id</strong> &nbsp;·&nbsp; 📦 Unduh APK: <strong>belajaryuk.mkz.my.id/BelajarYuk.apk</strong> &nbsp;·&nbsp; ⚙️ Backend API: <strong>/backend/api.php</strong>. Repo kode: GitHub <strong>amirullah/BelajarYuk</strong> (kontributor: Amirullah).</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Pembaruan v2.0.1 — perbaikan dari audit &amp; pengujian mandiri</div>
+      <p><strong>Anti kehilangan data:</strong> pembacaan profil kini tahan-banting (satu entri rusak tak lagi menghapus semua profil); <code>logout</code> membersihkan cache profil (tak bocor antar-akun di HP berbagi); membuat profil saat login-tapi-offline tak lagi menghasilkan "profil hantu" yang terlantar; <strong>koin digabung lewat (earned − spent)</strong> sehingga pulih saat pasang ulang tapi tak me-refund belanja; tulis-balik sinkron anti saling-timpa (anti lost-update).</p>
+      <p><strong>Pembelajaran &amp; keadilan soal:</strong> opsi soal klik-gambar/menyimak kini <strong>diacak</strong> (jawaban benar tak lagi selalu di kiri-atas); tingkat kesulitan naik per level; guard bank soal kosong.</p>
+      <p><strong>Fitur &amp; perlindungan:</strong> <strong>gerbang orang tua</strong> (soal perkalian) sebelum hapus profil &amp; buka Dashboard; <strong>ganti kata sandi</strong> (endpoint <code>change_password</code>); email akun tampil walau offline; lencana untuk Bahasa Indonesia, Agama Islam, IPS; leaderboard menyorot berdasarkan id profil.</p>
+      <p><strong>UI untuk anak:</strong> kontras teks memenuhi standar AA; avatar gratis jelas berlabel "Gratis"; avatar yang koinnya belum cukup tampil redup + gembok.</p>
+      <p><strong>Mutu:</strong> uji otomatis 3 lapis (13 tes kode Dart, uji backend produksi end-to-end, skrip Firebase Test Lab untuk HP fisik). Semua analisis statis bersih.</p>
     </div>
 
     <p style="font-weight:700; margin-top:1.25rem;">Identitas &amp; Tema</p>
@@ -631,7 +640,7 @@
       </div>
       <div class="feature-item">
         <span class="fi-icon">ℹ️</span>
-        <div class="fi-text"><strong>Tentang</strong><span>Halaman "Tentang" mencantumkan pengembang (Amirullah) &amp; versi v2.0.0.</span></div>
+        <div class="fi-text"><strong>Tentang</strong><span>Halaman "Tentang" mencantumkan pengembang (Amirullah) &amp; versi v2.0.1.</span></div>
       </div>
     </div>
 
@@ -1204,8 +1213,8 @@
     <p>Audio adalah elemen kritis — bukan hanya musik latar, tapi juga bagian dari penilaian (listening Bahasa Inggris). Dua keputusan sudah dikonfirmasi: musik dibuat dengan AI, dan listening menggunakan TTS.</p>
 
     <div class="callout teal">
-      <div class="callout-label">Yang Benar-benar Dibuat (v2.0.0)</div>
-      <p>Analisis di bawah adalah rencana awal. Realisasinya: <strong>musik &amp; efek suara disintesis sendiri</strong> dengan Python/numpy (7 trek musik berbeda per konteks + 8 efek suara) — bukan layanan AI berbayar. <strong>Listening &amp; pembacaan soal memakai flutter_tts on-device</strong> dengan nada tinggi khas anak (belum memakai ElevenLabs). Ditambah <strong>klip suara anak asli berlisensi CC0</strong> untuk pujian, yang mudah diganti rekaman sendiri. Pemutar audio memakai <strong>soundpool</strong> (bukan audioplayers). Detail lengkap ada di bagian "Status Implementasi (v2.0.0)" di atas.</p>
+      <div class="callout-label">Yang Benar-benar Dibuat (v2.0.1)</div>
+      <p>Analisis di bawah adalah rencana awal. Realisasinya: <strong>musik &amp; efek suara disintesis sendiri</strong> dengan Python/numpy (7 trek musik berbeda per konteks + 8 efek suara) — bukan layanan AI berbayar. <strong>Listening &amp; pembacaan soal memakai flutter_tts on-device</strong> dengan nada tinggi khas anak (belum memakai ElevenLabs). Ditambah <strong>klip suara anak asli berlisensi CC0</strong> untuk pujian, yang mudah diganti rekaman sendiri. Pemutar audio memakai <strong>soundpool</strong> (bukan audioplayers). Detail lengkap ada di bagian "Status Implementasi (v2.0.1)" di atas.</p>
     </div>
 
     <p style="margin-top:1rem; font-weight:700;">Perbedaan TTS vs Pre-Recorded Audio</p>
