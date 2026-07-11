@@ -15,7 +15,7 @@
  * GANTI nilai $SECRET di bawah dengan token acak Anda sendiri sebelum unggah.
  */
 
-$SECRET = 'REPLACE_WITH_A_LONG_RANDOM_TOKEN';
+$SECRET = 'CHANGE_ME_TO_HEX_TOKEN';
 
 // ── Util ──
 header('Content-Type: application/json');
@@ -32,12 +32,13 @@ function provided_token(): string {
     return $_POST['token'] ?? ($_GET['token'] ?? '');
 }
 
+// ── Cek token sudah diatur (harus hex panjang), independen dari isi string ──
+if (!ctype_xdigit($SECRET) || strlen($SECRET) < 24) {
+    out(['ok' => false, 'error' => 'Set $SECRET ke token hex panjang dulu'], 500);
+}
 // ── Autentikasi (bandingkan waktu-konstan) ──
 if (!hash_equals($SECRET, provided_token())) {
     out(['ok' => false, 'error' => 'Unauthorized'], 401);
-}
-if ($SECRET === 'REPLACE_WITH_A_LONG_RANDOM_TOKEN') {
-    out(['ok' => false, 'error' => 'Set $SECRET terlebih dahulu'], 500);
 }
 
 $BASE = realpath(__DIR__);
