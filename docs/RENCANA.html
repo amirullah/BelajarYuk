@@ -536,6 +536,12 @@
     </div>
 
     <div class="callout">
+      <div class="callout-label">Pembaruan v2.0.3 — audio suara anak &amp; anti-soal-berulang</div>
+      <p><strong>Audio:</strong> semua klip suara manusia dari internet (CC0) <strong>dihapus</strong>; pujian kini murni <strong>TTS on-device</strong> dengan pitch diacak agar bernada/melodius, tempo disetel untuk artikulasi jelas, suara pria dihindari &amp; voice anak/berkualitas tinggi diutamakan.</p>
+      <p><strong>Soal berulang:</strong> akar masalah — bank soal (±6/mapel) jauh lebih kecil dari target 15–30 soal/level, sehingga soal terpaksa berulang. Diperbaiki: (1) pemilihan soal kini <strong>DISTINCT — tak ada soal identik berulang dalam satu level</strong> (dijamin & diuji untuk semua kelas/mapel); (2) isi tiap level <strong>deterministik per-level</strong> sehingga berbeda antar level; (3) jumlah soal/level diringkas (8–15) agar sesuai rentang perhatian anak SD &amp; mengurangi paksaan pengulangan. <em>Perluasan bank soal untuk variasi antar-level lebih besar sedang berjalan.</em></p>
+    </div>
+
+    <div class="callout">
       <div class="callout-label">Pembaruan v2.0.2 — perbaikan bug kritis "profil tak muncul"</div>
       <p><strong>Akar masalah:</strong> backend (PDO/MySQL) mengembalikan kolom angka sebagai <em>String</em> dalam JSON (mis. <code>"unlocked_grade":"1"</code>). Klien melakukan <code>value as num</code> pada String → melempar error yang tertangkap diam-diam, sehingga <strong>profil dari server gagal dimuat &amp; tak muncul setelah login</strong>. Diperbaiki di <strong>dua sisi</strong>: server kini mengirim tipe <strong>int</strong> (perbaikan berlaku bahkan untuk APK lama), dan klien memakai parser angka tahan-banting (<code>asInt</code>) di semua titik pembacaan data server. Ditambah tes regresi.</p>
     </div>
@@ -577,7 +583,7 @@
       </div>
       <div class="feature-item">
         <span class="fi-icon">🗣️</span>
-        <div class="fi-text"><strong>Suara khas anak</strong><span>Pujian saat benar (Yeay/Mantap/Keren…) &amp; penyemangat saat salah lewat TTS bernada tinggi khas anak, berbeda tiap mapel. Ditambah klip suara anak asli (CC0/Freesound) — sudah <strong>dinormalisasi keras &amp; dipangkas</strong> (WAV) agar seimbang dengan efek lain — diselang-seling dengan pujian TTS; mudah diganti rekaman sendiri (folder <code>assets/voice/</code>).</span></div>
+        <div class="fi-text"><strong>Suara khas anak</strong><span>Pujian saat benar (Yeay/Mantap/Keren…) &amp; penyemangat saat salah <strong>sepenuhnya lewat TTS on-device</strong> bernada tinggi khas anak, berbeda tiap mapel. Pitch pujian di-acak tipis agar bernada/melodius (tak monoton), tempo disetel agar artikulasi jelas. Suara pria dihindari, voice anak/berkualitas tinggi diutamakan. <em>(Klip suara manusia dari internet sudah dihapus — tak ada lagi rekaman eksternal.)</em></span></div>
       </div>
       <div class="feature-item">
         <span class="fi-icon">⚙️</span>
@@ -1219,7 +1225,7 @@
 
     <div class="callout teal">
       <div class="callout-label">Yang Benar-benar Dibuat (v2.0.1)</div>
-      <p>Analisis di bawah adalah rencana awal. Realisasinya: <strong>musik &amp; efek suara disintesis sendiri</strong> dengan Python/numpy (7 trek musik berbeda per konteks + 8 efek suara) — bukan layanan AI berbayar. <strong>Listening &amp; pembacaan soal memakai flutter_tts on-device</strong> dengan nada tinggi khas anak (belum memakai ElevenLabs). Ditambah <strong>klip suara anak asli berlisensi CC0</strong> untuk pujian, yang mudah diganti rekaman sendiri. Pemutar audio memakai <strong>soundpool</strong> (bukan audioplayers). Detail lengkap ada di bagian "Status Implementasi (v2.0.1)" di atas.</p>
+      <p>Analisis di bawah adalah rencana awal. Realisasinya: <strong>musik &amp; efek suara disintesis sendiri</strong> dengan Python/numpy (7 trek musik berbeda per konteks + 8 efek suara) — bukan layanan AI berbayar. <strong>Listening, pembacaan soal, DAN pujian sepenuhnya memakai flutter_tts on-device</strong> dengan nada tinggi khas anak (belum memakai ElevenLabs). <strong>Semua klip suara manusia dari internet telah dihapus</strong> — pujian kini murni TTS (pitch diacak agar bernada). Pemutar audio memakai <strong>soundpool</strong> (bukan audioplayers). Detail lengkap ada di bagian "Status Implementasi (v2.0.1)" di atas.</p>
     </div>
 
     <p style="margin-top:1rem; font-weight:700;">Perbedaan TTS vs Pre-Recorded Audio</p>

@@ -93,16 +93,23 @@ void main() {
         reason: 'Level 12 harus punya angka lebih besar dari level 1');
   });
 
-  test('Setiap kelas 1-6 & semua mapel menghasilkan level penuh', () {
+  test('Setiap kelas 1-6 & semua mapel: level terisi & TANPA soal berulang', () {
     final svc = LevelService(1);
     for (int grade = 1; grade <= 6; grade++) {
       for (final s in Subject.values) {
-        final level = GameLevel.buildGrade(s, grade).first;
-        final qs = svc.buildQuestions(level);
-        expect(qs.length, level.questionCount,
-            reason: 'Mapel $s Kelas $grade harus punya ${level.questionCount} soal');
-        for (final q in qs) {
-          expect(q.question.isNotEmpty, isTrue);
+        for (final level in GameLevel.buildGrade(s, grade)) {
+          final qs = svc.buildQuestions(level);
+          // Terisi (boleh lebih pendek dari target bila bank kecil), tak kosong.
+          expect(qs, isNotEmpty,
+              reason: 'Mapel $s Kelas $grade Level ${level.index} kosong');
+          expect(qs.length, lessThanOrEqualTo(level.questionCount));
+          for (final q in qs) {
+            expect(q.question.isNotEmpty, isTrue);
+          }
+          // INVARIANT UTAMA: tak ada soal identik berulang dalam satu level.
+          final texts = qs.map((q) => q.question).toList();
+          expect(texts.toSet().length, texts.length,
+              reason: 'Soal berulang di $s Kelas $grade Level ${level.index}');
         }
       }
     }

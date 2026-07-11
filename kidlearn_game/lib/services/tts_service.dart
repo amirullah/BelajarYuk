@@ -38,7 +38,8 @@ class TtsService {
 
   static const _praises = [
     'Yeay!', 'Mantap!', 'Keren!', 'Hebat!', 'Pintar!', 'Bagus sekali!',
-    'Asyik!', 'Hore!', 'Wah, jago!', 'Betul!',
+    'Asyik!', 'Hore!', 'Wah, jago!', 'Betul!', 'Wah, pintar!', 'Top!',
+    'Luar biasa!', 'Kamu hebat!',
   ];
   static const _encourages = [
     'Coba lagi ya!', 'Hampir benar!', 'Ayo semangat!', 'Tidak apa-apa, coba lagi!',
@@ -67,9 +68,17 @@ class TtsService {
             continue;
           }
           int score = 0;
-          if (name.contains('female') || name.contains('wanita')) score += 3;
+          // Hindari suara pria (nada rendah, kurang mirip anak). 'female'
+          // memuat 'male', jadi kecualikan dulu.
+          final isFemale = name.contains('female') || name.contains('wanita');
+          if (name.contains('male') && !isFemale) score -= 6;
+          if (isFemale) score += 3;
+          // Suara berkualitas tinggi = artikulasi lebih jelas & natural.
           if (name.contains('network') || name.contains('wavenet') ||
               name.contains('neural')) score += 4;
+          // Prioritaskan voice yang eksplisit anak/muda bila tersedia.
+          if (name.contains('child') || name.contains('anak') ||
+              name.contains('kid') || name.contains('young')) score += 6;
           if (name.contains('-x-') || name.contains('local')) score += 1;
           if (score > chosenScore) {
             chosenScore = score;
@@ -112,10 +121,13 @@ class TtsService {
   }
 
   /// Seruan pujian singkat saat jawaban benar (nada anak yang ceria).
+  /// Pitch di-acak tipis tiap kali agar terdengar bernada/melodius (tak monoton),
+  /// tetap tinggi khas anak; tempo sedikit lebih lambat agar artikulasi jelas.
   Future<void> praise() async {
     await _ensure();
     await _tts.stop();
-    await _configure(english: false, pitch: 1.65, rate: 0.55);
+    final pitch = 1.68 + _rng.nextInt(5) * 0.045; // 1.68..1.86
+    await _configure(english: false, pitch: pitch, rate: 0.50);
     await _tts.speak(_praises[_rng.nextInt(_praises.length)]);
   }
 

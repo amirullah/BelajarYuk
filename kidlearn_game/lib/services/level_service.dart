@@ -55,16 +55,33 @@ class LevelService {
       return qs;
     }
 
-    // Bank soal per mapel (saat ini Kelas 1; kelas lain menyusul).
-    final bank = List<Question>.from(_bankFor(level.subject, level.grade));
-    if (bank.isEmpty) return const [];
-    bank.shuffle(_rng);
+    // Kolam soal UNIK (base + extras), dedup berdasarkan teks soal agar tak ada
+    // duplikat identik dalam satu level.
+    final pool = <Question>[];
+    final seen = <String>{};
+    for (final q in _bankFor(level.subject, level.grade)) {
+      if (seen.add(q.question)) pool.add(q);
+    }
+    if (pool.isEmpty) return const [];
 
-    // Ambil sebanyak questionCount; bila bank kurang, ulang dengan acak lagi.
+    // Seed deterministik per level (bila tak ada seed eksplisit): isi tiap level
+    // stabil saat diulang, dan berbeda antar level (seed beda per level.id).
+    final rng = _seed != null ? _rng : Random(level.id.hashCode);
+    pool.shuffle(rng);
+
+    final want = level.questionCount;
     final out = <Question>[];
-    while (out.length < level.questionCount) {
-      if (out.length % bank.length == 0) bank.shuffle(_rng);
-      out.add(_shuffleOptions(bank[out.length % bank.length]));
+    if (pool.length >= want) {
+      // Cukup: ambil soal DISTINCT (tanpa pengulangan).
+      for (int k = 0; k < want; k++) {
+        out.add(_shuffleOptions(pool[k]));
+      }
+    } else {
+      // Bank lebih kecil dari target → tampilkan SEMUA yang unik sekali saja
+      // (level lebih pendek lebih baik daripada mengulang soal yang sama).
+      for (final q in pool) {
+        out.add(_shuffleOptions(q));
+      }
     }
     return _avoidMonotony(out);
   }

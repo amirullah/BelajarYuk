@@ -187,12 +187,8 @@ class _PlayScreenState extends State<PlayScreen> {
   void _feedback(bool ok) {
     if (ok) {
       SfxService.instance.correct();
-      // Selang-seling suara anak asli (klip) & pujian TTS agar bervariasi.
-      if (SfxService.instance.hasVoice && _correct.isEven) {
-        SfxService.instance.voice();
-      } else {
-        TtsService.instance.praise();
-      }
+      // Pujian suara anak lewat TTS (frasa acak, nada ceria).
+      TtsService.instance.praise();
       _combo++;
       if (_combo >= 3) _comboBonus += 2; // bonus koin saat combo panas
     } else {

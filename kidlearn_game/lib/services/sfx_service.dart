@@ -22,8 +22,6 @@ class SfxService {
   Soundpool? _pool;
   final Map<String, int> _sfxIds = {};
   final Map<String, int> _musicIds = {};
-  final List<int> _voiceIds = []; // klip suara anak (CC0) untuk pujian
-  int _voiceTurn = 0;
 
   int? _musicStream; // stream musik yang sedang berputar
   String? _currentMusic; // kunci trek yang sedang diputar
@@ -40,12 +38,6 @@ class SfxService {
     'home', 'math', 'english', 'indonesian', 'science', 'religion',
     'socialStudies',
   ];
-  // Rekaman suara anak (CC0, dinormalisasi & dipangkas). Diputar bergiliran
-  // agar bervariasi. Bisa diganti/ditambah pengguna.
-  static const _voiceFiles = ['voice_yay.wav', 'voice_wow.wav'];
-
-  bool get hasVoice => _voiceIds.isNotEmpty;
-
   Future<void> load() async {
     final sp = await SharedPreferences.getInstance();
     _enabled = sp.getBool(_prefKey) ?? true;
@@ -64,13 +56,6 @@ class SfxService {
       for (final name in _musicFiles) {
         final data = await rootBundle.load('assets/sfx/music_$name.wav');
         _musicIds[name] = await _pool!.load(data);
-      }
-      // Klip suara anak (opsional) — abaikan bila file tak ada.
-      for (final vf in _voiceFiles) {
-        try {
-          final data = await rootBundle.load('assets/voice/$vf');
-          _voiceIds.add(await _pool!.load(data));
-        } catch (_) {}
       }
     } catch (_) {
       _pool = null; // audio tak tersedia — app tetap jalan tanpa suara
@@ -223,18 +208,4 @@ class SfxService {
   Future<void> graduation() => _play('graduation');
   Future<void> uku() => _play('uku');
 
-  /// Putar satu klip suara anak (bergiliran). Return true bila dimainkan.
-  Future<bool> voice() async {
-    if (!_enabled || _voiceIds.isEmpty) return false;
-    final pool = _pool;
-    if (pool == null) return false;
-    final id = _voiceIds[_voiceTurn % _voiceIds.length];
-    _voiceTurn++;
-    try {
-      await pool.play(id);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
 }

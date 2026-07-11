@@ -34,29 +34,31 @@ class GameLevel {
       final LevelKind kind;
       final int qCount;
       final int pass;
+      // Jumlah soal dibuat ringkas & sesuai rentang perhatian anak SD (bukan
+      // 15–30 yang bikin lelah + memaksa bank soal berulang). Naik bertahap.
       if (idx <= 2) {
         kind = LevelKind.pengenalan;
-        qCount = 15;
+        qCount = 8;
         pass = 80;
       } else if (idx <= 5) {
         kind = LevelKind.latihan;
-        qCount = 20;
+        qCount = 10;
         pass = 80;
       } else if (idx <= 8) {
         kind = LevelKind.pendalaman;
-        qCount = 20;
+        qCount = 10;
         pass = 80;
       } else if (idx <= 10) {
         kind = LevelKind.tantangan;
-        qCount = 25;
+        qCount = 12;
         pass = 80;
       } else if (idx == 11) {
         kind = LevelKind.review;
-        qCount = 25;
+        qCount = 12;
         pass = 80;
       } else {
         kind = LevelKind.boss;
-        qCount = 30;
+        qCount = 15;
         pass = 85; // Boss Level lebih ketat
       }
       return GameLevel(
