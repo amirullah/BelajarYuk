@@ -98,11 +98,15 @@ class ChildProfile {
       };
 
   factory ChildProfile.fromJson(Map<String, dynamic> j) => ChildProfile(
-        id: j['id'] as String,
-        name: j['name'] as String,
+        // Toleran: entri tanpa id/name jangan sampai membuat SELURUH daftar
+        // profil gagal di-decode (pemicu klasik "profil hilang").
+        id: (j['id'] as String?) ?? 'local-0',
+        name: (j['name'] as String?)?.trim().isNotEmpty == true
+            ? j['name'] as String
+            : 'Pemain',
         avatar: (j['avatar'] as String?) ?? '🦊',
         stars: (j['stars'] as Map?)?.map(
-              (k, v) => MapEntry(k as String, (v as num).toInt()),
+              (k, v) => MapEntry(k as String, (v is num ? v.toInt() : 0)),
             ) ??
             {},
         unlockedGrade: (j['unlockedGrade'] as num?)?.toInt() ?? 1,

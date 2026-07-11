@@ -51,6 +51,20 @@ class Question {
     this.objectiveCode,
   });
 
+  Question copyWith({List<String>? options, int? correctIndex}) => Question(
+        question: question,
+        emoji: emoji,
+        options: options ?? this.options,
+        correctIndex: correctIndex ?? this.correctIndex,
+        explanation: explanation,
+        type: type,
+        audioText: audioText,
+        answer: answer,
+        pairs: pairs,
+        sequence: sequence,
+        objectiveCode: objectiveCode,
+      );
+
   /// Pintasan membuat soal Pasangkan (kiri → kanan).
   factory Question.matching({
     required String question,

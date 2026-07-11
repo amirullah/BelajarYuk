@@ -16,12 +16,29 @@ import '../data/content_kelas6.dart';
 ///   dilihat, lalu dicampur agar tidak monoton.
 class LevelService {
   final Random _rng;
-  LevelService([int? seed]) : _rng = Random(seed);
+  final int? _seed;
+  LevelService([int? seed])
+      : _seed = seed,
+        _rng = Random(seed);
+
+  /// Acak posisi opsi + hitung ulang [correctIndex] agar jawaban benar tak
+  /// selalu di posisi yang sama (mis. klik-gambar/menyimak yang selalu index 0).
+  /// True/False & isian tak diacak (urutan/tak berlaku).
+  Question _shuffleOptions(Question q) {
+    if (q.options.length < 2 ||
+        q.type == QuestionType.trueFalse ||
+        q.type == QuestionType.fillBlank) {
+      return q;
+    }
+    final idx = List<int>.generate(q.options.length, (i) => i)..shuffle(_rng);
+    final opts = [for (final i in idx) q.options[i]];
+    return q.copyWith(options: opts, correctIndex: idx.indexOf(q.correctIndex));
+  }
 
   List<Question> buildQuestions(GameLevel level) {
     if (level.subject == Subject.math) {
       // Level makin tinggi → soal makin sulit (angka lebih besar).
-      final qs = MathGenerator().generate(level.grade,
+      final qs = MathGenerator(_seed).generate(level.grade,
           count: level.questionCount, level: level.index);
       // Selipkan soal variatif (pilih gambar + susun urutan) agar lebih menarik.
       final extras = <Question>[];
@@ -31,7 +48,7 @@ class LevelService {
         extras.shuffle(_rng);
         for (int k = 0; k < extras.length && k < 2; k++) {
           final pos = 1 + _rng.nextInt(qs.length);
-          qs.insert(pos.clamp(0, qs.length), extras[k]);
+          qs.insert(pos.clamp(0, qs.length), _shuffleOptions(extras[k]));
         }
         return _avoidMonotony(qs.take(level.questionCount).toList());
       }
@@ -47,7 +64,7 @@ class LevelService {
     final out = <Question>[];
     while (out.length < level.questionCount) {
       if (out.length % bank.length == 0) bank.shuffle(_rng);
-      out.add(bank[out.length % bank.length]);
+      out.add(_shuffleOptions(bank[out.length % bank.length]));
     }
     return _avoidMonotony(out);
   }

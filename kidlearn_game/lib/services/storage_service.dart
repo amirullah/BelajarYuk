@@ -31,10 +31,19 @@ class StorageService {
   Future<List<ChildProfile>> loadProfiles() async {
     final raw = (await _prefs).getString(_kProfiles);
     if (raw == null) return [];
-    final list = jsonDecode(raw) as List;
-    return list
-        .map((e) => ChildProfile.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final list = jsonDecode(raw) as List;
+      final out = <ChildProfile>[];
+      for (final e in list) {
+        // Satu entri rusak tak boleh menghapus seluruh daftar profil.
+        try {
+          out.add(ChildProfile.fromJson(e as Map<String, dynamic>));
+        } catch (_) {}
+      }
+      return out;
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<void> saveProfiles(List<ChildProfile> profiles) async {
@@ -271,5 +280,9 @@ class StorageService {
     final p = await _prefs;
     await p.remove(_kToken);
     await p.remove(_kCurrent);
+    // Buang profil ter-cache milik akun ini agar tak bocor ke akun berikutnya
+    // (mis. di perangkat berbagi). Sesi berikut menarik ulang dari server.
+    await p.remove(_kProfiles);
+    _statePulled = false;
   }
 }

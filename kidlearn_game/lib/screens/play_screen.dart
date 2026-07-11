@@ -65,6 +65,9 @@ class _PlayScreenState extends State<PlayScreen> {
   void initState() {
     super.initState();
     _questions = LevelService(widget.seed).buildQuestions(widget.level);
+    // Bila bank soal kosong, jangan sentuh _q (mencegah RangeError di initState);
+    // build() menampilkan layar "soal belum tersedia".
+    if (_questions.isEmpty) return;
     _setupMatching();
     _maybeAutoPlay();
     _resetIdle();

@@ -41,6 +41,7 @@ class _AvatarShopScreenState extends State<AvatarShopScreen> {
       if (!p.ownsAvatar(emoji)) p.ownedAvatars.add(emoji);
       p.avatar = emoji;
       await _storage.upsertProfile(p);
+      SfxService.instance.tap(); // umpan balik saat memakai (konsisten dgn beli)
       setState(() {});
       _storage.syncProfile(p);
       return;
@@ -162,14 +163,20 @@ class _AvatarTile extends StatelessWidget {
               Text('Dipakai',
                   style: GoogleFonts.nunito(
                       fontSize: 12, fontWeight: FontWeight.w800, color: kPrimary))
+            else if (price == 0)
+              Text('Gratis',
+                  style: GoogleFonts.nunito(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: kAgama)) // hijau tua = kontras cukup
             else if (owned)
               Text('Pakai',
                   style: GoogleFonts.nunito(
-                      fontSize: 12, fontWeight: FontWeight.w700, color: kSuccess))
+                      fontSize: 12, fontWeight: FontWeight.w800, color: kPrimary))
             else
               Text('🪙 $price',
                   style: GoogleFonts.nunito(
-                      fontSize: 12, fontWeight: FontWeight.w700, color: kAccent)),
+                      fontSize: 12, fontWeight: FontWeight.w800, color: kDark)),
           ],
         ),
       ),

@@ -9,7 +9,7 @@ const Color kSurface = Color(0xFFFFFFFF);
 const Color kAccent = Color(0xFFFF9F43); // Oranye aksen
 const Color kDark = Color(0xFF2D3436); // Teks gelap
 const Color kLight = Color(0xFFFFFFFF);
-const Color kMuted = Color(0xFF9AA0B4);
+const Color kMuted = Color(0xFF5B6172); // Teks sekunder (kontras AA di atas putih)
 
 // ── Status ──
 const Color kSuccess = Color(0xFF6BCB77); // Benar
