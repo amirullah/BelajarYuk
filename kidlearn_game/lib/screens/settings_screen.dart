@@ -29,6 +29,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _email; // email akun yang login
   bool _google = false;
 
+  /// Akun developer/admin — hanya mereka yang boleh "Mode Review" (buka semua
+  /// kelas). Orang tua biasa tak melihat menu ini.
+  static const _adminEmails = {
+    'amir.pnl08@gmail.com',
+    'amirullah.pnl@gmail.com',
+    'markazvirtual@gmail.com',
+  };
+  bool get _isAdmin =>
+      _email != null && _adminEmails.contains(_email!.trim().toLowerCase());
+
   @override
   void initState() {
     super.initState();
@@ -118,8 +128,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _musicTile(),
           _tile(Icons.bar_chart_rounded, 'Progres Anak', 'Lihat kemajuan per mapel',
               _openDashboard),
-          _tile(Icons.explore_rounded, 'Mode Review (Buka Semua Kelas)',
-              'Untuk orang tua/guru meninjau soal Kelas 1–6', _openReviewMode),
+          // Mode Review hanya untuk developer/admin (bukan orang tua umum).
+          if (_isAdmin)
+            _tile(Icons.explore_rounded, 'Mode Review (Buka Semua Kelas)',
+                'Khusus developer/admin — meninjau soal Kelas 1–6',
+                _openReviewMode),
           if (_loggedIn)
             _tile(Icons.switch_account_rounded, 'Ganti Profil',
                 'Pilih anak lain', () => _push(const ProfileSelectScreen())),

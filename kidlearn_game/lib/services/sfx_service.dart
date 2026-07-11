@@ -32,8 +32,12 @@ class SfxService {
 
   static const _sfxFiles = [
     'correct', 'wrong', 'tap', 'star', 'coin', 'levelup', 'perfect',
-    'graduation', 'uku',
+    'graduation', 'uku', 'aww',
   ];
+  // Sorak "yay" ekspresif khas anak untuk jawaban BENAR (bergiliran acak).
+  static const _cheerFiles = ['yay1', 'yay2', 'yay3'];
+  final List<int> _cheerIds = [];
+  int _cheerTurn = -1;
   // Suara khas Uku (celoteh burung hantu, disintesis sendiri) — bukan TTS,
   // jadi jelas berbeda dari suara benar/salah. Diputar bergiliran acak.
   static const _ukuVoiceFiles = [
@@ -70,6 +74,12 @@ class SfxService {
         try {
           final data = await rootBundle.load('assets/sfx/$name.wav');
           _ukuVoiceIds.add(await _pool!.load(data));
+        } catch (_) {}
+      }
+      for (final name in _cheerFiles) {
+        try {
+          final data = await rootBundle.load('assets/sfx/$name.wav');
+          _cheerIds.add(await _pool!.load(data));
         } catch (_) {}
       }
     } catch (_) {
@@ -222,6 +232,23 @@ class SfxService {
   Future<void> perfect() => _play('perfect');
   Future<void> graduation() => _play('graduation');
   Future<void> uku() => _play('uku');
+  Future<void> aww() => _play('aww'); // salah — lembut & menyemangati
+
+  /// Sorak "yay" ekspresif khas anak untuk jawaban BENAR (acak, tak berulang).
+  Future<void> cheer() async {
+    if (!_enabled) return;
+    final pool = _pool;
+    if (pool == null || _cheerIds.isEmpty) return;
+    int i = _cheerTurn;
+    while (i == _cheerTurn && _cheerIds.length > 1) {
+      i = _rng.nextInt(_cheerIds.length);
+    }
+    if (i < 0) i = 0;
+    _cheerTurn = i;
+    try {
+      await pool.play(_cheerIds[i]);
+    } catch (_) {}
+  }
 
   /// Suara KHAS Uku (celoteh) — dipakai saat Uku menyapa/mengintip/disentuh.
   /// Bergiliran acak & tak mengulang berturut-turut agar bervariasi.

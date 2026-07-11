@@ -10,6 +10,7 @@ import '../services/level_service.dart';
 import '../services/sfx_service.dart';
 import '../services/tts_service.dart';
 import '../widgets/game_button.dart';
+import '../widgets/uku_mascot.dart';
 import '../utils/app_colors.dart';
 import 'level_result_screen.dart';
 
@@ -61,6 +62,7 @@ class _PlayScreenState extends State<PlayScreen> {
     'Wah, kamu pintar! Ayo jawab 🌈', 'Uku temani kamu, semangat! ❤️',
   ];
   int _hintTurn = -1;
+  int _hintDir = 0; // arah kemunculan Uku: 0=kiri, 1=kanan, 2=atas
   final _rng = Random();
 
   SubjectInfo get _info => SubjectInfo.of(widget.level.subject);
@@ -81,11 +83,51 @@ class _PlayScreenState extends State<PlayScreen> {
       _hintTurn = next;
       setState(() {
         _hintText = _hintPhrases[next];
+        _hintDir = _rng.nextInt(3); // muncul dari sisi berbeda-beda
         _showHint = true;
       });
       // Suara KHAS Uku (celoteh) saat mengintip menyemangati.
       SfxService.instance.ukuVoice();
     });
+  }
+
+  /// Uku BESAR & interaktif yang "mengintip" dari sisi acak (kiri/kanan/atas).
+  /// Bisa disentuh → berganti ekspresi + bersuara khas.
+  Widget _ukuPeek() {
+    final bubble = Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: _info.color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(_hintText,
+            style: GoogleFonts.nunito(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w800,
+                color: _info.color)),
+      ),
+    );
+    const uku = UkuMascot(size: 66); // besar & bisa disentuh (ekspresi + suara)
+    final onRight = _hintDir == 1;
+    final row = Padding(
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
+      child: Row(
+        children: onRight
+            ? [bubble, const SizedBox(width: 8), uku]
+            : [uku, const SizedBox(width: 8), bubble],
+      ),
+    );
+    final anim = row.animate(key: ValueKey(_hintTurn)).fadeIn(duration: 280.ms);
+    // Masuk dari sisi sesuai arah: atas (2) turun, kiri (0)/kanan (1) menggeser.
+    return _hintDir == 2
+        ? anim.slideY(
+            begin: -0.9, end: 0, duration: 480.ms, curve: Curves.easeOutBack)
+        : anim.slideX(
+            begin: onRight ? 0.8 : -0.8,
+            end: 0,
+            duration: 480.ms,
+            curve: Curves.easeOutBack);
   }
 
   @override
@@ -213,14 +255,15 @@ class _PlayScreenState extends State<PlayScreen> {
   int _comboBonus = 0; // koin bonus dari combo (diteruskan ke hasil)
   void _feedback(bool ok) {
     if (ok) {
+      // Chime cerah + SORAK "yay" ekspresif khas anak (sintesis, bukan TTS lemas).
       SfxService.instance.correct();
-      // Pujian suara anak lewat TTS (frasa acak, nada ceria).
-      TtsService.instance.praise();
+      SfxService.instance.cheer();
       _combo++;
       if (_combo >= 3) _comboBonus += 2; // bonus koin saat combo panas
     } else {
+      // Chime salah lembut + "aww" menyemangati (bukan menghukum).
       SfxService.instance.wrong();
-      TtsService.instance.encourage();
+      SfxService.instance.aww();
       _combo = 0;
     }
     _idleTimer?.cancel();
@@ -408,47 +451,8 @@ class _PlayScreenState extends State<PlayScreen> {
               ),
             ),
 
-            // ── Uku "mengintip" menyemangati (dinamis, kata-kata berganti) ──
-            if (_showHint)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                child: Row(
-                  children: [
-                    // Uku melambai — masuk dari tepi lalu bergoyang gembira.
-                    Image.asset('assets/img/ukus/uku_cheer.png',
-                            width: 46, height: 46)
-                        .animate(onPlay: (c) => c.repeat(reverse: true))
-                        .rotate(
-                            begin: -0.05,
-                            end: 0.05,
-                            duration: 700.ms,
-                            curve: Curves.easeInOut),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: _info.color.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Text(_hintText,
-                            style: GoogleFonts.nunito(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: _info.color)),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-                  .animate(key: ValueKey(_hintTurn))
-                  .slideX(
-                      begin: -0.6,
-                      end: 0,
-                      duration: 420.ms,
-                      curve: Curves.easeOutBack)
-                  .fadeIn(duration: 260.ms),
+            // ── Uku "mengintip" menyemangati (besar, interaktif, dari sisi acak) ──
+            if (_showHint) _ukuPeek(),
 
             // ── Opsi jawaban ── (beranimasi masuk tiap soal)
             Padding(

@@ -7,7 +7,7 @@ import '../utils/app_colors.dart';
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
-  static const String version = '2.0.8';
+  static const String version = '2.0.9';
   static const String developer = 'Amirullah';
 
   @override

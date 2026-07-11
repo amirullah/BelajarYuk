@@ -8,7 +8,6 @@ import '../models/subject.dart';
 import '../models/profile.dart';
 import '../models/achievement.dart';
 import '../services/sfx_service.dart';
-import '../services/tts_service.dart';
 import '../services/storage_service.dart';
 import '../widgets/confetti_overlay.dart';
 import '../widgets/score_stars.dart';
@@ -67,33 +66,29 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
   void _celebrate(bool gradeUp) {
     final passed = _result.passed(widget.level);
     final sfx = SfxService.instance;
-    final tts = TtsService.instance;
+    // Perayaan: chime + SORAK "yay" ekspresif khas anak (sintesis, bukan TTS).
     if (passed && widget.level.isBoss && gradeUp) {
       // NAIK KELAS — perayaan terbesar + musik energik.
       sfx.duckMusic(restoreAfterMs: 3200);
       sfx.graduation();
       sfx.playMusic('home');
-      Future.delayed(const Duration(milliseconds: 900),
-          () => tts.cheer('Selamat! Kamu naik kelas!'));
+      Future.delayed(const Duration(milliseconds: 700), sfx.cheer);
+      Future.delayed(const Duration(milliseconds: 1400), sfx.cheer);
     } else if (passed && widget.level.isBoss) {
-      // Boss lulus, tapi belum semua mapel → rayakan boss, belum naik kelas.
       sfx.duckMusic();
       sfx.graduation();
-      Future.delayed(const Duration(milliseconds: 800),
-          () => tts.cheer('Hebat! Boss selesai!'));
+      Future.delayed(const Duration(milliseconds: 700), sfx.cheer);
     } else if (passed && _result.stars >= 3) {
       sfx.duckMusic();
       sfx.perfect();
-      Future.delayed(const Duration(milliseconds: 700),
-          () => tts.cheer('Sempurna! Luar biasa!'));
+      Future.delayed(const Duration(milliseconds: 600), sfx.cheer);
     } else if (passed) {
       sfx.duckMusic();
       sfx.levelUp();
-      Future.delayed(const Duration(milliseconds: 600),
-          () => tts.cheer('Hebat! Naik level!'));
+      Future.delayed(const Duration(milliseconds: 500), sfx.cheer);
     } else {
       sfx.wrong();
-      tts.encourage();
+      sfx.aww();
     }
   }
 
@@ -349,15 +344,16 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () =>
-                            Navigator.of(context).popUntil((r) => r.isFirst),
+                        // Kembali ke PETA LEVEL (bukan beranda) agar anak bisa
+                        // langsung lanjut ke level berikutnya yang terbuka.
+                        onPressed: () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16)),
                         ),
-                        child: Text('🏠 Selesai',
+                        child: Text('Lanjut ➡️',
                             style: GoogleFonts.nunito(
                                 fontWeight: FontWeight.w800, color: Colors.white)),
                       ),
