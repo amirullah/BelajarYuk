@@ -11,8 +11,11 @@ class ChildProfile {
   /// Kelas tertinggi yang sudah terbuka (mulai dari 1).
   int unlockedGrade;
 
-  /// Koin virtual (dari menyelesaikan level) — untuk kustomisasi avatar nanti.
+  /// Koin virtual (dari menyelesaikan level) — untuk kustomisasi avatar.
   int coins;
+
+  /// Avatar yang sudah dimiliki (bisa dibeli dengan koin di toko).
+  final List<String> ownedAvatars;
 
   ChildProfile({
     required this.id,
@@ -21,7 +24,19 @@ class ChildProfile {
     Map<String, int>? stars,
     this.unlockedGrade = 1,
     this.coins = 0,
-  }) : stars = stars ?? {};
+    List<String>? ownedAvatars,
+  })  : stars = stars ?? {},
+        ownedAvatars = ownedAvatars ?? [avatar];
+
+  bool ownsAvatar(String a) => ownedAvatars.contains(a);
+
+  /// Beli avatar bila koin cukup & belum dimiliki. Return true bila sukses.
+  bool buyAvatar(String a, int cost) {
+    if (ownsAvatar(a) || coins < cost) return false;
+    coins -= cost;
+    ownedAvatars.add(a);
+    return true;
+  }
 
   int starsFor(String levelId) => stars[levelId] ?? 0;
   bool isPassed(String levelId) => (stars[levelId] ?? 0) > 0;
@@ -45,6 +60,7 @@ class ChildProfile {
         'stars': stars,
         'unlockedGrade': unlockedGrade,
         'coins': coins,
+        'ownedAvatars': ownedAvatars,
       };
 
   factory ChildProfile.fromJson(Map<String, dynamic> j) => ChildProfile(
@@ -57,5 +73,6 @@ class ChildProfile {
             {},
         unlockedGrade: (j['unlockedGrade'] as num?)?.toInt() ?? 1,
         coins: (j['coins'] as num?)?.toInt() ?? 0,
+        ownedAvatars: (j['ownedAvatars'] as List?)?.cast<String>(),
       );
 }

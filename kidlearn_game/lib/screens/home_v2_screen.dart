@@ -9,6 +9,7 @@ import 'level_map_screen.dart';
 import 'login_screen.dart';
 import 'profile_select_screen.dart';
 import 'about_screen.dart';
+import 'avatar_shop_screen.dart';
 
 /// Beranda BelajarYuk! 2.0 — pilih mata pelajaran (Kelas 1).
 class HomeV2Screen extends StatefulWidget {
@@ -55,7 +56,8 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
               // ── Sapaan + maskot ──
               Row(
                 children: [
-                  const Text('🦊', style: TextStyle(fontSize: 44)),
+                  Text(_profile?.avatar ?? '🦊',
+                      style: const TextStyle(fontSize: 44)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -70,17 +72,24 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: kStar.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
+                  GestureDetector(
+                    onTap: () async {
+                      await Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => const AvatarShopScreen()));
+                      _init();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: kStar.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                          '⭐ ${_profile?.totalStars() ?? 0}  🪙 ${_profile?.coins ?? 0}',
+                          style: GoogleFonts.nunito(
+                              fontWeight: FontWeight.w800, color: kAccent)),
                     ),
-                    child: Text(
-                        '⭐ ${_profile?.totalStars() ?? 0}  🪙 ${_profile?.coins ?? 0}',
-                        style: GoogleFonts.nunito(
-                            fontWeight: FontWeight.w800, color: kAccent)),
                   ),
                   IconButton(
                     onPressed: _openAccount,
