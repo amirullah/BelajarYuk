@@ -38,11 +38,15 @@ class _UkuMascotState extends State<UkuMascot> {
     'Terus semangat!', 'Jangan menyerah ya!', 'Aku bangga padamu!',
     'Yuk lanjut main!', 'Pintar sekali! 🎉', 'Hebat, teruskan!',
     'Belajar itu seru!', 'Ayo kumpulkan bintang! ⭐', 'Kamu juara! 🏆',
+    'Huu-huu! Halo!', 'Aku Uku, temanmu! 🦉', 'Ayo belajar bareng!',
+    'Kamu makin pintar! 🧠', 'Asyik, main lagi yuk!', 'Wah, jagoan! 🔥',
+    'Uku sayang kamu! ❤️', 'Ayo, satu lagi! 🚀',
   ];
 
   final _rng = Random();
   String _expr = 'happy';
   int _tapTick = 0;
+  int _phraseTurn = -1; // agar frasa tak berulang berturut-turut
   int _animStyle = 0;
   String? _bubbleText;
   Timer? _bubbleTimer;
@@ -88,17 +92,22 @@ class _UkuMascotState extends State<UkuMascot> {
       _animStyle = _rng.nextInt(4);
       _tapTick++;
       if (widget.bubble) {
-        _bubbleText = _phrases[_rng.nextInt(_phrases.length)];
+        int p = _phraseTurn;
+        while (p == _phraseTurn) {
+          p = _rng.nextInt(_phrases.length);
+        }
+        _phraseTurn = p;
+        _bubbleText = _phrases[p];
         _bubbleTimer?.cancel();
         _bubbleTimer = Timer(const Duration(milliseconds: 2600), () {
           if (mounted) setState(() => _bubbleText = null);
         });
       }
     });
-    // Suara lembut & tidak mengganggu: umumnya "bloop" khas Uku; sesekali
-    // (tiap kelipatan 4 sentuhan) diselingi kata ceria suara anak (TTS).
+    // Suara lembut: umumnya "bloop" khas Uku; sesekali (tiap kelipatan 4
+    // sentuhan) diselingi CELETUKAN bersuara khas Uku (nada tinggi & lucu).
     if (_tapTick % 4 == 0) {
-      TtsService.instance.praise();
+      TtsService.instance.ukuSay();
     } else {
       SfxService.instance.uku();
     }

@@ -244,6 +244,13 @@ function sync(): void {
         try {
             db()->prepare('UPDATE profiles SET state = ? WHERE id = ?')
                 ->execute([json_encode($b['state']), $profileId]);
+            // Sinkronkan juga KOLOM avatar (dipakai leaderboard & refresh profil)
+            // agar avatar yang diganti benar-benar tampil di mana-mana.
+            $av = $b['state']['avatar'] ?? null;
+            if (is_string($av) && $av !== '') {
+                db()->prepare('UPDATE profiles SET avatar = ? WHERE id = ?')
+                    ->execute([$av, $profileId]);
+            }
         } catch (Throwable $e) {}
     }
 

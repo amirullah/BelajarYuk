@@ -118,6 +118,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _musicTile(),
           _tile(Icons.bar_chart_rounded, 'Progres Anak', 'Lihat kemajuan per mapel',
               _openDashboard),
+          _tile(Icons.explore_rounded, 'Mode Review (Buka Semua Kelas)',
+              'Untuk orang tua/guru meninjau soal Kelas 1–6', _openReviewMode),
           if (_loggedIn)
             _tile(Icons.switch_account_rounded, 'Ganti Profil',
                 'Pilih anak lain', () => _push(const ProfileSelectScreen())),
@@ -286,6 +288,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openDashboard() async {
     if (await ParentGate.show(context)) {
       if (mounted) _push(const ParentDashboardScreen());
+    }
+  }
+
+  /// Mode Review: buka semua kelas (1–6) agar orang tua/guru bisa meninjau soal
+  /// tanpa harus menuntaskan setiap kelas. Dilindungi gerbang orang tua.
+  Future<void> _openReviewMode() async {
+    if (!await ParentGate.show(context,
+        reason: 'Mode Review membuka semua kelas untuk ditinjau. '
+            'Jawab soal ini dulu ya.')) {
+      return;
+    }
+    final storage = StorageService();
+    final p = await storage.currentProfile();
+    if (p == null) return;
+    if (p.unlockedGrade < 6) {
+      p.unlockedGrade = 6;
+      await storage.upsertProfile(p);
+      storage.syncProfile(p);
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Semua kelas (1–6) terbuka untuk ditinjau ✅'),
+          behavior: SnackBarBehavior.floating));
     }
   }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,6 +49,19 @@ class _PlayScreenState extends State<PlayScreen> {
 
   Timer? _idleTimer;
   bool _showHint = false;
+  String _hintText = '';
+
+  // Uku "mengintip" menyemangati — kata-katanya selalu berganti (tak berulang
+  // berturut-turut) agar tak membosankan.
+  static const _hintPhrases = [
+    'Ayo, kamu pasti bisa! 💪', 'Baca lagi pelan-pelan ya 🧐',
+    'Huu-huu! Aku percaya padamu! 🌟', 'Tenang, pikirkan dulu ya 😊',
+    'Semangat! Jawabannya dekat lho ✨', 'Kamu hebat, coba lagi! 🎉',
+    'Yuk, pilih yang menurutmu benar! 👍', 'Jangan buru-buru, kamu bisa! 🦉',
+    'Wah, kamu pintar! Ayo jawab 🌈', 'Uku temani kamu, semangat! ❤️',
+  ];
+  int _hintTurn = -1;
+  final _rng = Random();
 
   SubjectInfo get _info => SubjectInfo.of(widget.level.subject);
   Question get _q => _questions[_index];
@@ -56,8 +70,22 @@ class _PlayScreenState extends State<PlayScreen> {
   void _resetIdle() {
     _idleTimer?.cancel();
     if (_showHint) setState(() => _showHint = false);
-    _idleTimer = Timer(const Duration(seconds: 14), () {
-      if (mounted && !_locked) setState(() => _showHint = true);
+    // Lebih sering muncul (±9 dtk) agar Uku terasa hadir menemani.
+    _idleTimer = Timer(const Duration(seconds: 9), () {
+      if (!mounted || _locked) return;
+      // Pilih frasa baru yang beda dari sebelumnya (selalu berganti).
+      int next = _hintTurn;
+      while (next == _hintTurn) {
+        next = _rng.nextInt(_hintPhrases.length);
+      }
+      _hintTurn = next;
+      setState(() {
+        _hintText = _hintPhrases[next];
+        _showHint = true;
+      });
+      // Suara khas Uku (chirp) + sesekali celetukan bersuara.
+      SfxService.instance.uku();
+      if (_rng.nextBool()) TtsService.instance.ukuSay();
     });
   }
 
@@ -381,13 +409,21 @@ class _PlayScreenState extends State<PlayScreen> {
               ),
             ),
 
-            // ── Maskot Uku menyemangati saat lama diam ──
+            // ── Uku "mengintip" menyemangati (dinamis, kata-kata berganti) ──
             if (_showHint)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                 child: Row(
                   children: [
-                    Image.asset('assets/img/mascot.png', width: 40, height: 40),
+                    // Uku melambai — masuk dari tepi lalu bergoyang gembira.
+                    Image.asset('assets/img/ukus/uku_cheer.png',
+                            width: 46, height: 46)
+                        .animate(onPlay: (c) => c.repeat(reverse: true))
+                        .rotate(
+                            begin: -0.05,
+                            end: 0.05,
+                            duration: 700.ms,
+                            curve: Curves.easeInOut),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Container(
@@ -397,7 +433,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           color: _info.color.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: Text('Ayo, kamu pasti bisa! Coba baca lagi ya 💪',
+                        child: Text(_hintText,
                             style: GoogleFonts.nunito(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w700,
@@ -406,7 +442,14 @@ class _PlayScreenState extends State<PlayScreen> {
                     ),
                   ],
                 ),
-              ).animate().fadeIn(duration: 300.ms).slideX(begin: -0.1, end: 0),
+              )
+                  .animate(key: ValueKey(_hintTurn))
+                  .slideX(
+                      begin: -0.6,
+                      end: 0,
+                      duration: 420.ms,
+                      curve: Curves.easeOutBack)
+                  .fadeIn(duration: 260.ms),
 
             // ── Opsi jawaban ── (beranimasi masuk tiap soal)
             Padding(

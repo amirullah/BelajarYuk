@@ -131,6 +131,22 @@ class TtsService {
     await _tts.speak(_praises[_rng.nextInt(_praises.length)]);
   }
 
+  /// Suara KHAS Uku — nada sangat tinggi & lucu (beda dari suara pujian biasa),
+  /// dengan celetukan khas. Dipakai saat Uku "mengintip" menyemangati.
+  static const _ukuLines = [
+    'Huu-huu! Semangat ya!', 'Uku di sini! Kamu pasti bisa!',
+    'Ayo, aku percaya padamu!', 'Huu! Keren sekali kamu!',
+    'Jangan menyerah, hore!', 'Uku bangga padamu!',
+    'Ayo terus, kamu hebat!', 'Huu-huu! Pintarnya!',
+  ];
+  Future<void> ukuSay([String? text]) async {
+    await _ensure();
+    await _tts.stop();
+    // Pitch mentok tinggi + tempo lincah = karakter suara Uku yang lucu.
+    await _configure(english: false, pitch: 2.0, rate: 0.53);
+    await _tts.speak(text ?? _ukuLines[_rng.nextInt(_ukuLines.length)]);
+  }
+
   /// Kata penyemangat lembut saat jawaban salah.
   Future<void> encourage() async {
     await _ensure();
