@@ -114,19 +114,65 @@ class StorageService {
         .map((e) => {'level_id': e.key, 'stars': e.value, 'best_pct': 0})
         .toList();
 
+    // Kirim state penuh agar koin/lencana/streak/avatar ikut tersimpan &
+    // pulih setelah pasang ulang / pindah perangkat.
+    final state = <String, dynamic>{
+      'coins': profile.coins,
+      'streak': profile.streak,
+      'lastPlayedDate': profile.lastPlayedDate,
+      'badges': profile.badges,
+      'ownedAvatars': profile.ownedAvatars,
+      'avatar': profile.avatar,
+      'lastRewardDate': profile.lastRewardDate,
+      'dailyDate': profile.dailyDate,
+      'dailyCount': profile.dailyCount,
+      'dailyClaimed': profile.dailyClaimed,
+    };
+
     try {
       final res = await api.sync(token, serverId,
-          progress: progressList, unlockedGrade: profile.unlockedGrade);
-      if (res['ok'] == true && res['progress'] is List) {
-        for (final row in res['progress'] as List) {
-          final lid = row['level_id'] as String;
-          final s = (row['stars'] as num?)?.toInt() ?? 0;
-          if (s > (profile.stars[lid] ?? 0)) profile.stars[lid] = s;
+          progress: progressList,
+          unlockedGrade: profile.unlockedGrade,
+          state: state);
+      if (res['ok'] == true) {
+        if (res['progress'] is List) {
+          for (final row in res['progress'] as List) {
+            final lid = row['level_id'] as String;
+            final s = (row['stars'] as num?)?.toInt() ?? 0;
+            if (s > (profile.stars[lid] ?? 0)) profile.stars[lid] = s;
+          }
+        }
+        if (res['state'] is Map) {
+          _mergeState(profile, (res['state'] as Map).cast<String, dynamic>());
         }
         await upsertProfile(profile);
       }
     } catch (_) {
       // Diam saja bila offline — progres lokal tetap aman.
+    }
+  }
+
+  /// Gabungkan state server ke profil lokal (ambil yang lebih banyak; setelah
+  /// pasang-ulang lokal kosong → adopsi nilai server).
+  void _mergeState(ChildProfile p, Map<String, dynamic> s) {
+    int mx(int a, dynamic b) =>
+        b is num && b.toInt() > a ? b.toInt() : a;
+    p.coins = mx(p.coins, s['coins']);
+    p.streak = mx(p.streak, s['streak']);
+    for (final b in (s['badges'] as List?)?.cast<String>() ?? const []) {
+      if (!p.badges.contains(b)) p.badges.add(b);
+    }
+    for (final a in (s['ownedAvatars'] as List?)?.cast<String>() ?? const []) {
+      if (!p.ownedAvatars.contains(a)) p.ownedAvatars.add(a);
+    }
+    // Field harian/tanggal: adopsi server hanya bila lokal belum punya
+    // (mencegah hadiah harian dobel setelah pasang ulang di hari yang sama).
+    p.lastPlayedDate ??= s['lastPlayedDate'] as String?;
+    p.lastRewardDate ??= s['lastRewardDate'] as String?;
+    if (p.dailyDate == null && s['dailyDate'] != null) {
+      p.dailyDate = s['dailyDate'] as String?;
+      p.dailyCount = (s['dailyCount'] as num?)?.toInt() ?? 0;
+      p.dailyClaimed = s['dailyClaimed'] as bool? ?? false;
     }
   }
 

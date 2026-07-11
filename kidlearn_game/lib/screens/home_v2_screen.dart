@@ -36,8 +36,12 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
   Future<void> _init() async {
     final p = await _storage.ensureLocalProfile();
     await _storage.touchStreak(p);
+    if (mounted) setState(() => _profile = p); // tampilkan cepat dari lokal
+    // Tarik progres + state dari server (bila login) — memulihkan koin/lencana/
+    // bintang/streak setelah pasang ulang atau pindah perangkat.
+    await _storage.syncProfile(p);
     if (mounted) setState(() => _profile = p);
-    // Hadiah harian saat pertama buka hari ini.
+    // Hadiah harian (setelah sync agar tak dobel bila sudah klaim di perangkat lain).
     final reward = await _storage.claimDailyReward(p);
     if (reward > 0 && mounted) {
       setState(() {});

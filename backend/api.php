@@ -162,6 +162,25 @@ function delete_profile(): void {
     send_json(['ok' => true]);
 }
 
+// Pastikan kolom `state` (JSON koin/lencana/streak/avatar) ada di profiles.
+function ensure_state_column(): void {
+    static $done = false;
+    if ($done) return;
+    try {
+        $c = cfg();
+        $q = db()->prepare(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'profiles' AND COLUMN_NAME = 'state'");
+        $q->execute([$c['db_name']]);
+        if ((int) $q->fetchColumn() === 0) {
+            db()->exec('ALTER TABLE profiles ADD COLUMN state MEDIUMTEXT NULL');
+        }
+    } catch (Throwable $e) {
+        // Bila gagal (mis. izin), sync tetap jalan tanpa state.
+    }
+    $done = true;
+}
+
 // ── Sinkronisasi progres (pull-on-open) ──
 function sync(): void {
     $uid = auth_user();
@@ -171,6 +190,15 @@ function sync(): void {
     $chk = db()->prepare('SELECT id FROM profiles WHERE id = ? AND user_id = ?');
     $chk->execute([$profileId, $uid]);
     if (!$chk->fetch()) fail('Profil tidak ditemukan', 404);
+
+    ensure_state_column();
+    // Simpan state penuh (koin/lencana/streak/avatar/harian) bila dikirim.
+    if (isset($b['state']) && is_array($b['state'])) {
+        try {
+            db()->prepare('UPDATE profiles SET state = ? WHERE id = ?')
+                ->execute([json_encode($b['state']), $profileId]);
+        } catch (Throwable $e) {}
+    }
 
     // Upsert progres yang dikirim app.
     if (!empty($b['progress']) && is_array($b['progress'])) {
@@ -207,10 +235,17 @@ function sync(): void {
          ON DUPLICATE KEY UPDATE score = GREATEST(score, VALUES(score))'
     )->execute([$profileId, $grade, $week, $totalStars]);
 
-    // Kembalikan progres terbaru dari server.
+    // Kembalikan progres + state terbaru dari server.
     $st = db()->prepare('SELECT level_id, stars, best_pct FROM progress WHERE profile_id = ?');
     $st->execute([$profileId]);
-    send_json(['ok' => true, 'progress' => $st->fetchAll()]);
+    $stateRow = null;
+    try {
+        $sq = db()->prepare('SELECT state FROM profiles WHERE id = ?');
+        $sq->execute([$profileId]);
+        $raw = $sq->fetchColumn();
+        if ($raw) $stateRow = json_decode($raw, true);
+    } catch (Throwable $e) {}
+    send_json(['ok' => true, 'progress' => $st->fetchAll(), 'state' => $stateRow]);
 }
 
 // ── Leaderboard per kelas per minggu ──

@@ -106,11 +106,13 @@ class ApiService {
     int profileId, {
     required List<Map<String, dynamic>> progress,
     required int unlockedGrade,
+    Map<String, dynamic>? state,
   }) =>
       _post('sync', {
         'profile_id': profileId,
         'progress': progress,
         'unlocked_grade': unlockedGrade,
+        if (state != null) 'state': state,
       }, token: token);
 
   // ── Leaderboard ── (week opsional; server default ke minggu berjalan)
