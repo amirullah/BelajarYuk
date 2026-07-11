@@ -77,7 +77,8 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                       color: kStar.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Text('⭐ ${_profile?.totalStars() ?? 0}',
+                    child: Text(
+                        '⭐ ${_profile?.totalStars() ?? 0}  🪙 ${_profile?.coins ?? 0}',
                         style: GoogleFonts.nunito(
                             fontWeight: FontWeight.w800, color: kAccent)),
                   ),

@@ -27,6 +27,7 @@ class LevelResultScreen extends StatefulWidget {
 
 class _LevelResultScreenState extends State<LevelResultScreen> {
   bool _newRecord = false;
+  int _earned = 0;
 
   LevelResult get _result =>
       LevelResult(correct: widget.correct, total: widget.total);
@@ -43,6 +44,10 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
     if (profile == null) return;
     final isRecord = await storage.recordLevelResult(
         profile, widget.level.id, _result.stars, _result.percent.round());
+    // Koin: 2 per jawaban benar + 5 per bintang.
+    final earned = widget.correct * 2 + _result.stars * 5;
+    profile.coins += earned;
+    await storage.upsertProfile(profile);
     // Buka kelas berikutnya bila boss level lulus.
     if (widget.level.isBoss &&
         _result.passed(widget.level) &&
@@ -52,7 +57,10 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
     }
     unawaited(storage.syncProfile(profile));
     if (mounted) {
-      setState(() => _newRecord = isRecord);
+      setState(() {
+        _newRecord = isRecord;
+        _earned = earned;
+      });
     }
   }
 
@@ -80,7 +88,20 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
                 ).animate().fadeIn(delay: 200.ms),
                 const SizedBox(height: 20),
                 ScoreStars(stars: _result.stars),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
+                if (_earned > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: kStar.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text('🪙 +$_earned koin',
+                        style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.w800, color: kAccent)),
+                  ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.4, end: 0),
+                const SizedBox(height: 12),
                 ScoreLabel(score: widget.correct, total: widget.total),
                 const SizedBox(height: 8),
                 Text('$pct% benar · butuh ${widget.level.passPercent}% lulus',

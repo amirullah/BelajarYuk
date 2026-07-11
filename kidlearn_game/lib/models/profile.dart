@@ -11,12 +11,16 @@ class ChildProfile {
   /// Kelas tertinggi yang sudah terbuka (mulai dari 1).
   int unlockedGrade;
 
+  /// Koin virtual (dari menyelesaikan level) — untuk kustomisasi avatar nanti.
+  int coins;
+
   ChildProfile({
     required this.id,
     required this.name,
     this.avatar = '🦊',
     Map<String, int>? stars,
     this.unlockedGrade = 1,
+    this.coins = 0,
   }) : stars = stars ?? {};
 
   int starsFor(String levelId) => stars[levelId] ?? 0;
@@ -40,6 +44,7 @@ class ChildProfile {
         'avatar': avatar,
         'stars': stars,
         'unlockedGrade': unlockedGrade,
+        'coins': coins,
       };
 
   factory ChildProfile.fromJson(Map<String, dynamic> j) => ChildProfile(
@@ -51,5 +56,6 @@ class ChildProfile {
             ) ??
             {},
         unlockedGrade: (j['unlockedGrade'] as num?)?.toInt() ?? 1,
+        coins: (j['coins'] as num?)?.toInt() ?? 0,
       );
 }
