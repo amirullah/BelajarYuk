@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/level.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
+import '../widgets/confetti_overlay.dart';
 import '../widgets/score_stars.dart';
 import '../utils/app_colors.dart';
 import 'play_screen.dart';
@@ -83,7 +84,9 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
     final int pct = _result.percent.round();
     return Scaffold(
       backgroundColor: kBg,
-      body: SafeArea(
+      body: Stack(
+        children: [
+          SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -176,6 +179,9 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
             ),
           ),
         ),
+      ),
+          if (passed) const ConfettiOverlay(),
+        ],
       ),
     );
   }

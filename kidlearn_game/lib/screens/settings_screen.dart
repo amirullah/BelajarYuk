@@ -107,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text('Musik Latar',
             style: GoogleFonts.nunito(
                 fontWeight: FontWeight.w800, color: kDark)),
-        subtitle: Text('Musik lembut di beranda',
+        subtitle: Text('Musik ceria berbeda tiap pelajaran',
             style: GoogleFonts.nunito(fontSize: 12, color: kMuted)),
         activeColor: kPrimary,
         value: _music,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 // ── Brand & netral ──
-const Color kPrimary = Color(0xFF6C63FF); // Ungu brand
-const Color kPrimaryDark = Color(0xFF3B37C8);
-const Color kBg = Color(0xFFF8F9FF); // Latar terang
+const Color kPrimary = Color(0xFF2B7FFF); // Biru brand (ceria)
+const Color kPrimaryDark = Color(0xFF1B5FD9);
+const Color kPrimaryLight = Color(0xFF5AA0FF);
+const Color kBg = Color(0xFFEFF5FF); // Latar biru muda
 const Color kSurface = Color(0xFFFFFFFF);
 const Color kAccent = Color(0xFFFF9F43); // Oranye aksen
 const Color kDark = Color(0xFF2D3436); // Teks gelap

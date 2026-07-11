@@ -46,6 +46,19 @@ class _PlayScreenState extends State<PlayScreen> {
     super.initState();
     _questions = LevelService().buildQuestions(widget.level);
     _setupMatching();
+    _maybeAutoPlay();
+  }
+
+  /// Untuk soal "dengar", bacakan otomatis audioText saat soal muncul.
+  void _maybeAutoPlay() {
+    if (_q.type == QuestionType.listening && (_q.audioText ?? '').isNotEmpty) {
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted) {
+          TtsService.instance.speak(_q.audioText!,
+              english: widget.level.subject == Subject.english);
+        }
+      });
+    }
   }
 
   /// Siapkan urutan kolom kanan (acak) untuk soal pasangkan.
@@ -144,6 +157,7 @@ class _PlayScreenState extends State<PlayScreen> {
       _fill.clear();
       _setupMatching();
     });
+    _maybeAutoPlay();
   }
 
   @override
@@ -257,9 +271,50 @@ class _PlayScreenState extends State<PlayScreen> {
         return _fillInput();
       case QuestionType.matching:
         return _matchingArea();
+      case QuestionType.imageChoice:
+        return _imageGrid();
       default:
         return _mcGrid();
     }
+  }
+
+  /// Grid pilih-gambar: emoji besar yang bisa diketuk.
+  Widget _imageGrid() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: 1.5,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      children: List.generate(_q.options.length, (i) {
+        final state = _correctness(i);
+        Color bg = kSurface;
+        Color border = kMuted.withOpacity(0.25);
+        if (state == true) {
+          bg = kSuccess.withOpacity(0.18);
+          border = kSuccess;
+        } else if (state == false) {
+          bg = kError.withOpacity(0.18);
+          border = kError;
+        }
+        return GestureDetector(
+          onTap: () => _answer(i),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: border, width: 2.5),
+            ),
+            child: Center(
+              child: Text(_q.options[i],
+                  style: const TextStyle(fontSize: 52)),
+            ),
+          ),
+        );
+      }),
+    );
   }
 
   Widget _matchingArea() {

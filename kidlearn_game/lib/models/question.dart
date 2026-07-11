@@ -67,6 +67,49 @@ class Question {
     );
   }
 
+  /// Pintasan membuat soal Pilih Gambar (klik emoji/gambar yang benar).
+  /// [imageOptions] berisi emoji/gambar; [correctIndex] menunjuk yang benar.
+  factory Question.imageChoice({
+    required String question,
+    required List<String> imageOptions,
+    required int correctIndex,
+    String emoji = '',
+    String? audioText,
+    String? explanation,
+    String? objectiveCode,
+  }) {
+    return Question(
+      question: question,
+      emoji: emoji,
+      options: imageOptions,
+      correctIndex: correctIndex,
+      explanation: explanation,
+      type: QuestionType.imageChoice,
+      audioText: audioText,
+      objectiveCode: objectiveCode,
+    );
+  }
+
+  /// Pintasan membuat soal Dengar (TTS) lalu pilih jawaban.
+  factory Question.listening({
+    required String question,
+    required List<String> options,
+    required int correctIndex,
+    required String audioText,
+    String emoji = '🎧',
+    String? objectiveCode,
+  }) {
+    return Question(
+      question: question,
+      emoji: emoji,
+      options: options,
+      correctIndex: correctIndex,
+      type: QuestionType.listening,
+      audioText: audioText,
+      objectiveCode: objectiveCode,
+    );
+  }
+
   /// Pintasan membuat soal Benar/Salah.
   factory Question.trueFalse({
     required String statement,

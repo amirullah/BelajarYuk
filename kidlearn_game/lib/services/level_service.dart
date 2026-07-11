@@ -20,7 +20,18 @@ class LevelService {
 
   List<Question> buildQuestions(GameLevel level) {
     if (level.subject == Subject.math) {
-      return MathGenerator().generate(level.grade, count: level.questionCount);
+      final qs = MathGenerator().generate(level.grade, count: level.questionCount);
+      // Selipkan 1-2 soal "pilih gambar" untuk kelas kecil agar lebih variatif.
+      if (level.grade <= 2) {
+        final imgs = List<Question>.from(_imageChoiceExtras(Subject.math))
+          ..shuffle(_rng);
+        for (int k = 0; k < imgs.length && k < 2; k++) {
+          final pos = 1 + _rng.nextInt(qs.length);
+          qs.insert(pos.clamp(0, qs.length), imgs[k]);
+        }
+        return _avoidMonotony(qs.take(level.questionCount).toList());
+      }
+      return qs;
     }
 
     // Bank soal per mapel (saat ini Kelas 1; kelas lain menyusul).
@@ -69,14 +80,112 @@ class LevelService {
     }
   }
 
+  /// Soal "pilih gambar" (klik emoji) — cocok untuk anak yang belum lancar baca.
+  List<Question> _imageChoiceExtras(Subject s) {
+    switch (s) {
+      case Subject.english:
+        return [
+          Question.imageChoice(
+              question: 'Which one is an apple?',
+              imageOptions: ['🍎', '🍌', '🐶', '🚗'],
+              correctIndex: 0,
+              audioText: 'apple'),
+          Question.imageChoice(
+              question: 'Which one is a cat?',
+              imageOptions: ['🐱', '🐘', '🍇', '⚽'],
+              correctIndex: 0,
+              audioText: 'cat'),
+          Question.imageChoice(
+              question: 'Which one can fly?',
+              imageOptions: ['🐦', '🐟', '🐢', '🚲'],
+              correctIndex: 0),
+        ];
+      case Subject.math:
+        return [
+          Question.imageChoice(
+              question: 'Mana yang berjumlah 3?',
+              imageOptions: ['🍎🍎🍎', '🍎', '🍎🍎', '🍎🍎🍎🍎'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana kelompok yang paling banyak?',
+              imageOptions: ['⭐⭐⭐⭐', '⭐', '⭐⭐', '⭐⭐⭐'],
+              correctIndex: 0),
+        ];
+      case Subject.science:
+        return [
+          Question.imageChoice(
+              question: 'Mana yang termasuk hewan?',
+              imageOptions: ['🐘', '🌳', '🚗', '⛰️'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana yang tumbuh di pohon?',
+              imageOptions: ['🍎', '🐟', '🚙', '👟'],
+              correctIndex: 0),
+        ];
+      case Subject.indonesian:
+        return [
+          Question.imageChoice(
+              question: 'Mana yang termasuk buah?',
+              imageOptions: ['🍌', '🪑', '👕', '⚽'],
+              correctIndex: 0),
+        ];
+      case Subject.socialStudies:
+        return [
+          Question.imageChoice(
+              question: 'Mana alat transportasi?',
+              imageOptions: ['🚌', '🍎', '📚', '🌻'],
+              correctIndex: 0),
+        ];
+      case Subject.religion:
+        return [
+          Question.imageChoice(
+              question: 'Mana tempat ibadah umat Islam?',
+              imageOptions: ['🕌', '⛪', '🏫', '🏥'],
+              correctIndex: 0),
+        ];
+    }
+  }
+
+  /// Soal "dengar" (TTS auto) — latih menyimak; pilih jawaban yang benar.
+  List<Question> _listeningExtras(Subject s) {
+    switch (s) {
+      case Subject.english:
+        return [
+          Question.listening(
+              question: '🎧 Dengar, lalu pilih kata yang benar',
+              audioText: 'banana',
+              options: ['banana', 'apple', 'orange', 'grape'],
+              correctIndex: 0),
+          Question.listening(
+              question: '🎧 Listen and choose the animal you hear',
+              audioText: 'elephant',
+              options: ['elephant', 'tiger', 'rabbit', 'monkey'],
+              correctIndex: 0),
+        ];
+      case Subject.indonesian:
+        return [
+          Question.listening(
+              question: '🎧 Dengar, lalu pilih kata yang benar',
+              audioText: 'kucing',
+              options: ['kucing', 'anjing', 'burung', 'ikan'],
+              correctIndex: 0),
+        ];
+      default:
+        return const [];
+    }
+  }
+
   List<Question> _bankFor(Subject s, int grade) {
-    if (grade <= 2 && s != Subject.math) {
-      final extras = _matchingExtras(s);
-      final base = grade == 1
-          ? ContentKelas1.forSubject(s)
-          : ContentKelas2.forSubject(s);
+    if (grade <= 3 && s != Subject.math) {
+      final extras = [..._matchingExtras(s), ..._imageChoiceExtras(s)];
+      if (grade <= 2) extras.addAll(_listeningExtras(s));
+      final base = _rawBank(s, grade);
       return [...base, ...extras];
     }
+    return _rawBank(s, grade);
+  }
+
+  List<Question> _rawBank(Subject s, int grade) {
     switch (grade) {
       case 1:
         return ContentKelas1.forSubject(s);

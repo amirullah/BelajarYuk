@@ -5,10 +5,10 @@ import cairosvg, os
 OWL = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#8B7BFF"/><stop offset="1" stop-color="#6C63FF"/>
+      <stop offset="0" stop-color="#5AA0FF"/><stop offset="1" stop-color="#2B7FFF"/>
     </linearGradient>
     <linearGradient id="belly" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EFECFF"/>
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E6F1FF"/>
     </linearGradient>
   </defs>
 
@@ -16,8 +16,8 @@ OWL = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <ellipse cx="256" cy="470" rx="120" ry="20" fill="#000000" opacity="0.08"/>
 
   <!-- sayap kiri & kanan -->
-  <path d="M120,240 C80,270 80,360 140,380 C150,320 150,270 160,250 Z" fill="#5B52E0"/>
-  <path d="M392,240 C432,270 432,360 372,380 C362,320 362,270 352,250 Z" fill="#5B52E0"/>
+  <path d="M120,240 C80,270 80,360 140,380 C150,320 150,270 160,250 Z" fill="#1B6FE0"/>
+  <path d="M392,240 C432,270 432,360 372,380 C362,320 362,270 352,250 Z" fill="#1B6FE0"/>
 
   <!-- badan -->
   <path d="M256,110 C160,110 120,190 120,270 C120,370 180,440 256,440
@@ -28,8 +28,8 @@ OWL = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
            C297,415 332,375 332,315 C332,260 307,220 256,220 Z" fill="url(#belly)"/>
 
   <!-- jambul/telinga -->
-  <path d="M170,140 C160,105 185,95 205,120 C195,130 180,140 170,140 Z" fill="#5B52E0"/>
-  <path d="M342,140 C352,105 327,95 307,120 C317,130 332,140 342,140 Z" fill="#5B52E0"/>
+  <path d="M170,140 C160,105 185,95 205,120 C195,130 180,140 170,140 Z" fill="#1B6FE0"/>
+  <path d="M342,140 C352,105 327,95 307,120 C317,130 332,140 342,140 Z" fill="#1B6FE0"/>
 
   <!-- mata (piringan) -->
   <circle cx="205" cy="230" r="62" fill="#FFFFFF"/>

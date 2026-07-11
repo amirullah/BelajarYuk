@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/level.dart';
 import '../models/subject.dart';
 import '../models/profile.dart';
+import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import 'play_screen.dart';
@@ -30,6 +31,15 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
     super.initState();
     _levels = GameLevel.buildGrade(widget.subject, widget.grade);
     _load();
+    // Musik khas mata pelajaran ini (agar tak bosan).
+    SfxService.instance.playMusic(widget.subject.name);
+  }
+
+  @override
+  void dispose() {
+    // Kembali ke beranda → musik beranda.
+    SfxService.instance.playMusic('home');
+    super.dispose();
   }
 
   Future<void> _load() async {

@@ -28,7 +28,7 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
   void initState() {
     super.initState();
     _init();
-    SfxService.instance.startMusic(); // musik latar (bila diaktifkan)
+    SfxService.instance.playMusic('home'); // musik beranda (bila diaktifkan)
   }
 
   Future<void> _init() async {
@@ -212,7 +212,7 @@ class _WelcomeBanner extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF8B7BFF), kPrimary],
+          colors: [kPrimaryLight, kPrimary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
