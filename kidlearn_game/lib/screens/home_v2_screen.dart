@@ -6,10 +6,9 @@ import '../models/profile.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import 'level_map_screen.dart';
-import 'login_screen.dart';
-import 'profile_select_screen.dart';
 import 'about_screen.dart';
 import 'avatar_shop_screen.dart';
+import 'settings_screen.dart';
 
 /// Beranda BelajarYuk! 2.0 — pilih mata pelajaran (Kelas 1).
 class HomeV2Screen extends StatefulWidget {
@@ -35,11 +34,8 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
   }
 
   Future<void> _openAccount() async {
-    final loggedIn = await _storage.isLoggedIn;
-    if (!mounted) return;
-    await Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) =>
-            loggedIn ? const ProfileSelectScreen() : const LoginScreen()));
+    await Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const SettingsScreen()));
     _init(); // segarkan profil aktif setelah kembali
   }
 
