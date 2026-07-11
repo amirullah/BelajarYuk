@@ -6,6 +6,8 @@ import '../models/profile.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import 'level_map_screen.dart';
+import 'login_screen.dart';
+import 'profile_select_screen.dart';
 
 /// Beranda BelajarYuk! 2.0 — pilih mata pelajaran (Kelas 1).
 class HomeV2Screen extends StatefulWidget {
@@ -28,6 +30,15 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
   Future<void> _init() async {
     final p = await _storage.ensureLocalProfile();
     if (mounted) setState(() => _profile = p);
+  }
+
+  Future<void> _openAccount() async {
+    final loggedIn = await _storage.isLoggedIn;
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) =>
+            loggedIn ? const ProfileSelectScreen() : const LoginScreen()));
+    _init(); // segarkan profil aktif setelah kembali
   }
 
   @override
@@ -68,6 +79,12 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                     child: Text('⭐ ${_profile?.totalStars() ?? 0}',
                         style: GoogleFonts.nunito(
                             fontWeight: FontWeight.w800, color: kAccent)),
+                  ),
+                  IconButton(
+                    onPressed: _openAccount,
+                    icon: const Icon(Icons.account_circle_outlined),
+                    color: kPrimary,
+                    tooltip: 'Akun & Profil',
                   ),
                 ],
               ),
