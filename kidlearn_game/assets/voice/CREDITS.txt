@@ -1,6 +1,8 @@
-Efek suara anak (child voice) — Lisensi CC0 / Public Domain (bebas komersial, tanpa atribusi):
-- voice_yay.wav  : "Baby Language - Yay" oleh FunWithSound
-                   https://freesound.org/people/FunWithSound/sounds/416696/  (CC0)
+Efek suara anak (child voice) — Lisensi CC0 / Public Domain (bebas komersial, tanpa atribusi).
+Sudah dinormalisasi & dipangkas (WAV) agar seimbang & singkat.
+- voice_yay.wav : "G29-61 Children Cheering" oleh craigsmith  (CC0)
+                  https://freesound.org/people/craigsmith/sounds/438421/
+- voice_wow.wav : "Voice_Child_WowCelebration" oleh MrFossy   (CC0)
+                  https://freesound.org/people/MrFossy/sounds/521900/
 
-Silakan ganti file ini dengan rekaman suara anak Anda sendiri (nama file tetap
-sama) bila ingin suara khas. Format: mp3/wav/ogg.
+Ganti file ini dengan rekaman suara anak Anda sendiri (nama file sama) bila mau.

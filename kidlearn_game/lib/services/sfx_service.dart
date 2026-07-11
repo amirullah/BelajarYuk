@@ -40,8 +40,9 @@ class SfxService {
     'home', 'math', 'english', 'indonesian', 'science', 'religion',
     'socialStudies',
   ];
-  // Rekaman suara anak (CC0, sudah dinormalisasi keras). Bisa diganti pengguna.
-  static const _voiceFiles = ['voice_yay.wav'];
+  // Rekaman suara anak (CC0, dinormalisasi & dipangkas). Diputar bergiliran
+  // agar bervariasi. Bisa diganti/ditambah pengguna.
+  static const _voiceFiles = ['voice_yay.wav', 'voice_wow.wav'];
 
   bool get hasVoice => _voiceIds.isNotEmpty;
 

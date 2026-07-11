@@ -79,6 +79,7 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
     final storage = StorageService();
     final profile = await storage.currentProfile();
     if (profile == null) return;
+    final wasPassed = profile.isPassed(widget.level.id); // sudah pernah lulus?
     final isRecord = await storage.recordLevelResult(
         profile, widget.level.id, _result.stars, _result.percent.round());
     // Koin: 2 per jawaban benar + 5 per bintang + bonus combo.
@@ -92,9 +93,10 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
       profile.unlockedGrade = widget.level.grade + 1;
       await storage.upsertProfile(profile);
     }
-    // Tantangan harian (hanya bila lulus) + lencana pencapaian.
+    // Tantangan harian hanya dihitung saat pertama kali lulus level (bukan
+    // ulang) agar tidak bisa "diakali" dengan mengulang level yang sama.
     ({int count, int target, bool justCompleted})? daily;
-    if (_result.passed(widget.level)) {
+    if (_result.passed(widget.level) && !wasPassed) {
       daily = await storage.recordDailyChallenge(profile);
     }
     final newBadges = Achievement.newlyEarned(profile);

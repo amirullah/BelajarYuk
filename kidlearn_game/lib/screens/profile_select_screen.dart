@@ -34,25 +34,41 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
+      // Selalu mulai dari cache lokal (sumber kebenaran untuk koin/bintang/
+      // lencana/streak) lalu GABUNGKAN metadata dari server — JANGAN menimpa.
+      final local = await _storage.loadProfiles();
+      final byId = {for (final p in local) p.id: p};
       final token = await _storage.getToken();
       if (token != null) {
         final res = await _api.profiles(token);
         if (res['ok'] == true && res['profiles'] is List) {
-          _profiles = (res['profiles'] as List).map((p) {
-            return ChildProfile(
-              id: '${p['id']}',
-              name: p['name'] as String,
-              avatar: (p['avatar'] as String?) ?? '🦊',
-              unlockedGrade: (p['unlocked_grade'] as num?)?.toInt() ?? 1,
-            );
-          }).toList();
+          final merged = <ChildProfile>[];
+          for (final raw in (res['profiles'] as List)) {
+            final id = '${raw['id']}';
+            final name = (raw['name'] as String?) ?? 'Anak';
+            final avatar = (raw['avatar'] as String?) ?? '🦊';
+            final ug = (raw['unlocked_grade'] as num?)?.toInt() ?? 1;
+            final existing = byId.remove(id);
+            if (existing != null) {
+              // Pertahankan progres lokal; segarkan nama/avatar/kelas saja.
+              existing.name = name;
+              existing.avatar = avatar;
+              if (ug > existing.unlockedGrade) existing.unlockedGrade = ug;
+              merged.add(existing);
+            } else {
+              merged.add(ChildProfile(
+                  id: id, name: name, avatar: avatar, unlockedGrade: ug));
+            }
+          }
+          // Profil lokal yang belum ada di server (mis. 'local-*') tetap ada.
+          merged.addAll(byId.values);
+          _profiles = merged;
           await _storage.saveProfiles(_profiles);
         } else {
-          // Respons tak sesuai → pakai cache lokal yang ada.
-          _profiles = await _storage.loadProfiles();
+          _profiles = local;
         }
       } else {
-        _profiles = await _storage.loadProfiles();
+        _profiles = local;
       }
     } catch (_) {
       // Offline / lambat / gagal → jangan menggantung, pakai cache lokal.

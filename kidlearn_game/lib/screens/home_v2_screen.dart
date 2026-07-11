@@ -76,10 +76,97 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
     );
   }
 
+  /// Buka mapel. Bila sudah membuka kelas >1, tampilkan pemilih kelas dulu
+  /// sehingga anak bisa memainkan kelas yang sudah terbuka.
+  Future<void> _openSubject(Subject s) async {
+    final unlocked = _profile?.unlockedGrade ?? 1;
+    int grade = 1;
+    if (unlocked > 1) {
+      final chosen = await showModalBottomSheet<int>(
+        context: context,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+        builder: (_) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Text('Pilih Kelas',
+                    style: GoogleFonts.nunito(
+                        fontSize: 18, fontWeight: FontWeight.w900)),
+              ),
+              ...List.generate(unlocked, (i) {
+                final g = i + 1;
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: SubjectInfo.of(s).color.withOpacity(0.15),
+                    child: Text('$g',
+                        style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.w900,
+                            color: SubjectInfo.of(s).color)),
+                  ),
+                  title: Text('Kelas $g',
+                      style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+                  trailing: g == unlocked
+                      ? const Icon(Icons.lock_open_rounded, color: kSuccess)
+                      : null,
+                  onTap: () => Navigator.pop(context, g),
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      );
+      if (chosen == null) return;
+      grade = chosen;
+    }
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => LevelMapScreen(subject: s, grade: grade)));
+    _init(); // segarkan kelas terbuka & koin setelah bermain
+  }
+
   Future<void> _openAccount() async {
     await Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const SettingsScreen()));
     _init(); // segarkan profil aktif setelah kembali
+  }
+
+  /// Chip aksi cepat: ikon berwarna + label kontras (mudah dibaca anak).
+  Widget _actionChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.14),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withOpacity(0.35)),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 26),
+              const SizedBox(height: 4),
+              Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: kDark)),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -92,66 +179,81 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // ── Sapaan + maskot ──
+              // ── Sapaan ──
               Row(
                 children: [
-                  Text(_profile?.avatar ?? '🦊',
-                      style: const TextStyle(fontSize: 44)),
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: kPrimary.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(_profile?.avatar ?? '🦊',
+                        style: const TextStyle(fontSize: 30)),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Halo, ${_profile?.name ?? "Pemain"}! 👋',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.nunito(
-                                fontSize: 22, fontWeight: FontWeight.w900)),
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: kDark)),
                         Text(
                             (_profile?.streak ?? 0) > 1
                                 ? '🔥 ${_profile!.streak} hari beruntun — hebat!'
-                                : 'Ayo belajar sambil bermain — Kelas 1',
+                                : '⭐ ${_profile?.totalStars() ?? 0} bintang · ayo belajar!',
                             style: GoogleFonts.nunito(
-                                fontSize: 13, color: kMuted)),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: kMuted)),
                       ],
                     ),
                   ),
-                  GestureDetector(
+                  IconButton(
+                    onPressed: _openAccount,
+                    icon: const Icon(Icons.settings_rounded),
+                    color: kPrimary,
+                    tooltip: 'Akun & Pengaturan',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // ── Aksi cepat (chip warna, teks kontras) ──
+              Row(
+                children: [
+                  _actionChip(
+                    icon: Icons.storefront_rounded,
+                    label: '${_profile?.coins ?? 0} Koin',
+                    color: kAccent,
                     onTap: () async {
                       await Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => const AvatarShopScreen()));
                       _init();
                     },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: kStar.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                          '⭐ ${_profile?.totalStars() ?? 0}  🪙 ${_profile?.coins ?? 0}',
-                          style: GoogleFonts.nunito(
-                              fontWeight: FontWeight.w800, color: kAccent)),
-                    ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  const SizedBox(width: 10),
+                  _actionChip(
+                    icon: Icons.military_tech_rounded,
+                    label: 'Lencana',
+                    color: kScience,
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const AchievementsScreen())),
-                    icon: const Icon(Icons.military_tech_outlined),
-                    color: kStar,
-                    tooltip: 'Lencana',
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  const SizedBox(width: 10),
+                  _actionChip(
+                    icon: Icons.emoji_events_rounded,
+                    label: 'Peringkat',
+                    color: kEnglish,
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const LeaderboardScreen())),
-                    icon: const Icon(Icons.emoji_events_outlined),
-                    color: kAccent,
-                    tooltip: 'Peringkat',
-                  ),
-                  IconButton(
-                    onPressed: _openAccount,
-                    icon: const Icon(Icons.account_circle_outlined),
-                    color: kPrimary,
-                    tooltip: 'Akun & Profil',
                   ),
                 ],
               ),
@@ -164,12 +266,23 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                   .slideY(begin: 0.1, end: 0),
               const SizedBox(height: 12),
               if (_profile != null) _DailyChallengeCard(profile: _profile!),
-              const SizedBox(height: 12),
+              const SizedBox(height: 18),
+
+              // ── Judul bagian ──
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 10),
+                child: Text('Ayo Belajar! 📚',
+                    style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: kDark)),
+              ),
 
               // ── Kartu mata pelajaran ──
               ...List.generate(SubjectInfo.all.length, (i) {
                 final info = SubjectInfo.all[i];
-                return _SubjectCard(info: info)
+                return _SubjectCard(
+                        info: info, onTap: () => _openSubject(info.subject))
                     .animate()
                     .fadeIn(delay: (80 * i).ms)
                     .slideY(begin: 0.15, end: 0);
@@ -197,15 +310,15 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
 
 class _SubjectCard extends StatelessWidget {
   final SubjectInfo info;
-  const _SubjectCard({required this.info});
+  final VoidCallback onTap;
+  const _SubjectCard({required this.info, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: GestureDetector(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => LevelMapScreen(subject: info.subject, grade: 1))),
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(

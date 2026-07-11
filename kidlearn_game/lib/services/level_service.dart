@@ -20,7 +20,9 @@ class LevelService {
 
   List<Question> buildQuestions(GameLevel level) {
     if (level.subject == Subject.math) {
-      final qs = MathGenerator().generate(level.grade, count: level.questionCount);
+      // Level makin tinggi → soal makin sulit (angka lebih besar).
+      final qs = MathGenerator().generate(level.grade,
+          count: level.questionCount, level: level.index);
       // Selipkan soal variatif (pilih gambar + susun urutan) agar lebih menarik.
       final extras = <Question>[];
       if (level.grade <= 2) extras.addAll(_imageChoiceExtras(Subject.math));

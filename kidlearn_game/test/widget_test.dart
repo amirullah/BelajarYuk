@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,6 +73,24 @@ void main() {
         expect(correct, expected.toString(), reason: q.question);
       }
     }
+  });
+
+  test('Kesulitan Matematika naik seiring naik level', () {
+    int maxOperand(List<Question> qs) {
+      int m = 0;
+      for (final q in qs) {
+        for (final match in RegExp(r'\d+').allMatches(q.question)) {
+          m = max(m, int.parse(match.group(0)!));
+        }
+      }
+      return m;
+    }
+
+    // Kelas 2 (penjumlahan): level 1 kecil, level 12 jauh lebih besar.
+    final easy = MathGenerator(1).generate(2, count: 40, level: 1);
+    final hard = MathGenerator(1).generate(2, count: 40, level: 12);
+    expect(maxOperand(hard) > maxOperand(easy), isTrue,
+        reason: 'Level 12 harus punya angka lebih besar dari level 1');
   });
 
   test('Setiap kelas 1-6 & semua mapel menghasilkan level penuh', () {

@@ -99,7 +99,9 @@ class _GameButtonState extends State<GameButton>
                     style: GoogleFonts.nunito(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: widget.isCorrect == null ? kDark : Colors.white,
+                      // Latar tombol selalu berwarna solid → teks putih paling
+                      // kontras & mudah dibaca anak.
+                      color: Colors.white,
                     ),
                   ),
                 ),
