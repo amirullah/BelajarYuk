@@ -4,6 +4,7 @@ import '../models/subject.dart';
 import '../models/level.dart';
 import '../data/math_generator.dart';
 import '../data/content_kelas1.dart';
+import '../data/content_kelas2.dart';
 
 /// Merakit daftar soal untuk sebuah level.
 /// - Matematika: dihasilkan algoritmik (tak pernah habis).
@@ -33,9 +34,19 @@ class LevelService {
   }
 
   List<Question> _bankFor(Subject s, int grade) {
-    if (grade == 1) return ContentKelas1.forSubject(s);
-    // Kelas 2-6 akan diisi dari bank AI (Supabase/SQLite) nanti.
-    return ContentKelas1.forSubject(s);
+    switch (grade) {
+      case 1:
+        return ContentKelas1.forSubject(s);
+      case 2:
+        return ContentKelas2.forSubject(s);
+      default:
+        // Kelas 3-6: sementara pakai campuran K1+K2 sampai bank AI (per objektif
+        // Cambridge) siap. Struktur sudah sesuai rencana; tinggal isi konten.
+        return [
+          ...ContentKelas2.forSubject(s),
+          ...ContentKelas1.forSubject(s),
+        ];
+    }
   }
 
   /// Hindari tipe soal yang sama muncul >2 kali berturut-turut.

@@ -17,17 +17,53 @@ void main() {
     expect(find.textContaining('Halo'), findsOneWidget);
   });
 
-  test('MathGenerator menghasilkan soal valid', () {
-    final qs = MathGenerator(42).generate(1, count: 15);
-    expect(qs.length, 15);
-    for (final q in qs) {
-      if (q.type == QuestionType.fillBlank) {
-        expect(q.answer, isNotNull);
-        expect(q.answer!.isNotEmpty, isTrue);
-      } else {
-        expect(q.options.length, 4);
-        expect(q.correctIndex, inInclusiveRange(0, 3));
-        expect(q.options[q.correctIndex], isNotEmpty);
+  test('MathGenerator menghasilkan soal valid untuk semua kelas', () {
+    for (int grade = 1; grade <= 6; grade++) {
+      final qs = MathGenerator(42 + grade).generate(grade, count: 15);
+      expect(qs.length, 15);
+      for (final q in qs) {
+        if (q.type == QuestionType.fillBlank) {
+          expect(q.answer, isNotNull);
+          expect(q.answer!.isNotEmpty, isTrue);
+        } else {
+          expect(q.options.length, 4);
+          expect(q.correctIndex, inInclusiveRange(0, 3));
+          expect(q.options[q.correctIndex], isNotEmpty);
+        }
+      }
+    }
+  });
+
+  test('Jawaban aritmatika Kelas 1-3 benar secara matematis', () {
+    final re = RegExp(r'^(\d+) ([+×÷−-]) (\d+) = \?');
+    for (final grade in [1, 2, 3]) {
+      for (final q in MathGenerator(7 + grade).generate(grade, count: 40)) {
+        final correct = q.type == QuestionType.fillBlank
+            ? q.answer!
+            : q.options[q.correctIndex];
+        final m = re.firstMatch(q.question);
+        if (m == null) continue; // soal non-aritmatika
+        final a = int.parse(m.group(1)!);
+        final b = int.parse(m.group(3)!);
+        final int expected;
+        switch (m.group(2)) {
+          case '+':
+            expected = a + b;
+            break;
+          case '−':
+          case '-':
+            expected = a - b;
+            break;
+          case '×':
+            expected = a * b;
+            break;
+          case '÷':
+            expected = a ~/ b;
+            break;
+          default:
+            continue;
+        }
+        expect(correct, expected.toString(), reason: q.question);
       }
     }
   });

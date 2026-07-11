@@ -24,14 +24,59 @@ class MathGenerator {
       case 3:
         return _mulDiv(maxFactor: 10);
       case 4:
-        return _rng.nextBool() ? _mulDiv(maxFactor: 12) : _addSub(maxResult: 1000);
+        // Pecahan, KPK & FPB (sesuai rencana Kelas 4).
+        return _rng.nextBool() ? _factors() : _fractionOf();
       case 5:
-        return _percentOf();
+        // Desimal/persen, luas & volume (Kelas 5).
+        return _rng.nextBool() ? _percentOf() : _areaSquare();
       case 6:
-        return _rng.nextBool() ? _percentOf() : _mulDiv(maxFactor: 20);
+        // Rasio, statistik dasar (Kelas 6).
+        return _rng.nextBool() ? _average() : _ratio();
       default:
         return _addSub(maxResult: 20);
     }
+  }
+
+  // ── KPK & FPB (Kelas 4) ──
+  Question _factors() {
+    final int a = _rng.nextInt(8) + 2;
+    final int b = _rng.nextInt(8) + 2;
+    if (_rng.nextBool()) {
+      return _mc('FPB dari $a dan $b = ?', _gcd(a, b), spread: 2, emoji: '🔢');
+    }
+    final int lcm = a * b ~/ _gcd(a, b);
+    return _mc('KPK dari $a dan $b = ?', lcm,
+        spread: max(2, lcm ~/ 5), emoji: '🔢');
+  }
+
+  // ── Pecahan dari bilangan (Kelas 4) ──
+  Question _fractionOf() {
+    final int denom = [2, 3, 4, 5][_rng.nextInt(4)];
+    final int whole = (_rng.nextInt(6) + 1) * denom;
+    return _mc('1/$denom dari $whole = ?', whole ~/ denom,
+        spread: 2, emoji: '🍰');
+  }
+
+  // ── Luas persegi (Kelas 5) ──
+  Question _areaSquare() {
+    final int s = _rng.nextInt(9) + 2;
+    return _mc('Luas persegi sisi $s = ?', s * s, spread: max(2, s), emoji: '⬛');
+  }
+
+  // ── Rata-rata / statistik dasar (Kelas 6) ──
+  Question _average() {
+    final int avg = _rng.nextInt(8) + 2;
+    return _mc('Rata-rata dari ${avg - 1}, $avg, ${avg + 1} = ?', avg,
+        spread: 2, emoji: '📊');
+  }
+
+  // ── Rasio sederhana (Kelas 6) ──
+  Question _ratio() {
+    final int k = _rng.nextInt(4) + 2; // pengali
+    final int a = _rng.nextInt(4) + 1;
+    final int b = _rng.nextInt(4) + 1;
+    return _mc('$a : $b sama dengan ${a * k} : ?', b * k,
+        spread: max(2, b), emoji: '⚖️');
   }
 
   // ── Penjumlahan / pengurangan ──
