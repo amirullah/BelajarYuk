@@ -22,6 +22,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _storage = StorageService();
   bool _loggedIn = false;
   bool _sfx = SfxService.instance.enabled;
+  bool _music = SfxService.instance.musicEnabled;
 
   @override
   void initState() {
@@ -46,6 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           _soundTile(),
+          _musicTile(),
           _tile(Icons.bar_chart_rounded, 'Progres Anak', 'Lihat kemajuan per mapel',
               () => _push(const ParentDashboardScreen())),
           if (_loggedIn)
@@ -87,6 +89,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
           await SfxService.instance.setEnabled(v);
           if (v) SfxService.instance.correct(); // contoh suara saat dinyalakan
           setState(() => _sfx = v);
+        },
+      ),
+    );
+  }
+
+  Widget _musicTile() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: SwitchListTile(
+        secondary: Icon(_music ? Icons.music_note_rounded : Icons.music_off_rounded,
+            color: kPrimary),
+        title: Text('Musik Latar',
+            style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w800, color: kDark)),
+        subtitle: Text('Musik lembut di beranda',
+            style: GoogleFonts.nunito(fontSize: 12, color: kMuted)),
+        activeColor: kPrimary,
+        value: _music,
+        onChanged: (v) async {
+          await SfxService.instance.setMusicEnabled(v);
+          setState(() => _music = v);
         },
       ),
     );

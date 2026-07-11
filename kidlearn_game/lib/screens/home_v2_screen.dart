@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/subject.dart';
 import '../models/profile.dart';
+import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import 'level_map_screen.dart';
@@ -27,6 +28,7 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
   void initState() {
     super.initState();
     _init();
+    SfxService.instance.startMusic(); // musik latar (bila diaktifkan)
   }
 
   Future<void> _init() async {
