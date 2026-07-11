@@ -108,11 +108,14 @@ class _AvatarShopScreenState extends State<AvatarShopScreen> {
               children: catalog.entries.map((e) {
                 final owned = p.ownsAvatar(e.key);
                 final equipped = p.avatar == e.key;
+                // Terkunci = berbayar, belum dimiliki, koin belum cukup.
+                final locked = e.value > 0 && !owned && p.coins < e.value;
                 return _AvatarTile(
                   emoji: e.key,
                   price: e.value,
                   owned: owned,
                   equipped: equipped,
+                  locked: locked,
                   onTap: () => _tap(e.key, e.value),
                 );
               }).toList(),
@@ -126,6 +129,7 @@ class _AvatarTile extends StatelessWidget {
   final int price;
   final bool owned;
   final bool equipped;
+  final bool locked;
   final VoidCallback onTap;
 
   const _AvatarTile({
@@ -133,6 +137,7 @@ class _AvatarTile extends StatelessWidget {
     required this.price,
     required this.owned,
     required this.equipped,
+    required this.locked,
     required this.onTap,
   });
 
@@ -157,7 +162,18 @@ class _AvatarTile extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 44)),
+            // Terkunci → redup + gembok kecil agar jelas belum bisa dipakai.
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Opacity(
+                  opacity: locked ? 0.35 : 1,
+                  child: Text(emoji, style: const TextStyle(fontSize: 44)),
+                ),
+                if (locked)
+                  const Icon(Icons.lock_rounded, size: 20, color: kMuted),
+              ],
+            ),
             const SizedBox(height: 6),
             if (equipped)
               Text('Dipakai',

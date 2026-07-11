@@ -151,8 +151,8 @@ class LevelService {
               imageOptions: ['☀️', '🌙', '💡', '🔦'],
               correctIndex: 0),
           Question.imageChoice(
-              question: 'Mana bagian tumbuhan yang menyerap air?',
-              imageOptions: ['🌱', '🌸', '🍃', '🍎'],
+              question: 'Mana bunga?',
+              imageOptions: ['🌸', '🍃', '🍎', '🌱'],
               correctIndex: 0),
           Question.imageChoice(
               question: 'Mana benda yang bisa terbang?',

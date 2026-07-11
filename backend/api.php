@@ -292,7 +292,7 @@ function leaderboard(): void {
     $grade = (int) ($_GET['grade'] ?? 1);
     $week = $_GET['week'] ?? date('o-W');
     $st = db()->prepare(
-        'SELECT p.name, p.avatar, l.score FROM leaderboard l
+        'SELECT p.id AS profile_id, p.name, p.avatar, l.score FROM leaderboard l
          JOIN profiles p ON p.id = l.profile_id
          WHERE l.grade = ? AND l.week = ? ORDER BY l.score DESC LIMIT 50'
     );

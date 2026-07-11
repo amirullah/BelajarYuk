@@ -20,6 +20,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   bool _loading = true;
   int _grade = 1;
   String? _myName;
+  String? _myId;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final p = await _storage.currentProfile();
     _grade = p?.unlockedGrade ?? 1;
     _myName = p?.name;
+    _myId = p?.id;
     try {
       final res = await _api.leaderboard(_grade); // server pakai minggu berjalan
       if (res['ok'] == true && res['top'] is List) {
@@ -95,7 +97,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final name = '${e['name'] ?? '-'}';
     final avatar = '${e['avatar'] ?? '🦊'}';
     final score = e['score'] ?? 0;
-    final isMe = name == _myName;
+    // Cocokkan berdasarkan id profil (bukan nama) agar tak salah sorot bila
+    // dua anak bernama sama; fallback ke nama bila id tak tersedia.
+    final rowId = e['profile_id'] == null ? null : '${e['profile_id']}';
+    final isMe = (_myId != null && rowId != null)
+        ? rowId == _myId
+        : name == _myName;
     final medal = rank == 1 ? '🥇' : rank == 2 ? '🥈' : rank == 3 ? '🥉' : '$rank';
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
