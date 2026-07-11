@@ -15,8 +15,7 @@ dependencies:
   google_fonts: ^6.2.1
   http: ^1.2.2
   google_sign_in: ^6.2.1
-  # audio (audioplayers/flutter_tts) ditambахkan saat implementasi audio +
-  # upgrade toolchain (butuh Kotlin 2.x & Android SDK 36)
+  flutter_tts: ^3.8.5 # read-aloud (versi kompatibel Kotlin 1.9 / SDK 34)
 
 dev_dependencies:
   flutter_test:

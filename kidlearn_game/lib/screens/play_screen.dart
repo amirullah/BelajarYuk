@@ -6,6 +6,7 @@ import '../models/level.dart';
 import '../models/question.dart';
 import '../models/subject.dart';
 import '../services/level_service.dart';
+import '../services/tts_service.dart';
 import '../widgets/game_button.dart';
 import '../utils/app_colors.dart';
 import 'level_result_screen.dart';
@@ -43,6 +44,7 @@ class _PlayScreenState extends State<PlayScreen> {
   void dispose() {
     _timer?.cancel();
     _fill.dispose();
+    TtsService.instance.stop();
     super.dispose();
   }
 
@@ -164,6 +166,17 @@ class _PlayScreenState extends State<PlayScreen> {
                         style: GoogleFonts.nunito(
                             fontSize: 22, fontWeight: FontWeight.w800, color: kDark),
                       ).animate().fadeIn(duration: 250.ms),
+                      const SizedBox(height: 8),
+                      // Tombol bacakan (read-aloud) — bantu anak yang belum lancar baca.
+                      IconButton(
+                        onPressed: () => TtsService.instance.speak(
+                          _q.audioText ?? _q.question,
+                          english: widget.level.subject == Subject.english,
+                        ),
+                        icon: Icon(Icons.volume_up_rounded, color: _info.color),
+                        iconSize: 30,
+                        tooltip: 'Bacakan',
+                      ),
                     ],
                   ),
                 ),
