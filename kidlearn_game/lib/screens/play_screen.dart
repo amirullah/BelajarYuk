@@ -55,6 +55,7 @@ class _PlayScreenState extends State<PlayScreen> {
       Future.delayed(const Duration(milliseconds: 350), () {
         if (mounted) {
           TtsService.instance.speak(_q.audioText!,
+              subject: widget.level.subject,
               english: widget.level.subject == Subject.english);
         }
       });
@@ -92,8 +93,8 @@ class _PlayScreenState extends State<PlayScreen> {
           _locked = true;
           _correct++;
         });
-        SfxService.instance.correct();
-        _timer = Timer(const Duration(milliseconds: 800), _next);
+        _feedback(true);
+        _timer = Timer(const Duration(milliseconds: 1000), _next);
       }
     } else {
       SfxService.instance.wrong();
@@ -112,6 +113,23 @@ class _PlayScreenState extends State<PlayScreen> {
     super.dispose();
   }
 
+  // Umpan balik audio+visual: chime + seruan anak (pujian/semangat).
+  bool _cheerOk = false;
+  int _cheerTick = 0;
+  void _feedback(bool ok) {
+    if (ok) {
+      SfxService.instance.correct();
+      TtsService.instance.praise();
+    } else {
+      SfxService.instance.wrong();
+      TtsService.instance.encourage();
+    }
+    setState(() {
+      _cheerOk = ok;
+      _cheerTick++; // memicu animasi lencana umpan balik
+    });
+  }
+
   void _answer(int i) {
     if (_locked) return;
     final ok = i == _q.correctIndex;
@@ -120,8 +138,8 @@ class _PlayScreenState extends State<PlayScreen> {
       _locked = true;
       if (ok) _correct++;
     });
-    ok ? SfxService.instance.correct() : SfxService.instance.wrong();
-    _timer = Timer(const Duration(milliseconds: 900), _next);
+    _feedback(ok);
+    _timer = Timer(Duration(milliseconds: ok ? 1050 : 1000), _next);
   }
 
   void _answerFill() {
@@ -134,8 +152,8 @@ class _PlayScreenState extends State<PlayScreen> {
       _fillCorrect = ok;
       if (ok) _correct++;
     });
-    ok ? SfxService.instance.correct() : SfxService.instance.wrong();
-    _timer = Timer(const Duration(milliseconds: 1100), _next);
+    _feedback(ok);
+    _timer = Timer(const Duration(milliseconds: 1150), _next);
   }
 
   void _next() {
@@ -240,22 +258,38 @@ class _PlayScreenState extends State<PlayScreen> {
                       IconButton(
                         onPressed: () => TtsService.instance.speak(
                           _q.audioText ?? _q.question,
+                          subject: widget.level.subject,
                           english: widget.level.subject == Subject.english,
                         ),
                         icon: Icon(Icons.volume_up_rounded, color: _info.color),
                         iconSize: 30,
                         tooltip: 'Bacakan',
                       ),
+                      // Lencana umpan balik yang meletup saat menjawab.
+                      if (_locked && _q.type != QuestionType.matching)
+                        Text(_cheerOk ? '🎉' : '💪',
+                                style: const TextStyle(fontSize: 46))
+                            .animate(key: ValueKey(_cheerTick))
+                            .scale(
+                                duration: 350.ms,
+                                curve: Curves.elasticOut,
+                                begin: const Offset(0.2, 0.2),
+                                end: const Offset(1, 1))
+                            .then()
+                            .shakeX(hz: 3, amount: 2),
                     ],
                   ),
                 ),
               ),
             ),
 
-            // ── Opsi jawaban ──
+            // ── Opsi jawaban ── (beranimasi masuk tiap soal)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: _answerArea(),
+              child: _answerArea()
+                  .animate(key: ValueKey('ans_$_index'))
+                  .fadeIn(duration: 300.ms)
+                  .slideY(begin: 0.25, end: 0, curve: Curves.easeOut),
             ),
           ],
         ),

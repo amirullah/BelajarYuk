@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/level.dart';
 import '../services/sfx_service.dart';
+import '../services/tts_service.dart';
 import '../services/storage_service.dart';
 import '../widgets/confetti_overlay.dart';
 import '../widgets/score_stars.dart';
@@ -41,14 +42,32 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
     _save();
   }
 
-  /// Suara sesuai hasil: 3 bintang → sempurna, lulus → naik level, gagal → salah.
+  /// Suara berjenjang: naik kelas (boss lulus) paling meriah, lalu sempurna,
+  /// lalu naik level; gagal → semangat lembut. Musik "ditekan" agar sorak jelas.
   void _playResultSound() {
-    if (_result.stars >= 3) {
-      SfxService.instance.perfect();
-    } else if (_result.passed(widget.level)) {
-      SfxService.instance.levelUp();
+    final passed = _result.passed(widget.level);
+    final sfx = SfxService.instance;
+    final tts = TtsService.instance;
+    if (passed && widget.level.isBoss) {
+      // Naik kelas — perayaan terbesar + musik energik.
+      sfx.duckMusic(restoreAfterMs: 3200);
+      sfx.graduation();
+      sfx.playMusic('home'); // trek ceria/energik untuk beranda berikutnya
+      Future.delayed(const Duration(milliseconds: 900),
+          () => tts.cheer('Selamat! Kamu naik kelas!'));
+    } else if (passed && _result.stars >= 3) {
+      sfx.duckMusic();
+      sfx.perfect();
+      Future.delayed(const Duration(milliseconds: 700),
+          () => tts.cheer('Sempurna! Luar biasa!'));
+    } else if (passed) {
+      sfx.duckMusic();
+      sfx.levelUp();
+      Future.delayed(const Duration(milliseconds: 600),
+          () => tts.cheer('Hebat! Naik level!'));
     } else {
-      SfxService.instance.wrong();
+      sfx.wrong();
+      tts.encourage();
     }
   }
 
@@ -180,7 +199,7 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
           ),
         ),
       ),
-          if (passed) const ConfettiOverlay(),
+          if (passed) ConfettiOverlay(count: widget.level.isBoss ? 46 : 24),
         ],
       ),
     );

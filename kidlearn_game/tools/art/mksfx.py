@@ -89,4 +89,23 @@ perfect = np.concatenate([
 ])
 save('perfect.wav', perfect)
 
+# ── NAIK KELAS (boss lulus): fanfare paling megah + drum ──
+def _kick(dur=0.16, vol=0.6):
+    n=int(SR*dur); t=np.arange(n)/SR
+    f=120*np.exp(-t*22)+50
+    return np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-t*9)*vol
+def _roll(dur=0.5, vol=0.3):
+    n=int(SR*dur)
+    return (np.random.RandomState(3).randn(n)*np.linspace(0.2,1,n)
+            *np.exp(-np.arange(n)/SR*2)*vol)
+C7 = 2093
+_grad = [ _roll(0.5) ]
+for f in [C5, E5, G5, C6, E6, G6]:
+    _grad.append(tone(f, 0.13, 0.5))
+_big = chord([C6,E6,G6], 0.4, 0.55); _big[:len(_kick())] += _kick()
+_grad.append(_big)
+_big2 = chord([C6,E6,G6,C7], 0.7, 0.6); _big2[:len(_kick())] += _kick()
+_grad.append(_big2)
+save('graduation.wav', np.concatenate(_grad))
+
 print('\nSelesai. SFX di', OUT)

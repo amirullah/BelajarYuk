@@ -28,7 +28,11 @@ class SfxService {
 
   static const _sfxFiles = [
     'correct', 'wrong', 'tap', 'star', 'coin', 'levelup', 'perfect',
+    'graduation',
   ];
+
+  static const double _musicVol = 0.30; // volume musik latar normal
+  static const double _duckVol = 0.08; // volume saat "ditekan" (mis. sorak)
   // Nama trek = 'home' + nilai enum Subject.
   static const _musicFiles = [
     'home', 'math', 'english', 'indonesian', 'science', 'religion',
@@ -73,23 +77,50 @@ class SfxService {
     }
   }
 
-  /// Putar trek [key] (loop). Jika trek yang sama sudah berputar, biarkan.
+  /// Putar trek [key] (loop) dengan fade-in agar pergantian musik halus.
+  /// Jika trek yang sama sudah berputar, biarkan (tidak restart).
   Future<void> playMusic(String key) async {
     _currentMusic = key;
     final pool = _pool;
     final id = _musicIds[key];
     if (!_musicEnabled || pool == null || id == null) return;
-    // Sudah memutar trek ini? jangan restart.
     if (_musicStream != null && _playingKey == key) return;
     await stopMusic();
     try {
       _musicStream = await pool.play(id, repeat: -1);
       _playingKey = key;
-      await pool.setVolume(streamId: _musicStream, volume: 0.30);
+      await _fadeTo(_musicVol, steps: 6, ms: 360);
     } catch (_) {}
   }
 
   String? _playingKey;
+
+  /// Ramp volume musik ke [target] secara bertahap (fade halus).
+  Future<void> _fadeTo(double target, {int steps = 6, int ms = 300}) async {
+    final pool = _pool;
+    final s = _musicStream;
+    if (pool == null || s == null) return;
+    for (int i = 1; i <= steps; i++) {
+      final v = target * i / steps;
+      try {
+        await pool.setVolume(streamId: s, volume: v);
+      } catch (_) {}
+      await Future.delayed(Duration(milliseconds: (ms / steps).round()));
+    }
+  }
+
+  /// Turunkan volume musik sejenak (mis. saat sorak/pengumuman) lalu pulihkan.
+  Future<void> duckMusic({int restoreAfterMs = 2200}) async {
+    final pool = _pool;
+    final s = _musicStream;
+    if (pool == null || s == null) return;
+    try {
+      await pool.setVolume(streamId: s, volume: _duckVol);
+    } catch (_) {}
+    Future.delayed(Duration(milliseconds: restoreAfterMs), () async {
+      if (_musicStream == s) await _fadeTo(_musicVol, steps: 5, ms: 400);
+    });
+  }
 
   Future<void> stopMusic() async {
     final pool = _pool;
@@ -144,4 +175,5 @@ class SfxService {
   Future<void> coin() => _play('coin');
   Future<void> levelUp() => _play('levelup');
   Future<void> perfect() => _play('perfect');
+  Future<void> graduation() => _play('graduation');
 }
