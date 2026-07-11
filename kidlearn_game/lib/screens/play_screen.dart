@@ -101,9 +101,12 @@ class _PlayScreenState extends State<PlayScreen> {
     if (_q.type == QuestionType.sequence && _q.sequence != null) {
       _seqPool = List<String>.from(_q.sequence!);
       if (_seqPool.length > 1) {
+        // Acak sampai beda dari urutan benar, TAPI batasi percobaan agar tak
+        // pernah macet bila (mis.) semua elemen kebetulan sama.
+        var tries = 0;
         do {
           _seqPool.shuffle();
-        } while (_listEq(_seqPool, _q.sequence!));
+        } while (_listEq(_seqPool, _q.sequence!) && ++tries < 12);
       }
     } else {
       _seqPool = [];

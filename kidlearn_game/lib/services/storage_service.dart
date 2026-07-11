@@ -14,10 +14,11 @@ class StorageService {
   final ApiService api;
   StorageService({ApiService? api}) : api = api ?? ApiService();
 
-  /// True setelah berhasil menarik state dari server minimal sekali (per sesi).
-  /// Selama false, JANGAN dorong state agar tak menimpa data server dengan
-  /// state lokal yang mungkin masih kosong (mis. tepat setelah pasang ulang).
-  static bool _statePulled = false;
+  /// Id profil yang state-nya sudah berhasil ditarik dari server (per sesi).
+  /// Selama sebuah profil belum ada di sini, JANGAN dorong state-nya agar tak
+  /// menimpa data server dengan state lokal yang mungkin masih kosong (mis.
+  /// tepat setelah pasang ulang). Per-profil, bukan global, agar aman multi-anak.
+  static final Set<String> _pulledIds = {};
 
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
 
@@ -141,6 +142,8 @@ class StorageService {
   Future<bool> recordLevelResult(
       ChildProfile profile, String levelId, int stars, int pct) async {
     final isRecord = profile.recordStars(levelId, stars);
+    // Simpan persentase terbaik (untuk statistik server).
+    if (pct > (profile.bestPct[levelId] ?? 0)) profile.bestPct[levelId] = pct;
     await upsertProfile(profile);
     return isRecord;
   }
@@ -160,13 +163,17 @@ class StorageService {
     if (serverId == null) return;
 
     final progressList = profile.stars.entries
-        .map((e) => {'level_id': e.key, 'stars': e.value, 'best_pct': 0})
+        .map((e) => {
+              'level_id': e.key,
+              'stars': e.value,
+              'best_pct': profile.bestPct[e.key] ?? 0,
+            })
         .toList();
 
     // Kirim state penuh HANYA saat benar-benar berubah (pushState) DAN sudah
     // pernah menarik state server (agar tak menimpa data server dgn state kosong
     // setelah pasang ulang).
-    final Map<String, dynamic>? state = (pushState && _statePulled)
+    final Map<String, dynamic>? state = (pushState && _pulledIds.contains(profile.id))
         ? <String, dynamic>{
             'coins': profile.coins,
             'coinsSpent': profile.coinsSpent,
@@ -188,26 +195,43 @@ class StorageService {
           unlockedGrade: profile.unlockedGrade,
           state: state);
       if (res['ok'] == true) {
-        _statePulled = true; // sudah berhasil kontak server sesi ini
-        if (res['progress'] is List) {
-          for (final row in res['progress'] as List) {
-            final lid = row['level_id'] as String;
-            final s = (row['stars'] as num?)?.toInt() ?? 0;
-            if (s > (profile.stars[lid] ?? 0)) profile.stars[lid] = s;
-          }
+        _pulledIds.add(profile.id); // state profil ini sudah ditarik sesi ini
+        // Terapkan ke instansi pemanggil (untuk UI) DAN ke profil tersimpan
+        // terbaru (agar tulisan lokal yang terjadi bersamaan tak tertimpa oleh
+        // instansi basi). Semua penggabungan monoton/idempoten.
+        _applyServer(profile, res);
+        final list = await loadProfiles();
+        final i = list.indexWhere((p) => p.id == profile.id);
+        if (i >= 0) {
+          _applyServer(list[i], res);
+          list[i].avatar = profile.avatar; // avatar mengikuti hasil merge
+          await saveProfiles(list);
+        } else {
+          await upsertProfile(profile);
         }
-        if (res['state'] is Map) {
-          _mergeState(profile, (res['state'] as Map).cast<String, dynamic>());
-        }
-        await upsertProfile(profile);
       }
     } catch (_) {
       // Diam saja bila offline — progres lokal tetap aman.
     }
   }
 
-  /// Gabungkan state server ke profil lokal (ambil yang lebih banyak; setelah
-  /// pasang-ulang lokal kosong → adopsi nilai server).
+  /// Terapkan hasil sync server (progress bintang + state) ke sebuah profil.
+  /// Idempoten & monoton, jadi aman dipanggil untuk beberapa instansi.
+  void _applyServer(ChildProfile p, Map<String, dynamic> res) {
+    if (res['progress'] is List) {
+      for (final row in res['progress'] as List) {
+        final lid = row['level_id'] as String;
+        final s = (row['stars'] as num?)?.toInt() ?? 0;
+        if (s > (p.stars[lid] ?? 0)) p.stars[lid] = s;
+        final bp = (row['best_pct'] as num?)?.toInt() ?? 0;
+        if (bp > (p.bestPct[lid] ?? 0)) p.bestPct[lid] = bp;
+      }
+    }
+    if (res['state'] is Map) {
+      _mergeState(p, (res['state'] as Map).cast<String, dynamic>());
+    }
+  }
+
   /// Gabungkan saldo koin dua sumber tanpa me-refund belanja. Kembalikan
   /// (coins, coinsSpent). earned = coins + spent (monoton di kedua sisi);
   /// ambil max earned & max spent, saldo = earned − spent.
@@ -318,6 +342,6 @@ class StorageService {
     // (mis. di perangkat berbagi). Sesi berikut menarik ulang dari server.
     await p.remove(_kProfiles);
     await p.remove(_kEmail);
-    _statePulled = false;
+    _pulledIds.clear();
   }
 }

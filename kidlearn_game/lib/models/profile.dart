@@ -8,6 +8,9 @@ class ChildProfile {
   /// Bintang per level: key = GameLevel.id, value = bintang tertinggi (0..3).
   final Map<String, int> stars;
 
+  /// Persentase terbaik per level (0..100), untuk statistik server.
+  final Map<String, int> bestPct;
+
   /// Kelas tertinggi yang sudah terbuka (mulai dari 1).
   int unlockedGrade;
 
@@ -43,6 +46,7 @@ class ChildProfile {
     required this.name,
     this.avatar = '🦊',
     Map<String, int>? stars,
+    Map<String, int>? bestPct,
     this.unlockedGrade = 1,
     this.coins = 0,
     this.coinsSpent = 0,
@@ -55,6 +59,7 @@ class ChildProfile {
     this.dailyCount = 0,
     this.dailyClaimed = false,
   })  : stars = stars ?? {},
+        bestPct = bestPct ?? {},
         badges = badges ?? [],
         ownedAvatars = ownedAvatars ?? [avatar];
 
@@ -96,6 +101,7 @@ class ChildProfile {
         'unlockedGrade': unlockedGrade,
         'coins': coins,
         'coinsSpent': coinsSpent,
+        'bestPct': bestPct,
         'ownedAvatars': ownedAvatars,
         'streak': streak,
         'lastPlayedDate': lastPlayedDate,
@@ -115,6 +121,10 @@ class ChildProfile {
             : 'Pemain',
         avatar: (j['avatar'] as String?) ?? '🦊',
         stars: (j['stars'] as Map?)?.map(
+              (k, v) => MapEntry(k as String, (v is num ? v.toInt() : 0)),
+            ) ??
+            {},
+        bestPct: (j['bestPct'] as Map?)?.map(
               (k, v) => MapEntry(k as String, (v is num ? v.toInt() : 0)),
             ) ??
             {},
