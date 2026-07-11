@@ -21,6 +21,17 @@ class ChildProfile {
   int streak;
   String? lastPlayedDate;
 
+  /// Lencana/achievement yang sudah diraih (id).
+  final List<String> badges;
+
+  /// Tanggal terakhir klaim hadiah harian (yyyy-mm-dd).
+  String? lastRewardDate;
+
+  /// Tantangan harian: tanggal & jumlah level selesai hari itu.
+  String? dailyDate;
+  int dailyCount;
+  bool dailyClaimed;
+
   ChildProfile({
     required this.id,
     required this.name,
@@ -31,8 +42,18 @@ class ChildProfile {
     List<String>? ownedAvatars,
     this.streak = 0,
     this.lastPlayedDate,
+    List<String>? badges,
+    this.lastRewardDate,
+    this.dailyDate,
+    this.dailyCount = 0,
+    this.dailyClaimed = false,
   })  : stars = stars ?? {},
+        badges = badges ?? [],
         ownedAvatars = ownedAvatars ?? [avatar];
+
+  /// Jumlah level yang sudah lulus (bintang > 0).
+  int get levelsCompleted =>
+      stars.values.where((s) => s > 0).length;
 
   bool ownsAvatar(String a) => ownedAvatars.contains(a);
 
@@ -69,6 +90,11 @@ class ChildProfile {
         'ownedAvatars': ownedAvatars,
         'streak': streak,
         'lastPlayedDate': lastPlayedDate,
+        'badges': badges,
+        'lastRewardDate': lastRewardDate,
+        'dailyDate': dailyDate,
+        'dailyCount': dailyCount,
+        'dailyClaimed': dailyClaimed,
       };
 
   factory ChildProfile.fromJson(Map<String, dynamic> j) => ChildProfile(
@@ -84,5 +110,10 @@ class ChildProfile {
         ownedAvatars: (j['ownedAvatars'] as List?)?.cast<String>(),
         streak: (j['streak'] as num?)?.toInt() ?? 0,
         lastPlayedDate: j['lastPlayedDate'] as String?,
+        badges: (j['badges'] as List?)?.cast<String>(),
+        lastRewardDate: j['lastRewardDate'] as String?,
+        dailyDate: j['dailyDate'] as String?,
+        dailyCount: (j['dailyCount'] as num?)?.toInt() ?? 0,
+        dailyClaimed: j['dailyClaimed'] as bool? ?? false,
       );
 }

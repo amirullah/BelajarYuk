@@ -38,8 +38,20 @@ class _PlayScreenState extends State<PlayScreen> {
   List<String> _rightOrder = [];
   String? _wrongRight;
 
+  Timer? _idleTimer;
+  bool _showHint = false;
+
   SubjectInfo get _info => SubjectInfo.of(widget.level.subject);
   Question get _q => _questions[_index];
+
+  /// Maskot Uku menyemangati bila anak diam terlalu lama.
+  void _resetIdle() {
+    _idleTimer?.cancel();
+    if (_showHint) setState(() => _showHint = false);
+    _idleTimer = Timer(const Duration(seconds: 14), () {
+      if (mounted && !_locked) setState(() => _showHint = true);
+    });
+  }
 
   @override
   void initState() {
@@ -47,6 +59,7 @@ class _PlayScreenState extends State<PlayScreen> {
     _questions = LevelService().buildQuestions(widget.level);
     _setupMatching();
     _maybeAutoPlay();
+    _resetIdle();
   }
 
   /// Untuk soal "dengar", bacakan otomatis audioText saat soal muncul.
@@ -108,6 +121,7 @@ class _PlayScreenState extends State<PlayScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _idleTimer?.cancel();
     _fill.dispose();
     TtsService.instance.stop();
     super.dispose();
@@ -116,17 +130,29 @@ class _PlayScreenState extends State<PlayScreen> {
   // Umpan balik audio+visual: chime + seruan anak (pujian/semangat).
   bool _cheerOk = false;
   int _cheerTick = 0;
+  int _combo = 0; // jawaban benar beruntun
+  int _comboBonus = 0; // koin bonus dari combo (diteruskan ke hasil)
   void _feedback(bool ok) {
     if (ok) {
       SfxService.instance.correct();
-      TtsService.instance.praise();
+      // Selang-seling suara anak asli (klip) & pujian TTS agar bervariasi.
+      if (SfxService.instance.hasVoice && _correct.isEven) {
+        SfxService.instance.voice();
+      } else {
+        TtsService.instance.praise();
+      }
+      _combo++;
+      if (_combo >= 3) _comboBonus += 2; // bonus koin saat combo panas
     } else {
       SfxService.instance.wrong();
       TtsService.instance.encourage();
+      _combo = 0;
     }
+    _idleTimer?.cancel();
     setState(() {
       _cheerOk = ok;
       _cheerTick++; // memicu animasi lencana umpan balik
+      _showHint = false;
     });
   }
 
@@ -163,6 +189,7 @@ class _PlayScreenState extends State<PlayScreen> {
           level: widget.level,
           correct: _correct,
           total: _questions.length,
+          comboBonus: _comboBonus,
         ),
       ));
       return;
@@ -174,8 +201,10 @@ class _PlayScreenState extends State<PlayScreen> {
       _fillCorrect = null;
       _fill.clear();
       _setupMatching();
+      _showHint = false;
     });
     _maybeAutoPlay();
+    _resetIdle();
   }
 
   @override
@@ -213,7 +242,22 @@ class _PlayScreenState extends State<PlayScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
+                  if (_combo >= 3)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Text('🔥x$_combo',
+                              style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                  color: kAccent))
+                          .animate(key: ValueKey('combo_$_combo'))
+                          .scale(
+                              duration: 300.ms,
+                              curve: Curves.elasticOut,
+                              begin: const Offset(0.4, 0.4),
+                              end: const Offset(1, 1)),
+                    ),
                   Text('⭐ $_correct',
                       style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w800, fontSize: 16)),
@@ -282,6 +326,33 @@ class _PlayScreenState extends State<PlayScreen> {
                 ),
               ),
             ),
+
+            // ── Maskot Uku menyemangati saat lama diam ──
+            if (_showHint)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: Row(
+                  children: [
+                    Image.asset('assets/img/mascot.png', width: 40, height: 40),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _info.color.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text('Ayo, kamu pasti bisa! Coba baca lagi ya 💪',
+                            style: GoogleFonts.nunito(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: _info.color)),
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn(duration: 300.ms).slideX(begin: -0.1, end: 0),
 
             // ── Opsi jawaban ── (beranimasi masuk tiap soal)
             Padding(

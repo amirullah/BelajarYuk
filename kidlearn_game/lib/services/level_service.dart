@@ -121,6 +121,22 @@ class LevelService {
               question: 'Mana yang tumbuh di pohon?',
               imageOptions: ['🍎', '🐟', '🚙', '👟'],
               correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana yang hidup di air?',
+              imageOptions: ['🐠', '🐒', '🦅', '🐛'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana sumber cahaya di siang hari?',
+              imageOptions: ['☀️', '🌙', '💡', '🔦'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana bagian tumbuhan yang menyerap air?',
+              imageOptions: ['🌱', '🌸', '🍃', '🍎'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana benda yang bisa terbang?',
+              imageOptions: ['🦋', '🐢', '🐌', '🐜'],
+              correctIndex: 0),
         ];
       case Subject.indonesian:
         return [
@@ -134,6 +150,22 @@ class LevelService {
           Question.imageChoice(
               question: 'Mana alat transportasi?',
               imageOptions: ['🚌', '🍎', '📚', '🌻'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana yang bekerja memadamkan api?',
+              imageOptions: ['🚒', '🚜', '🚓', '🚑'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana tempat untuk belajar?',
+              imageOptions: ['🏫', '🏥', '🏪', '🏭'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana alat transportasi laut?',
+              imageOptions: ['⛴️', '🚁', '🚗', '🚲'],
+              correctIndex: 0),
+          Question.imageChoice(
+              question: 'Mana bendera Indonesia?',
+              imageOptions: ['🇮🇩', '🇯🇵', '🇸🇬', '🇲🇾'],
               correctIndex: 0),
         ];
       case Subject.religion:

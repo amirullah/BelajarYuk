@@ -129,6 +129,45 @@ class StorageService {
     await upsertProfile(p);
   }
 
+  static String dayKey([DateTime? d]) {
+    final x = d ?? DateTime.now();
+    return '${x.year}-${x.month}-${x.day}';
+  }
+
+  /// Hadiah harian: sekali per hari saat buka app. Return koin yang diberikan
+  /// (0 bila sudah klaim hari ini). Bonus naik sedikit mengikuti streak.
+  Future<int> claimDailyReward(ChildProfile p) async {
+    final today = dayKey();
+    if (p.lastRewardDate == today) return 0;
+    final bonus = 10 + (p.streak.clamp(0, 7) * 2); // 10..24 koin
+    p.coins += bonus;
+    p.lastRewardDate = today;
+    await upsertProfile(p);
+    return bonus;
+  }
+
+  /// Catat 1 level selesai untuk tantangan harian. Return status terkini:
+  /// (count, target, baruSelesai) — baruSelesai true saat mencapai target.
+  Future<({int count, int target, bool justCompleted})> recordDailyChallenge(
+      ChildProfile p) async {
+    const target = 3;
+    final today = dayKey();
+    if (p.dailyDate != today) {
+      p.dailyDate = today;
+      p.dailyCount = 0;
+      p.dailyClaimed = false;
+    }
+    p.dailyCount++;
+    bool justCompleted = false;
+    if (p.dailyCount >= target && !p.dailyClaimed) {
+      p.dailyClaimed = true;
+      p.coins += 20; // hadiah tantangan harian
+      justCompleted = true;
+    }
+    await upsertProfile(p);
+    return (count: p.dailyCount, target: target, justCompleted: justCompleted);
+  }
+
   Future<void> logout() async {
     final p = await _prefs;
     await p.remove(_kToken);

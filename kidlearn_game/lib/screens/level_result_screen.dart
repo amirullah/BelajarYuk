@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/level.dart';
+import '../models/achievement.dart';
 import '../services/sfx_service.dart';
 import '../services/tts_service.dart';
 import '../services/storage_service.dart';
@@ -16,12 +17,14 @@ class LevelResultScreen extends StatefulWidget {
   final GameLevel level;
   final int correct;
   final int total;
+  final int comboBonus;
 
   const LevelResultScreen({
     super.key,
     required this.level,
     required this.correct,
     required this.total,
+    this.comboBonus = 0,
   });
 
   @override
@@ -77,8 +80,8 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
     if (profile == null) return;
     final isRecord = await storage.recordLevelResult(
         profile, widget.level.id, _result.stars, _result.percent.round());
-    // Koin: 2 per jawaban benar + 5 per bintang.
-    final earned = widget.correct * 2 + _result.stars * 5;
+    // Koin: 2 per jawaban benar + 5 per bintang + bonus combo.
+    final earned = widget.correct * 2 + _result.stars * 5 + widget.comboBonus;
     profile.coins += earned;
     await storage.upsertProfile(profile);
     // Buka kelas berikutnya bila boss level lulus.
@@ -88,13 +91,82 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
       profile.unlockedGrade = widget.level.grade + 1;
       await storage.upsertProfile(profile);
     }
+    // Tantangan harian (hanya bila lulus) + lencana pencapaian.
+    ({int count, int target, bool justCompleted})? daily;
+    if (_result.passed(widget.level)) {
+      daily = await storage.recordDailyChallenge(profile);
+    }
+    final newBadges = Achievement.newlyEarned(profile);
+    if (newBadges.isNotEmpty) {
+      profile.badges.addAll(newBadges.map((a) => a.id));
+      await storage.upsertProfile(profile);
+    }
     unawaited(storage.syncProfile(profile));
     if (mounted) {
       setState(() {
         _newRecord = isRecord;
         _earned = earned;
+        _dailyDone = daily?.justCompleted ?? false;
+        _newBadges = newBadges;
       });
+      _announceExtras();
     }
+  }
+
+  bool _dailyDone = false;
+  List<Achievement> _newBadges = const [];
+
+  /// Umumkan lencana baru & tantangan harian lewat dialog kecil beruntun.
+  Future<void> _announceExtras() async {
+    await Future.delayed(const Duration(milliseconds: 1400));
+    if (!mounted) return;
+    for (final b in _newBadges) {
+      if (!mounted) return;
+      await _popup('${b.emoji}  Lencana Baru!', b.title, b.desc);
+    }
+    if (_dailyDone && mounted) {
+      await _popup('🎯  Tantangan Harian Selesai!',
+          'Kamu main 3 level hari ini', '+20 koin bonus 🪙');
+    }
+  }
+
+  Future<void> _popup(String head, String title, String sub) async {
+    SfxService.instance.star();
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(head,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w900, color: kDark)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                    fontSize: 18, fontWeight: FontWeight.w800, color: kPrimary)),
+            const SizedBox(height: 4),
+            Text(sub,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(fontSize: 13, color: kMuted)),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+              child: Text('Hore!',
+                  style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800, color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

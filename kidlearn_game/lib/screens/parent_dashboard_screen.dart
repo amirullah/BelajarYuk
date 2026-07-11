@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/subject.dart';
 import '../models/level.dart';
 import '../models/profile.dart';
+import '../models/achievement.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 
@@ -41,6 +42,30 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
       }
     }
     return (done, stars);
+  }
+
+  Widget _miniStat(String emoji, String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: kSurface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 22)),
+            const SizedBox(height: 2),
+            Text(value,
+                style: GoogleFonts.nunito(
+                    fontSize: 18, fontWeight: FontWeight.w900, color: kDark)),
+            Text(label,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(fontSize: 10.5, color: kMuted)),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -88,6 +113,43 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
                                     color: Colors.white.withOpacity(0.9))),
                           ],
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                // ── Ringkasan cepat ──
+                Row(
+                  children: [
+                    _miniStat('🔥', '${p.streak}', 'hari beruntun'),
+                    const SizedBox(width: 10),
+                    _miniStat('🏅',
+                        '${Achievement.all.where((a) => a.earned(p)).length}',
+                        'lencana'),
+                    const SizedBox(width: 10),
+                    _miniStat('✅', '${p.levelsCompleted}', 'level selesai'),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: kStar.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('💡', style: TextStyle(fontSize: 22)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                            'Tips: Dampingi anak belajar 10–15 menit setiap hari. '
+                            'Konsistensi lebih penting daripada durasi lama sekali-sekali.',
+                            style: GoogleFonts.nunito(
+                                fontSize: 12.5,
+                                height: 1.35,
+                                color: kDark,
+                                fontWeight: FontWeight.w600)),
                       ),
                     ],
                   ),
