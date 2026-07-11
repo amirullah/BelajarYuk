@@ -33,20 +33,12 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     _grade = p?.unlockedGrade ?? 1;
     _myName = p?.name;
     try {
-      final res = await _api.leaderboard(_grade, _isoWeek());
+      final res = await _api.leaderboard(_grade); // server pakai minggu berjalan
       if (res['ok'] == true && res['top'] is List) {
         _top = (res['top'] as List).cast<Map<String, dynamic>>();
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
-  }
-
-  String _isoWeek() {
-    final now = DateTime.now();
-    final dayOfYear = int.parse(
-        '${now.difference(DateTime(now.year, 1, 1)).inDays + 1}');
-    final week = ((dayOfYear - now.weekday + 10) / 7).floor();
-    return '${now.year}-${week.toString().padLeft(2, '0')}';
   }
 
   @override

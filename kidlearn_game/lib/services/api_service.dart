@@ -83,9 +83,12 @@ class ApiService {
         'unlocked_grade': unlockedGrade,
       }, token: token);
 
-  // ── Leaderboard ──
-  Future<Map<String, dynamic>> leaderboard(int grade, String week) =>
-      _get('leaderboard', {'grade': '$grade', 'week': week});
+  // ── Leaderboard ── (week opsional; server default ke minggu berjalan)
+  Future<Map<String, dynamic>> leaderboard(int grade, [String? week]) =>
+      _get('leaderboard', {
+        'grade': '$grade',
+        if (week != null && week.isNotEmpty) 'week': week,
+      });
 
   void dispose() => _client.close();
 }
