@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/profile.dart';
+import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 
@@ -70,6 +71,7 @@ class _AvatarShopScreenState extends State<AvatarShopScreen> {
     if (ok == true && p.buyAvatar(emoji, price)) {
       p.avatar = emoji; // langsung pakai
       await _storage.upsertProfile(p);
+      SfxService.instance.coin();
       setState(() {});
     }
   }

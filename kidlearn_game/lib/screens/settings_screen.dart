@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import 'about_screen.dart';
@@ -20,6 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _auth = AuthService();
   final _storage = StorageService();
   bool _loggedIn = false;
+  bool _sfx = SfxService.instance.enabled;
 
   @override
   void initState() {
@@ -43,6 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _soundTile(),
           _tile(Icons.bar_chart_rounded, 'Progres Anak', 'Lihat kemajuan per mapel',
               () => _push(const ParentDashboardScreen())),
           if (_loggedIn)
@@ -59,6 +62,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 danger: true),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _soundTile() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: kSurface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: SwitchListTile(
+        secondary: Icon(_sfx ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+            color: kPrimary),
+        title: Text('Efek Suara',
+            style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w800, color: kDark)),
+        subtitle: Text('Suara benar, salah, & bintang',
+            style: GoogleFonts.nunito(fontSize: 12, color: kMuted)),
+        activeColor: kPrimary,
+        value: _sfx,
+        onChanged: (v) async {
+          await SfxService.instance.setEnabled(v);
+          if (v) SfxService.instance.correct(); // contoh suara saat dinyalakan
+          setState(() => _sfx = v);
+        },
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/splash_screen.dart';
+import 'services/sfx_service.dart';
 import 'utils/app_colors.dart';
 
 void main() async {
@@ -10,6 +11,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  await SfxService.instance.load();
   runApp(const BelajarYukApp());
 }
 

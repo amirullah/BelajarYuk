@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/level.dart';
+import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../widgets/score_stars.dart';
 import '../utils/app_colors.dart';
@@ -35,7 +36,19 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
   @override
   void initState() {
     super.initState();
+    _playResultSound();
     _save();
+  }
+
+  /// Suara sesuai hasil: 3 bintang → sempurna, lulus → naik level, gagal → salah.
+  void _playResultSound() {
+    if (_result.stars >= 3) {
+      SfxService.instance.perfect();
+    } else if (_result.passed(widget.level)) {
+      SfxService.instance.levelUp();
+    } else {
+      SfxService.instance.wrong();
+    }
   }
 
   Future<void> _save() async {

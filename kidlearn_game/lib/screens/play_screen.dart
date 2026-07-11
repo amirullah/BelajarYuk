@@ -6,6 +6,7 @@ import '../models/level.dart';
 import '../models/question.dart';
 import '../models/subject.dart';
 import '../services/level_service.dart';
+import '../services/sfx_service.dart';
 import '../services/tts_service.dart';
 import '../widgets/game_button.dart';
 import '../utils/app_colors.dart';
@@ -72,14 +73,17 @@ class _PlayScreenState extends State<PlayScreen> {
         _matched.add(_matchLeft!);
         _matchLeft = null;
       });
+      SfxService.instance.tap();
       if (_matched.length == _q.pairs!.length) {
         setState(() {
           _locked = true;
           _correct++;
         });
+        SfxService.instance.correct();
         _timer = Timer(const Duration(milliseconds: 800), _next);
       }
     } else {
+      SfxService.instance.wrong();
       setState(() => _wrongRight = value);
       Timer(const Duration(milliseconds: 400), () {
         if (mounted) setState(() => _wrongRight = null);
@@ -97,11 +101,13 @@ class _PlayScreenState extends State<PlayScreen> {
 
   void _answer(int i) {
     if (_locked) return;
+    final ok = i == _q.correctIndex;
     setState(() {
       _selected = i;
       _locked = true;
-      if (i == _q.correctIndex) _correct++;
+      if (ok) _correct++;
     });
+    ok ? SfxService.instance.correct() : SfxService.instance.wrong();
     _timer = Timer(const Duration(milliseconds: 900), _next);
   }
 
@@ -115,6 +121,7 @@ class _PlayScreenState extends State<PlayScreen> {
       _fillCorrect = ok;
       if (ok) _correct++;
     });
+    ok ? SfxService.instance.correct() : SfxService.instance.wrong();
     _timer = Timer(const Duration(milliseconds: 1100), _next);
   }
 
