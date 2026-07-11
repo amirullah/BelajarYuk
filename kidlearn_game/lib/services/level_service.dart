@@ -68,10 +68,17 @@ class LevelService {
     // stabil saat diulang, dan berbeda antar level (seed beda per level.id).
     final rng = _seed != null ? _rng : Random(level.id.hashCode);
 
-    // Kesulitan naik seiring level: level 1-4 utamakan soal mudah (1),
-    // 5-8 sedang (2), 9-12 sulit (3). Bila bank di band itu kurang, isi dari
-    // band terdekat. (Sebelum soal ditandai, semua = 2 → perilaku sama.)
-    final target = level.index <= 4 ? 1 : level.index <= 8 ? 2 : 3;
+    // Kesulitan naik seiring level DAN antar-kelas (B2): kelas lebih tinggi
+    // memulai dari tingkat lebih sulit (melewati intro mudah) sehingga tak ada
+    // "reset ke mudah". within = tanjakan dalam kelas; base = dasar per kelas
+    // (Kelas 1-2 mulai mudah; 3-4 mulai sedang; 5-6 fokus sulit).
+    // Bila band kurang, diisi dari band terdekat.
+    final within = level.index <= 4 ? 0 : level.index <= 8 ? 1 : 2;
+    // Kelas 1-2 mulai dari mudah; Kelas 3+ melewati intro mudah (mulai sedang),
+    // tetapi TETAP menanjak ke sulit di level akhir → menantang tanpa kehilangan
+    // tanjakan per level.
+    final base = level.grade <= 2 ? 0 : 1;
+    final target = (1 + base + within).clamp(1, 3);
     final buckets = <int, List<Question>>{1: [], 2: [], 3: []};
     for (final q in pool) {
       buckets[q.difficulty.clamp(1, 3)]!.add(q);

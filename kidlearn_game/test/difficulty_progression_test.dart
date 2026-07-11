@@ -30,4 +30,18 @@ void main() {
         reason: 'Agregat kesulitan level akhir harus > level awal '
             '(late=$sumLate, early=$sumEarly)');
   });
+
+  test('B2: kelas lebih tinggi MEMULAI dari tingkat lebih sulit (tak reset mudah)',
+      () {
+    final svc = LevelService(1);
+    double startAvg(Subject s, int grade) =>
+        avgDiff(svc.buildQuestions(GameLevel.buildGrade(s, grade).first));
+    for (final s in Subject.values) {
+      if (s == Subject.math) continue;
+      // Level 1 Kelas 3 tidak boleh lebih mudah dari Level 1 Kelas 1
+      // (Kelas 3+ melewati intro mudah).
+      expect(startAvg(s, 3), greaterThan(startAvg(s, 1)),
+          reason: '$s: awal Kelas 3 harus lebih sulit dari awal Kelas 1');
+    }
+  });
 }
