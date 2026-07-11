@@ -516,13 +516,146 @@
     <h1>BelajarYuk! <span>2.0</span></h1>
     <div class="meta">
       <b>Pengembang:</b> Amirullah &nbsp;·&nbsp;
-      <b>Status:</b> Dalam Pengembangan &nbsp;·&nbsp;
+      <b>Status:</b> v2.0.0 — sudah dibangun &amp; terpasang (dalam penyempurnaan) &nbsp;·&nbsp;
       <b>Tanggal:</b> Juli 2026 &nbsp;·&nbsp;
       <b>Target:</b> SD Kelas 1–6 &nbsp;·&nbsp;
       <b>Platform:</b> Android (iOS opsional) &nbsp;·&nbsp;
       <b>Kurikulum:</b> Cambridge + Indonesia-specific
     </div>
   </header>
+
+  <!-- 0. STATUS IMPLEMENTASI (CHANGELOG) -->
+  <section>
+    <div class="section-label">Status Terkini</div>
+    <h2>Status Implementasi (v2.0.0)</h2>
+    <p>Bagian ini mencatat <strong>apa yang sudah benar-benar dibuat</strong> dan terpasang, sebagai sumber kebenaran agar tidak ada yang terlupa atau tidak konsisten dengan bagian rencana di bawah. Aplikasi dibangun dengan <strong>Flutter</strong>, backend <strong>PHP + MySQL</strong> di Hostinger.</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Sudah Live di Hosting</div>
+      <p>🌐 Landing page: <strong>belajaryuk.mkz.my.id</strong> &nbsp;·&nbsp; 📦 Unduh APK: <strong>belajaryuk.mkz.my.id/BelajarYuk.apk</strong> &nbsp;·&nbsp; ⚙️ Backend API: <strong>/backend/api.php</strong>. Repo kode: GitHub <strong>amirullah/BelajarYuk</strong> (kontributor: Amirullah).</p>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Identitas &amp; Tema</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="fi-icon">🦉</span>
+        <div class="fi-text"><strong>Maskot "Uku" si burung hantu</strong><span>Lambang belajar. Dipakai sebagai maskot dalam app (banner sambutan, splash, login), sekaligus menjadi <em>ikon aplikasi</em> (Uku di atas cakram putih bercincin emas agar kontras).</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🎨</span>
+        <div class="fi-text"><strong>Tema Biru</strong><span>Warna utama biru <code>#2B7FFF</code> (bukan lagi ungu). Latar biru muda, aksen bintang kuning. Setiap mapel punya warna &amp; ilustrasi khas sendiri. Semua gambar dibuat sendiri (SVG→PNG).</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">✨</span>
+        <div class="fi-text"><strong>Ilustrasi &amp; animasi</strong><span>Ilustrasi khas 6 mapel di kartu &amp; peta level; animasi mengambang, level berikutnya "berdenyut", konfeti saat lulus, lencana umpan balik meletup, indikator combo.</span></div>
+      </div>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Sistem Audio (disintesis sendiri)</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="fi-icon">🔊</span>
+        <div class="fi-text"><strong>Efek suara</strong><span>7 SFX dibuat sendiri via numpy (benar, salah, ketuk, bintang, koin, naik level, naik kelas) — nyaring &amp; bersemangat, dengan tingkatan perayaan: benar &lt; naik level &lt; sempurna &lt; naik kelas.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🎵</span>
+        <div class="fi-text"><strong>Musik latar berbeda tiap pelajaran</strong><span>7 trek (beranda + 6 mapel), masing-masing tempo &amp; nada sendiri agar tak bosan. Ganti otomatis sesuai konteks, transisi <em>fade</em> halus, di-<em>duck</em> saat ada sorak, jeda saat app di-background.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🗣️</span>
+        <div class="fi-text"><strong>Suara khas anak</strong><span>Pujian saat benar (Yeay/Mantap/Keren…) &amp; penyemangat saat salah lewat TTS bernada tinggi khas anak, berbeda tiap mapel. Ditambah klip suara anak asli (CC0/Freesound) yang diselang-seling; mudah diganti rekaman sendiri (folder <code>assets/voice/</code>).</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">⚙️</span>
+        <div class="fi-text"><strong>Kontrol</strong><span>Sakelar Efek Suara &amp; Musik Latar terpisah di Pengaturan. Tombol 🔊 di tiap soal untuk membacakan.</span></div>
+      </div>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Model Soal yang Sudah Ada</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="fi-icon">🧩</span>
+        <div class="fi-text"><strong>6 bentuk aktif</strong><span>Pilihan ganda, Benar/Salah, Isian singkat, Pasangkan (dua kolom), <strong>Pilih Gambar</strong> (klik emoji/gambar), dan <strong>Dengar</strong> (audio otomatis lalu jawab). Mesin level mencampur tipe agar tidak monoton.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🔢</span>
+        <div class="fi-text"><strong>Matematika algoritmik</strong><span>Soal Matematika K1–6 dihasilkan algoritmik (tak pernah habis, selalu benar secara matematis) sesuai tingkat; mapel lain dari bank soal terverifikasi.</span></div>
+      </div>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Gamifikasi &amp; Keterlibatan</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="fi-icon">🎁</span>
+        <div class="fi-text"><strong>Hadiah harian</strong><span>Bonus koin saat pertama membuka app tiap hari (naik mengikuti streak).</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🎯</span>
+        <div class="fi-text"><strong>Tantangan harian</strong><span>Selesaikan 3 level hari ini → bonus koin. Progres tampil di beranda.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🏅</span>
+        <div class="fi-text"><strong>Lencana pencapaian</strong><span>12 lencana (Bintang Pertama, Jago Matematika, Sepekan Rajin, Naik Kelas, dll) dengan layar khusus &amp; perayaan saat diraih.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🔥</span>
+        <div class="fi-text"><strong>Efek combo</strong><span>Jawaban benar beruntun → indikator 🔥 beranimasi + bonus koin.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🦉</span>
+        <div class="fi-text"><strong>Maskot interaktif</strong><span>Uku memberi tips berganti di beranda, dan menyemangati bila anak diam terlalu lama saat mengerjakan soal.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🪙</span>
+        <div class="fi-text"><strong>Koin, bintang, toko avatar &amp; peringkat</strong><span>Bintang 1–3 per level, koin untuk beli avatar, papan peringkat mingguan per kelas.</span></div>
+      </div>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Onboarding, Profil &amp; Orang Tua</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="fi-icon">🚪</span>
+        <div class="fi-text"><strong>Alur awal terpandu</strong><span>Splash → wajib login → buat profil anak (dipandu) → beranda. Tersedia opsi cadangan "main tanpa akun" (progres tersimpan di HP) agar tak pernah terkunci.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🔐</span>
+        <div class="fi-text"><strong>Login</strong><span>Email/password &amp; Masuk dengan Google (verifikasi token via backend cURL, menerima Web &amp; Android Client ID). Satu akun bisa beberapa profil anak; progres sinkron ke cloud.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">👪</span>
+        <div class="fi-text"><strong>Mode orang tua</strong><span>Ringkasan streak, jumlah lencana, level selesai, progres per mapel, plus tips mendampingi anak.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">ℹ️</span>
+        <div class="fi-text"><strong>Tentang</strong><span>Halaman "Tentang" mencantumkan pengembang (Amirullah) &amp; versi v2.0.0.</span></div>
+      </div>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Backend, Hosting &amp; Rilis</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="fi-icon">🗄️</span>
+        <div class="fi-text"><strong>Backend PHP + MySQL</strong><span>Router <code>api.php</code>: register/login/google_login, profil, sinkronisasi progres, papan peringkat (skor = total bintang mingguan). Auth JWT.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">📈</span>
+        <div class="fi-text"><strong>Bank soal ter-<em>bundle</em></strong><span>~700+ soal non-Matematika terverifikasi tertanam di app (offline). Matematika dihasilkan algoritmik. (Rencana skala penuh SQLite tetap berlaku untuk ekspansi.)</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🌐</span>
+        <div class="fi-text"><strong>Landing page</strong><span>Halaman mandiri di hosting: fitur, manfaat, daftar pelajaran, tombol unduh APK — tema biru, responsif, mode terang/gelap.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🚀</span>
+        <div class="fi-text"><strong>Endpoint deploy (HTTPS)</strong><span>Karena FTP/MySQL diblokir dari lingkungan build, dibuat <code>deploy.php</code> terproteksi token untuk mengelola file hosting via HTTPS (unggah bertahap, anti path-traversal).</span></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Menyusul / Belum Selesai</div>
+      <p>Play Store (menunggu D-U-N-S untuk akun perusahaan; aset rilis: ikon 512px, feature graphic, screenshot, kebijakan privasi) &nbsp;·&nbsp; peninjauan akhir 140 soal Agama Islam &nbsp;·&nbsp; rekaman suara anak milik sendiri (opsional, menggantikan klip CC0) &nbsp;·&nbsp; fitur "Ide Tambahan" lanjutan (mini-game, album koleksi, peti kejutan) di v2.1+.</p>
+    </div>
+  </section>
 
   <!-- 1. VISI -->
   <section>
@@ -867,8 +1000,8 @@
     <p style="font-weight:700; margin-top:1rem;">Mesin Keterlibatan (Engagement Loop)</p>
     <div class="feature-list">
       <div class="feature-item">
-        <span class="fi-icon">🦊</span>
-        <div class="fi-text"><strong>Maskot Pendamping</strong><span>Satu karakter (mis. rubah/robot pintar) yang menemani, bereaksi tiap jawaban — melompat gembira saat benar, memberi semangat saat salah. Punya nama, bisa diberi aksesori.</span></div>
+        <span class="fi-icon">🦉</span>
+        <div class="fi-text"><strong>Maskot Pendamping — "Uku" si burung hantu</strong><span>Karakter yang menemani, bereaksi tiap jawaban — melompat gembira saat benar, memberi semangat saat salah. Sudah diimplementasikan: Uku memberi tips di beranda &amp; menyemangati saat anak diam.</span></div>
       </div>
       <div class="feature-item">
         <span class="fi-icon">🗺️</span>
@@ -1052,7 +1185,8 @@
         <div class="stack-row"><span class="stack-layer">Soal (lokal)</span><span class="stack-choice">SQLite bundled</span><span class="stack-why">&nbsp;— ~14.400 soal di dalam APK, query offline</span></div>
         <div class="stack-row"><span class="stack-layer">Progres lokal</span><span class="stack-choice">Hive (lokal)</span><span class="stack-why">&nbsp;— tracking soal dilihat, skor offline</span></div>
         <div class="stack-row"><span class="stack-layer">Backend</span><span class="stack-choice">Hostinger PHP + MySQL</span><span class="stack-why">&nbsp;— auth, profil, leaderboard</span></div>
-        <div class="stack-row"><span class="stack-layer">Audio</span><span class="stack-choice">flutter_tts + audioplayers</span><span class="stack-why">&nbsp;— TTS on-device, musik bundled</span></div>
+        <div class="stack-row"><span class="stack-layer">Audio</span><span class="stack-choice">flutter_tts + soundpool</span><span class="stack-why">&nbsp;— TTS on-device, SFX/musik disintesis sendiri (bundled)</span></div>
+        <div class="stack-row"><span class="stack-layer">Storage lokal</span><span class="stack-choice">shared_preferences</span><span class="stack-why">&nbsp;— dipakai saat ini (bukan Hive) untuk profil &amp; progres offline</span></div>
         <div class="stack-row"><span class="stack-layer">Admin panel</span><span class="stack-choice">phpMyAdmin (Hostinger)</span><span class="stack-why">&nbsp;— sudah ada, tidak perlu buat baru</span></div>
       </div>
     </div>
@@ -1064,6 +1198,11 @@
     <h2>Sistem Audio</h2>
 
     <p>Audio adalah elemen kritis — bukan hanya musik latar, tapi juga bagian dari penilaian (listening Bahasa Inggris). Dua keputusan sudah dikonfirmasi: musik dibuat dengan AI, dan listening menggunakan TTS.</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Yang Benar-benar Dibuat (v2.0.0)</div>
+      <p>Analisis di bawah adalah rencana awal. Realisasinya: <strong>musik &amp; efek suara disintesis sendiri</strong> dengan Python/numpy (7 trek musik berbeda per konteks + 8 efek suara) — bukan layanan AI berbayar. <strong>Listening &amp; pembacaan soal memakai flutter_tts on-device</strong> dengan nada tinggi khas anak (belum memakai ElevenLabs). Ditambah <strong>klip suara anak asli berlisensi CC0</strong> untuk pujian, yang mudah diganti rekaman sendiri. Pemutar audio memakai <strong>soundpool</strong> (bukan audioplayers). Detail lengkap ada di bagian "Status Implementasi (v2.0.0)" di atas.</p>
+    </div>
 
     <p style="margin-top:1rem; font-weight:700;">Perbedaan TTS vs Pre-Recorded Audio</p>
     <p style="font-size:13.5px; color:var(--text-2); max-width:none;">Ini adalah dua pendekatan berbeda untuk menghasilkan suara di aplikasi:</p>
@@ -1270,7 +1409,7 @@
       </div>
       <div class="feature-item">
         <span class="fi-icon">👤</span>
-        <div class="fi-text"><strong>Maskot & Karakter</strong><span>Satu karakter utama yang bereaksi terhadap jawaban. Bisa dikustomisasi pakaiannya dengan koin virtual.</span></div>
+        <div class="fi-text"><strong>Maskot & Karakter</strong><span>Maskot utama "Uku" (burung hantu) sudah ada &amp; bereaksi terhadap jawaban. Rencana lanjutan: kustomisasi pakaian maskot dengan koin virtual.</span></div>
       </div>
       <div class="feature-item">
         <span class="fi-icon">📊</span>
