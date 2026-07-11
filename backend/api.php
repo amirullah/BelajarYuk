@@ -157,7 +157,15 @@ function profiles(): void {
     $uid = auth_user();
     $st = db()->prepare('SELECT id, name, avatar, unlocked_grade, total_stars FROM profiles WHERE user_id = ?');
     $st->execute([$uid]);
-    send_json(['ok' => true, 'profiles' => $st->fetchAll()]);
+    // Kembalikan angka sebagai INT (PDO/MySQL memberi String; klien lama bisa
+    // gagal mem-parse String → profil tak muncul).
+    $rows = array_map(function ($r) {
+        $r['id'] = (int) $r['id'];
+        $r['unlocked_grade'] = (int) $r['unlocked_grade'];
+        $r['total_stars'] = (int) $r['total_stars'];
+        return $r;
+    }, $st->fetchAll());
+    send_json(['ok' => true, 'profiles' => $rows]);
 }
 
 function create_profile(): void {
@@ -274,9 +282,14 @@ function sync(): void {
          ON DUPLICATE KEY UPDATE score = GREATEST(score, VALUES(score))'
     )->execute([$profileId, $grade, $week, $totalStars]);
 
-    // Kembalikan progres + state terbaru dari server.
+    // Kembalikan progres + state terbaru dari server (angka sebagai INT).
     $st = db()->prepare('SELECT level_id, stars, best_pct FROM progress WHERE profile_id = ?');
     $st->execute([$profileId]);
+    $progress = array_map(function ($r) {
+        $r['stars'] = (int) $r['stars'];
+        $r['best_pct'] = (int) $r['best_pct'];
+        return $r;
+    }, $st->fetchAll());
     $stateRow = null;
     try {
         $sq = db()->prepare('SELECT state FROM profiles WHERE id = ?');
@@ -284,7 +297,7 @@ function sync(): void {
         $raw = $sq->fetchColumn();
         if ($raw) $stateRow = json_decode($raw, true);
     } catch (Throwable $e) {}
-    send_json(['ok' => true, 'progress' => $st->fetchAll(), 'state' => $stateRow]);
+    send_json(['ok' => true, 'progress' => $progress, 'state' => $stateRow]);
 }
 
 // ── Leaderboard per kelas per minggu ──
@@ -297,5 +310,10 @@ function leaderboard(): void {
          WHERE l.grade = ? AND l.week = ? ORDER BY l.score DESC LIMIT 50'
     );
     $st->execute([$grade, $week]);
-    send_json(['ok' => true, 'grade' => $grade, 'week' => $week, 'top' => $st->fetchAll()]);
+    $top = array_map(function ($r) {
+        $r['profile_id'] = (int) $r['profile_id'];
+        $r['score'] = (int) $r['score'];
+        return $r;
+    }, $st->fetchAll());
+    send_json(['ok' => true, 'grade' => $grade, 'week' => $week, 'top' => $top]);
 }

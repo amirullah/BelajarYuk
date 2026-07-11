@@ -536,6 +536,11 @@
     </div>
 
     <div class="callout">
+      <div class="callout-label">Pembaruan v2.0.2 — perbaikan bug kritis "profil tak muncul"</div>
+      <p><strong>Akar masalah:</strong> backend (PDO/MySQL) mengembalikan kolom angka sebagai <em>String</em> dalam JSON (mis. <code>"unlocked_grade":"1"</code>). Klien melakukan <code>value as num</code> pada String → melempar error yang tertangkap diam-diam, sehingga <strong>profil dari server gagal dimuat &amp; tak muncul setelah login</strong>. Diperbaiki di <strong>dua sisi</strong>: server kini mengirim tipe <strong>int</strong> (perbaikan berlaku bahkan untuk APK lama), dan klien memakai parser angka tahan-banting (<code>asInt</code>) di semua titik pembacaan data server. Ditambah tes regresi.</p>
+    </div>
+
+    <div class="callout">
       <div class="callout-label">Pembaruan v2.0.1 — perbaikan dari audit &amp; pengujian mandiri</div>
       <p><strong>Anti kehilangan data:</strong> pembacaan profil kini tahan-banting (satu entri rusak tak lagi menghapus semua profil); <code>logout</code> membersihkan cache profil (tak bocor antar-akun di HP berbagi); membuat profil saat login-tapi-offline tak lagi menghasilkan "profil hantu" yang terlantar; <strong>koin digabung lewat (earned − spent)</strong> sehingga pulih saat pasang ulang tapi tak me-refund belanja; tulis-balik sinkron anti saling-timpa (anti lost-update).</p>
       <p><strong>Pembelajaran &amp; keadilan soal:</strong> opsi soal klik-gambar/menyimak kini <strong>diacak</strong> (jawaban benar tak lagi selalu di kiri-atas); tingkat kesulitan naik per level; guard bank soal kosong.</p>

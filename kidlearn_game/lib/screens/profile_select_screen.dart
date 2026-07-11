@@ -5,6 +5,7 @@ import '../models/avatars.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/num_parse.dart';
 import '../widgets/uku_mascot.dart';
 import '../widgets/parent_gate.dart';
 import 'home_v2_screen.dart';
@@ -50,7 +51,7 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
             final id = '${raw['id']}';
             final name = (raw['name'] as String?) ?? 'Anak';
             final avatar = (raw['avatar'] as String?) ?? '🦊';
-            final ug = (raw['unlocked_grade'] as num?)?.toInt() ?? 1;
+            final ug = asInt(raw['unlocked_grade'], 1);
             final existing = byId.remove(id);
             if (existing != null) {
               // Pertahankan progres lokal; segarkan nama/avatar/kelas saja.

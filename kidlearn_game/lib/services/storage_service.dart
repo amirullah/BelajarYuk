@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/profile.dart';
+import '../utils/num_parse.dart';
 import 'api_service.dart';
 
 /// Penyimpanan lokal offline-first. Progres selalu tersimpan di HP;
@@ -221,9 +222,9 @@ class StorageService {
     if (res['progress'] is List) {
       for (final row in res['progress'] as List) {
         final lid = row['level_id'] as String;
-        final s = (row['stars'] as num?)?.toInt() ?? 0;
+        final s = asInt(row['stars']);
         if (s > (p.stars[lid] ?? 0)) p.stars[lid] = s;
-        final bp = (row['best_pct'] as num?)?.toInt() ?? 0;
+        final bp = asInt(row['best_pct']);
         if (bp > (p.bestPct[lid] ?? 0)) p.bestPct[lid] = bp;
       }
     }
@@ -250,16 +251,15 @@ class StorageService {
   }
 
   void _mergeState(ChildProfile p, Map<String, dynamic> s) {
-    int mx(int a, dynamic b) =>
-        b is num && b.toInt() > a ? b.toInt() : a;
+    int mx(int a, dynamic b) => asInt(b) > a ? asInt(b) : a;
     // Koin: gabung lewat (earned, spent) yang keduanya monoton, lalu
     // saldo = earned − spent. Ini me-restore koin saat pasang ulang TAPI tak
     // me-refund belanja yang dilakukan saat offline.
     final merged = mergeCoins(
       localCoins: p.coins,
       localSpent: p.coinsSpent,
-      srvCoins: (s['coins'] as num?)?.toInt() ?? 0,
-      srvSpent: (s['coinsSpent'] as num?)?.toInt() ?? 0,
+      srvCoins: asInt(s['coins']),
+      srvSpent: asInt(s['coinsSpent']),
     );
     p.coins = merged.$1;
     p.coinsSpent = merged.$2;
@@ -276,7 +276,7 @@ class StorageService {
     p.lastRewardDate ??= s['lastRewardDate'] as String?;
     if (p.dailyDate == null && s['dailyDate'] != null) {
       p.dailyDate = s['dailyDate'] as String?;
-      p.dailyCount = (s['dailyCount'] as num?)?.toInt() ?? 0;
+      p.dailyCount = asInt(s['dailyCount']);
       p.dailyClaimed = s['dailyClaimed'] as bool? ?? false;
     }
   }
