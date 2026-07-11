@@ -1,0 +1,1662 @@
+<title>BelajarYuk! 2.0 — Rencana Pengembangan</title>
+<style>
+  :root {
+    --bg:        #F5F0E8;
+    --surface:   #FFFFFF;
+    --text:      #1D1108;
+    --text-2:    #6B5B45;
+    --accent:    #B85400;
+    --accent-lt: #FEF3E2;
+    --teal:      #005F56;
+    --teal-lt:   #E4F4F2;
+    --border:    #D9CEBC;
+    --warn-bg:   #FEF3C7;
+    --warn-bdr:  #D97706;
+    --good-bg:   #E4F4F2;
+    --good-bdr:  #005F56;
+    --math:      #C05000;
+    --indo:      #005F56;
+    --eng:       #1D5FAD;
+    --sci:       #6B3FA0;
+    --agama:     #1A5C2A;
+    --ips:       #6B7000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #160E06;
+      --surface:   #221709;
+      --text:      #EFE5D3;
+      --text-2:    #9E8B72;
+      --accent:    #F97316;
+      --accent-lt: #2C1A06;
+      --teal:      #2DD4BF;
+      --teal-lt:   #063330;
+      --border:    #3D2E1C;
+      --warn-bg:   #2C1B06;
+      --warn-bdr:  #D97706;
+      --good-bg:   #063330;
+      --good-bdr:  #2DD4BF;
+      --math:      #FB8C50;
+      --indo:      #2DD4BF;
+      --eng:       #60A5FA;
+      --sci:       #C084FC;
+      --agama:     #4CAF50;
+      --ips:       #A3E635;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg:        #F5F0E8;
+    --surface:   #FFFFFF;
+    --text:      #1D1108;
+    --text-2:    #6B5B45;
+    --accent:    #B85400;
+    --accent-lt: #FEF3E2;
+    --teal:      #005F56;
+    --teal-lt:   #E4F4F2;
+    --border:    #D9CEBC;
+    --warn-bg:   #FEF3C7;
+    --warn-bdr:  #D97706;
+    --good-bg:   #E4F4F2;
+    --good-bdr:  #005F56;
+    --math:      #C05000;
+    --indo:      #005F56;
+    --eng:       #1D5FAD;
+    --sci:       #6B3FA0;
+    --agama:     #1A5C2A;
+    --ips:       #6B7000;
+  }
+  :root[data-theme="dark"] {
+    --bg:        #160E06;
+    --surface:   #221709;
+    --text:      #EFE5D3;
+    --text-2:    #9E8B72;
+    --accent:    #F97316;
+    --accent-lt: #2C1A06;
+    --teal:      #2DD4BF;
+    --teal-lt:   #063330;
+    --border:    #3D2E1C;
+    --warn-bg:   #2C1B06;
+    --warn-bdr:  #D97706;
+    --good-bg:   #063330;
+    --good-bdr:  #2DD4BF;
+    --math:      #FB8C50;
+    --indo:      #2DD4BF;
+    --eng:       #60A5FA;
+    --sci:       #C084FC;
+    --agama:     #4CAF50;
+    --ips:       #A3E635;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    padding: 0 1rem 4rem;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; }
+
+  /* ── HEADER ── */
+  .doc-header {
+    padding: 2.5rem 0 2rem;
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: 2.5rem;
+  }
+  .doc-header .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .doc-header h1 {
+    font-size: clamp(28px, 5vw, 46px);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--text);
+    margin-bottom: 0.6rem;
+  }
+  .doc-header h1 span { color: var(--accent); }
+  .doc-header .meta {
+    color: var(--text-2);
+    font-size: 13px;
+  }
+  .doc-header .meta b { color: var(--text); }
+
+  /* ── SECTION ── */
+  section { margin-bottom: 3rem; }
+  .section-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+  section > h2 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  p { max-width: 68ch; margin-bottom: 0.85rem; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 700; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-left: 3px solid var(--warn-bdr);
+    background: var(--warn-bg);
+    padding: 0.9rem 1.1rem;
+    border-radius: 0 6px 6px 0;
+    margin: 1.25rem 0;
+    font-size: 14px;
+  }
+  .callout.teal {
+    border-left-color: var(--good-bdr);
+    background: var(--good-bg);
+  }
+  .callout .callout-label {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--warn-bdr);
+    margin-bottom: 0.3rem;
+  }
+  .callout.teal .callout-label { color: var(--good-bdr); }
+  .callout p { max-width: none; margin-bottom: 0; color: var(--text); }
+
+  /* ── GRADE TABLE ── */
+  .table-wrap { overflow-x: auto; margin: 1rem 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+  }
+  td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: var(--surface); }
+  .grade-badge {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── SUBJECT CARDS ── */
+  .subject-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .subject-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+    border-top: 4px solid var(--math);
+  }
+  .subject-card:nth-child(2) { border-top-color: var(--indo); }
+  .subject-card:nth-child(3) { border-top-color: var(--eng); }
+  .subject-card:nth-child(4) { border-top-color: var(--sci); }
+  .subject-card:nth-child(5) { border-top-color: var(--agama); }
+  .subject-card:nth-child(6) { border-top-color: var(--ips); }
+  .subject-card .sub-title {
+    font-weight: 800;
+    font-size: 14px;
+    margin-bottom: 0.1rem;
+  }
+  .subject-card .sub-sub {
+    font-size: 11px;
+    color: var(--text-2);
+    margin-bottom: 0.7rem;
+  }
+  .subject-card ul {
+    list-style: none;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .subject-card ul li::before { content: "·  "; color: var(--accent); font-weight: 900; }
+  .subject-card .tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-bottom: 0.5rem;
+  }
+  .tag-cambridge { background: #DBEAFE; color: #1E3A5F; }
+  .tag-indo { background: #D1FAE5; color: #065F46; }
+
+  /* ── QUESTION TYPE GRID ── */
+  .qtype-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  .qtype-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+  }
+  .qtype-card .qt-icon {
+    font-size: 22px;
+    margin-bottom: 0.4rem;
+    line-height: 1;
+  }
+  .qtype-card .qt-name {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 0.2rem;
+  }
+  .qtype-card .qt-desc {
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+
+  /* ── LEVEL SYSTEM ── */
+  .level-row {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 0.5rem 1rem;
+    align-items: start;
+    margin-bottom: 0.6rem;
+    font-size: 13.5px;
+  }
+  .level-name {
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--accent);
+    padding-top: 0.15rem;
+  }
+
+  /* ── TECH COMPARISON ── */
+  .tech-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  @media (max-width: 580px) { .tech-compare { grid-template-columns: 1fr; } }
+  .tech-option {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+  }
+  .tech-option.recommended {
+    border-color: var(--accent);
+    border-width: 2px;
+  }
+  .tech-option .tech-name {
+    font-weight: 800;
+    font-size: 15px;
+    margin-bottom: 0.25rem;
+  }
+  .tech-option .rec-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .tech-pros, .tech-cons {
+    font-size: 12.5px;
+    margin-top: 0.5rem;
+  }
+  .tech-pros li { color: var(--teal); }
+  .tech-pros li::before { content: "✓ "; font-weight: 900; }
+  .tech-cons li { color: var(--text-2); }
+  .tech-cons li::before { content: "– "; }
+  .tech-pros, .tech-cons { list-style: none; }
+  .tech-pros li, .tech-cons li { margin-bottom: 0.15rem; }
+  .tech-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.6rem 0;
+  }
+
+  /* ── FEATURES LIST ── */
+  .feature-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .feature-item {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    font-size: 13.5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.65rem 0.9rem;
+    border-radius: 7px;
+  }
+  .feature-item .fi-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
+  .feature-item .fi-text strong { display: block; font-weight: 700; font-size: 13px; }
+  .feature-item .fi-text span { color: var(--text-2); font-size: 12px; }
+
+  /* ── OPEN QUESTIONS ── */
+  .decision-list { margin-top: 0.75rem; }
+  .decision-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 0.5rem;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  .decision-item:last-child { border-bottom: none; }
+  .decision-item.resolved { opacity: 0.65; }
+  .decision-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--warn-bdr);
+    color: white;
+    font-weight: 800;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .decision-item.resolved .decision-num { background: var(--good-bdr); }
+  .decision-q { font-weight: 700; margin-bottom: 0.2rem; }
+  .decision-opts { color: var(--text-2); font-size: 12.5px; }
+  .decision-answer { color: var(--teal); font-size: 12.5px; font-weight: 600; margin-top: 0.2rem; }
+
+  /* ── STACK SUMMARY ── */
+  .stack-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  .stack-row:last-child { border-bottom: none; }
+  .stack-layer {
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    width: 120px;
+    flex-shrink: 0;
+  }
+  .stack-choice {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .stack-why { color: var(--text-2); font-size: 12.5px; }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    font-size: 12px;
+    color: var(--text-2);
+  }
+
+  /* ── DECISION STATUS ── */
+  .confirmed { color: var(--teal); font-weight: 700; font-size: 11px; }
+  .open      { color: var(--warn-bdr); font-weight: 700; font-size: 11px; }
+  .decision-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+  .badge-done { background: var(--good-bg); color: var(--good-bdr); }
+  .badge-open { background: var(--warn-bg); color: var(--warn-bdr); }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 1rem 0;
+    font-size: 13px;
+  }
+  .flow-step {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .flow-step.highlight {
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 800;
+  }
+  .flow-arrow { color: var(--text-2); font-size: 16px; flex-shrink: 0; }
+
+  /* ── AUDIO COMPARE ── */
+  .audio-compare-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    gap: 0;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+  .audio-compare-row > div {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .audio-compare-row > div:last-child,
+  .audio-compare-row > div:nth-last-child(2),
+  .audio-compare-row > div:nth-last-child(3) { border-bottom: none; }
+  .ac-header { background: var(--accent); color: white; font-weight: 700; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .ac-label { background: var(--surface); font-weight: 700; color: var(--text-2); font-size: 12px; }
+  .ac-tts { background: var(--accent-lt); }
+  .ac-prerec { background: var(--surface); color: var(--text-2); }
+  .ac-chosen { background: var(--good-bg); font-weight: 600; color: var(--text); }
+</style>
+
+<div class="page">
+
+  <header class="doc-header">
+    <div class="eyebrow">Dokumen Perencanaan Produk</div>
+    <h1>BelajarYuk! <span>2.0</span></h1>
+    <div class="meta">
+      <b>Pengembang:</b> Amirullah &nbsp;·&nbsp;
+      <b>Status:</b> Dalam Pengembangan &nbsp;·&nbsp;
+      <b>Tanggal:</b> Juli 2026 &nbsp;·&nbsp;
+      <b>Target:</b> SD Kelas 1–6 &nbsp;·&nbsp;
+      <b>Platform:</b> Android (iOS opsional) &nbsp;·&nbsp;
+      <b>Kurikulum:</b> Cambridge + Indonesia-specific
+    </div>
+  </header>
+
+  <!-- 1. VISI -->
+  <section>
+    <div class="section-label">Bagian 1</div>
+    <h2>Visi & Tujuan</h2>
+    <p>BelajarYuk! 2.0 adalah platform game edukasi mobile yang menemani anak SD dari kelas 1 hingga kelas 6 — mencakup semua mata pelajaran utama dengan soal yang selalu berbeda, model soal bervariasi, dan sistem level yang terasa seperti petualangan, bukan ujian.</p>
+    <p>Satu akun bisa digunakan oleh beberapa anak dalam satu keluarga, masing-masing dengan profil dan progres tersendiri. Kemajuan tersimpan di cloud sehingga bisa dilanjutkan dari perangkat manapun. <strong>Semua fitur gratis, tanpa in-app purchase, tanpa iklan.</strong></p>
+
+    <div class="callout teal">
+      <div class="callout-label">Prinsip Utama</div>
+      <p>Cepat, ringan, dan offline-first — koneksi internet hanya diperlukan untuk sinkronisasi progres dan konten baru. Musik dan soal dasar berjalan penuh tanpa internet. Kurikulum berbasis Cambridge Primary untuk mapel internasional (Math, English, Science), ditambah mata pelajaran khas Indonesia (Bahasa Indonesia, Agama Islam).</p>
+    </div>
+  </section>
+
+  <!-- 2. STRUKTUR KELAS & LEVEL -->
+  <section>
+    <div class="section-label">Bagian 2</div>
+    <h2>Struktur Kelas & Level</h2>
+    <p>Semua <strong>6 mata pelajaran = 12 level</strong> (seragam) — Math, English, Bahasa Indonesia, Science, Agama, dan IPS. Total <strong>72 level per kelas</strong>. Setiap level berisi <strong>15–30 soal</strong> yang dipilih acak dari bank besar, sehingga pengalaman selalu berbeda meski diulang. Lulus level butuh skor ≥ 80%.</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Kenapa Semua 12 Level (Bukan Dikurangi)?</div>
+      <p>Sempat dipertimbangkan Science hanya 8 level karena jam belajar Cambridge-nya lebih sedikit. Tapi <strong>jam belajar ≠ jumlah materi</strong>: dihitung dari framework resmi, Science justru punya <strong>311 objektif</strong> (terbanyak di Stage 4 = 63 objektif), lebih banyak dari Math (288). Semua mapel inti punya materi lebih dari cukup untuk 12 level. Total <strong>432 level lintas 6 kelas</strong>, plus Mode Arena tak terbatas setelah Kelas 6.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Kelas</th>
+            <th>Usia</th>
+            <th>Matematika 🔢</th>
+            <th>Bhs. Indonesia 📚</th>
+            <th>Bhs. Inggris 🌍</th>
+            <th>Sains (IPA) 🔬</th>
+            <th>Agama Islam ☪️</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="grade-badge" style="background:#FEE2E2;color:#991B1B">Kelas 1</span></td>
+            <td>6–7 th</td>
+            <td>Berhitung 1–20, bentuk dasar</td>
+            <td>Huruf kapital, kata dasar</td>
+            <td>Fonik, nama huruf, kalimat berkapital</td>
+            <td>Hewan, tumbuhan, cuaca</td>
+            <td>Rukun Islam, doa sehari-hari</td>
+          </tr>
+          <tr>
+            <td><span class="grade-badge" style="background:#FEF3C7;color:#92400E">Kelas 2</span></td>
+            <td>7–8 th</td>
+            <td>Penjumlahan & pengurangan s/d 100</td>
+            <td>Kalimat sederhana, ejaan</td>
+            <td>Ejaan pola, membaca kata, tanda baca</td>
+            <td>Siklus air, bagian tumbuhan</td>
+            <td>Rukun Iman, tata cara sholat</td>
+          </tr>
+          <tr>
+            <td><span class="grade-badge" style="background:#D1FAE5;color:#065F46">Kelas 3</span></td>
+            <td>8–9 th</td>
+            <td>Perkalian & pembagian s/d 10</td>
+            <td>Paragraf, sinonim/antonim</td>
+            <td>Paragraf, jenis kata, pemahaman bacaan</td>
+            <td>Metamorfosis, sistem pencernaan</td>
+            <td>Surat-surat pendek Juz 'Amma</td>
+          </tr>
+          <tr>
+            <td><span class="grade-badge" style="background:#DBEAFE;color:#1E3A5F">Kelas 4</span></td>
+            <td>9–10 th</td>
+            <td>Pecahan, KPK & FPB</td>
+            <td>Puisi, teks deskripsi</td>
+            <td>Apostrof kepemilikan, strategi baca, komposisi</td>
+            <td>Energi, gaya & gerak</td>
+            <td>Kisah Nabi dan Rasul, fiqh puasa</td>
+          </tr>
+          <tr>
+            <td><span class="grade-badge" style="background:#EDE9FE;color:#4C1D95">Kelas 5</span></td>
+            <td>10–11 th</td>
+            <td>Desimal, persen, luas & volume</td>
+            <td>Teks narasi & eksposisi</td>
+            <td>Kalimat kompleks, struktur teks, inferensi</td>
+            <td>Tata surya, ekosistem</td>
+            <td>Akhlak mulia, Asmaul Husna, tajwid dasar</td>
+          </tr>
+          <tr>
+            <td><span class="grade-badge" style="background:#F0FDF4;color:#14532D">Kelas 6</span></td>
+            <td>11–12 th</td>
+            <td>Rasio, statistik dasar, persamaan</td>
+            <td>Surat resmi, pidato</td>
+            <td>Pemahaman lanjutan, menulis formal, apresiasi teks</td>
+            <td>Listrik, bumi & alam semesta</td>
+            <td>Hari akhir, muamalah, Islam di Indonesia</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Prinsip Utama — Progres Berbasis Pencapaian, Bukan Kalender Sekolah ✓ Dikonfirmasi</div>
+      <p><strong>Semua anak mulai dari Kelas 1</strong> — merasakan perjalanan naik level dari awal. Menyelesaikan semua level Kelas 1 <strong>otomatis membuka Kelas 2</strong>, tanpa menunggu naik kelas sungguhan. Anak berbakat bisa melaju cepat lewat gate 80%, tapi tetap melewati semua fondasi. Bisa kembali ke kelas lama kapan saja untuk review atau kejar bintang.</p>
+    </div>
+
+    <p style="margin-top:1rem; font-weight:700;">Alur Progres Anak</p>
+    <div class="flow">
+      <div class="flow-step">Buat Profil<br><span style="font-size:11px;font-weight:400;color:var(--text-2)">Nama & avatar</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">72 Level Kelas 1<br><span style="font-size:11px;font-weight:400;color:var(--text-2)">6 mapel × 12 level</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">🎓 Ujian Penguasaan<br><span style="font-size:11px;font-weight:400">Tertunda, baru buka kelas</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Kelas 2, 3 … 6<br><span style="font-size:11px;font-weight:400;color:var(--text-2)">Total 432 level</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step highlight">🏟️ Mode Arena<br><span style="font-size:11px;font-weight:400">Endless, tanpa batas</span></div>
+    </div>
+
+    <p style="margin-top:0.5rem; font-size:13px; color:var(--text-2)">Anak juga bisa kembali ke kelas manapun untuk review atau kejar bintang 3. Tidak ada konten yang terkunci setelah dibuka.</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Keseimbangan: Tidak Terkunci Kalender, Tapi Juga Tidak Terlalu Mudah ✓ Berbasis Riset</div>
+      <p>Prinsipnya tetap: anak tidak perlu menunggu kalender sekolah. TAPI riset membuktikan mencegah "naik kelas terlalu cepat" <strong>bukan dengan menambah level atau batas harian</strong> — melainkan dengan <strong>gerbang penguasaan yang terdistribusi waktu</strong> (cara Khan Academy &amp; Math Academy). Anak yang benar-benar menguasai boleh maju cepat; anak yang cuma "ngebut" akan tertahan secara alami oleh tiga penjaga di bawah.</p>
+    </div>
+
+    <p style="margin-top:1.25rem; font-weight:700;">Struktur Level Per Kelas</p>
+    <p style="font-size:13.5px;">Semua 6 mapel <strong>seragam 12 level</strong>. Struktur di bawah berlaku untuk tiap mapel di tiap kelas.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Level</th><th>Karakter</th><th>Soal</th><th>Lulus</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Level 1–2</strong></td><td>Pengenalan — konsep baru, visual banyak, TTS bantu baca</td><td>15 soal</td><td>≥ 80%</td></tr>
+          <tr><td><strong>Level 3–5</strong></td><td>Latihan — variasi tipe soal makin luas</td><td>20 soal</td><td>≥ 80%</td></tr>
+          <tr><td><strong>Level 6–8</strong></td><td>Pendalaman — soal mulai multi-langkah</td><td>20 soal</td><td>≥ 80%</td></tr>
+          <tr><td><strong>Level 9–10</strong></td><td>Tantangan — interleaving, campur strand</td><td>25 soal</td><td>≥ 80%</td></tr>
+          <tr><td><strong>Level 11</strong></td><td>Review — campuran semua topik kelas ini</td><td>25 soal</td><td>≥ 80%</td></tr>
+          <tr><td><strong>Level 12</strong></td><td>Boss Level — soal multi-langkah, waktu ketat</td><td>30 soal</td><td>≥ 85%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Tiga Penjaga Anti-"Naik Kelas Terlalu Cepat" ✓ Berbasis Riset</div>
+      <p><strong>1. Mastery Gate 80%</strong> — lulus level butuh ≥80% (bukan 70%). Sesuai kalibrasi Math Academy &amp; standar mastery learning.<br>
+      <strong>2. Spaced Review Gate</strong> — sebelum naik kelas, anak wajib lulus <strong>"Ujian Penguasaan Kelas"</strong> yang menarik soal dari SEMUA strand — dan ujian ini baru terbuka <strong>beberapa hari setelah</strong> level terakhir selesai, hanya bisa dicoba sekali per hari. Ini secara fisik membuat satu kelas mustahil diselesaikan dalam sehari-dua hari. (Meniru Khan: "Mastered" hanya lewat tes tertunda.)<br>
+      <strong>3. Mastery Decay</strong> — jika review materi lama gagal (&lt;70%), bintang level itu turun dan harus diulang. Penguasaan harus <em>bertahan melintasi waktu</em>, bukan sekadar lulus sekali.</p>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Berapa Lama Realistis Satu Kelas?</div>
+      <p>Dengan dosis sehat ~30–60 menit/hari (benchmark DreamBox), plus Spaced Review Gate yang menyebar cek retensi ke beberapa hari, satu kelas realistis memakan <strong>beberapa minggu hingga 2–3 bulan</strong> — bukan beberapa hari. Anak berbakat tetap bisa lebih cepat dari teman sekelasnya, tapi tidak mungkin melompat Kelas 1→4 dalam dua bulan. Kesulitan konten Cambridge Stage tinggi juga jadi penjaga jujur.</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Mekanisme Anti-Frustrasi (Tetap Ada)</div>
+      <p>Keseimbangan dua arah: susah tapi tidak bikin menyerah. Jika anak gagal <strong>3 kali berturut</strong> di level sama, muncul tombol "Lewati Dulu" (level ditandai belum bintang, bisa diulang kapan saja) + tawaran level review yang lebih mudah untuk memulihkan kepercayaan diri. Menantang bagi yang ingin sempurna, ramah bagi yang sedang kesulitan.</p>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Sistem Bintang Per Level (Dinaikkan)</div>
+      <p>⭐ 1 bintang = 80–89% benar &nbsp;·&nbsp; ⭐⭐ 2 bintang = 90–99% &nbsp;·&nbsp; ⭐⭐⭐ 3 bintang = 100% sempurna. Ambang dinaikkan dari rencana awal (70/80/90) agar 3 bintang benar-benar berarti "menguasai". Anak bisa kembali kapan saja untuk kejar bintang penuh.</p>
+    </div>
+  </section>
+
+  <!-- 3. MATA PELAJARAN -->
+  <section>
+    <div class="section-label">Bagian 3</div>
+    <h2>Mata Pelajaran</h2>
+    <p>Enam mata pelajaran, semua mulai Kelas 1, masing-masing punya karakter visual dan audio berbeda. Tiga mapel (<strong>Math, English, Science</strong>) mengikuti standar Cambridge Primary. Tiga mapel (<strong>Bahasa Indonesia, Agama Islam, IPS</strong>) khas Indonesia — tetap ada karena penting untuk anak Indonesia.</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Cambridge vs Indonesia-Specific ✓ Dikonfirmasi</div>
+      <p>Cambridge Primary mencakup: Mathematics, English, dan Science. <strong>Bahasa Indonesia, Agama Islam, dan IPS</strong> tidak ada di kurikulum Cambridge — ini tambahan khas Indonesia. Semua mapel <strong>mulai Kelas 1</strong>. Untuk IPS, materi K1–2 pakai konten sosial usia dini (keluarga, lingkungan); rasa "Cambridge Global Perspectives" (isu dunia) ditambahkan dari K3+.</p>
+    </div>
+
+    <div class="subject-grid">
+      <div class="subject-card">
+        <span class="tag tag-cambridge">Cambridge Primary</span>
+        <div class="sub-title">🔢 Matematika</div>
+        <div class="sub-sub">Mathematics · Warna: Oranye</div>
+        <ul>
+          <li>Soal berhitung algoritmik (selalu unik)</li>
+          <li>Cambridge: Pattern, algebra, probability</li>
+          <li>"Thinking mathematically" — soal multi-langkah</li>
+          <li>Drag angka untuk susun persamaan</li>
+        </ul>
+      </div>
+      <div class="subject-card">
+        <span class="tag tag-indo">Indonesia-Specific</span>
+        <div class="sub-title">📚 Bahasa Indonesia</div>
+        <div class="sub-sub">Bahasa · Warna: Hijau teal</div>
+        <ul>
+          <li>Pilih kata yang tepat dalam kalimat</li>
+          <li>Susun kata menjadi kalimat</li>
+          <li>Identifikasi jenis kata, isi teks rumpang</li>
+          <li>Puisi, teks narasi, surat resmi</li>
+        </ul>
+      </div>
+      <div class="subject-card">
+        <span class="tag tag-cambridge">Cambridge Primary</span>
+        <div class="sub-title">🌍 Bahasa Inggris</div>
+        <div class="sub-sub">English · Warna: Biru</div>
+        <ul>
+          <li>Listening: dengar audio TTS, pilih jawaban</li>
+          <li>Cambridge: reading comprehension teks nyata</li>
+          <li>Vocabulary, writing composition</li>
+          <li>Speaking & listening formal (kelas 4+)</li>
+        </ul>
+      </div>
+      <div class="subject-card">
+        <span class="tag tag-cambridge">Cambridge Primary</span>
+        <div class="sub-title">🔬 Sains (IPA)</div>
+        <div class="sub-sub">Science · Warna: Ungu</div>
+        <ul>
+          <li>Scientific method sejak kelas 1</li>
+          <li>Cambridge: predict → observe → explain</li>
+          <li>Urutan proses drag & drop</li>
+          <li>Chemistry dasar mulai kelas 4</li>
+        </ul>
+      </div>
+      <div class="subject-card">
+        <span class="tag tag-indo">Indonesia-Specific</span>
+        <div class="sub-title">☪️ Agama Islam</div>
+        <div class="sub-sub">PAI · Warna: Hijau</div>
+        <ul>
+          <li>Rukun Islam & Rukun Iman</li>
+          <li>Surat pendek & Asmaul Husna</li>
+          <li>Kisah Nabi dan Rasul</li>
+          <li>Fiqh: sholat, wudhu, puasa, akhlak</li>
+        </ul>
+      </div>
+      <div class="subject-card">
+        <span class="tag tag-indo">Mapel Inti · Mulai Kelas 1</span>
+        <div class="sub-title">🗺️ IPS</div>
+        <div class="sub-sub">Sosial · Warna: Hijau zaitun</div>
+        <ul>
+          <li>K1–2: keluarga, rumah, lingkungan sekitar</li>
+          <li>K3+: budaya daerah, peta Indonesia, profesi</li>
+          <li>K3+: rasa "Global Perspectives" (isu dunia)</li>
+          <li>Peta interaktif &amp; kartu budaya</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. MODEL SOAL -->
+  <section>
+    <div class="section-label">Bagian 4</div>
+    <h2>Model Soal (Bervariasi)</h2>
+    <p>Tidak ada satu model soal yang diulang terus. Sistem akan mix otomatis berdasarkan mata pelajaran dan level. Soal matematika dasar dihasilkan secara algoritmik (angka acak), soal bahasa diambil dari bank soal besar di database.</p>
+    <div class="qtype-grid">
+      <div class="qtype-card">
+        <div class="qt-icon">🔘</div>
+        <div class="qt-name">Pilihan Ganda</div>
+        <div class="qt-desc">4 opsi. Dipakai lintas semua mapel. Acak urutan jawaban setiap kali tampil.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">✏️</div>
+        <div class="qt-name">Isi Jawaban</div>
+        <div class="qt-desc">Ketik angka atau kata pendek. Untuk kelas 3+ dengan keyboard angka/huruf sesuai konteks.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">↕️</div>
+        <div class="qt-name">Susun Urutan</div>
+        <div class="qt-desc">Drag kartu ke urutan yang benar. Cocok untuk siklus, timeline, langkah proses.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">🔗</div>
+        <div class="qt-name">Pasangkan</div>
+        <div class="qt-desc">Tarik garis atau tap dua kolom. Misal: kata ↔ gambar, soal ↔ jawaban.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">✅</div>
+        <div class="qt-name">Benar / Salah</div>
+        <div class="qt-desc">Pernyataan singkat, geser ke kanan (benar) atau kiri (salah). Cepat dan intuitif.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">🎧</div>
+        <div class="qt-name">Listening</div>
+        <div class="qt-desc">Dengar audio TTS, lalu jawab pilihan ganda. Khusus Bahasa Inggris dan Agama Islam (lafal doa/surat).</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">🖼️</div>
+        <div class="qt-name">Berbasis Gambar</div>
+        <div class="qt-desc">Tap bagian gambar sebagai jawaban. Cocok untuk anatomi, peta, diagram.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">🧩</div>
+        <div class="qt-name">Mini Puzzle</div>
+        <div class="qt-desc">Rebus, teka-teki, atau masalah logika. Muncul sebagai "bonus soal" di akhir level.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">✍️</div>
+        <div class="qt-name">Tulis / Jiplak</div>
+        <div class="qt-desc">Trace huruf, angka, atau hijaiyah dengan jari. Cocok kelas 1–2 &amp; Agama (menulis Arab).</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">🎚️</div>
+        <div class="qt-name">Garis Bilangan</div>
+        <div class="qt-desc">Geser penanda ke posisi yang tepat di garis. Untuk urutan angka, pecahan, estimasi.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">🗂️</div>
+        <div class="qt-name">Kelompokkan</div>
+        <div class="qt-desc">Seret objek ke keranjang yang benar. Klasifikasi hewan, jenis kata, benda hidup/mati.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">🃏</div>
+        <div class="qt-name">Kartu Memori</div>
+        <div class="qt-desc">Balik kartu, cari pasangan. Kosakata ↔ arti, angka ↔ jumlah. Melatih ingatan.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">🎤</div>
+        <div class="qt-name">Ucapkan</div>
+        <div class="qt-desc">Rekam pengucapan via mikrofon (English &amp; lafal Arab). Umpan balik apakah tepat.</div>
+      </div>
+      <div class="qtype-card">
+        <div class="qt-icon">👆</div>
+        <div class="qt-name">Hotspot Gambar</div>
+        <div class="qt-desc">Tap titik yang benar pada ilustrasi besar. Tunjuk provinsi di peta, organ di tubuh.</div>
+      </div>
+    </div>
+
+    <p style="margin-top:1rem; font-size:13px; color:var(--text-2)">15 bentuk soal berbeda — mesin level otomatis memilih tipe yang paling cocok untuk tiap objektif Cambridge, lalu mencampurnya agar tidak monoton.</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Variasi Soal Matematika</div>
+      <p>Soal mat bukan dari database statis — dihasilkan algoritmik: pilih dua angka acak sesuai range kelas, pilih operasi, hasilkan opsi jawaban yang salah secara cerdas (misal salah satu beda 1, salah satu beda 10). Ini menjamin soal tidak pernah sama persis dan tidak perlu update manual.</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Aturan "Tidak Monoton" untuk Bentuk Soal</div>
+      <p>Mesin level punya aturan wajib: <strong>tiap level mencampur minimal 4 tipe soal berbeda</strong>, dan tipe yang sama <strong>tidak boleh muncul lebih dari 2 kali berturut-turut</strong>. Anak berpindah dari tap gambar → geser benar/salah → susun urutan → ketik jawaban → dengar audio dalam satu sesi. Ini menjaga otak tetap aktif (interleaving — terbukti meningkatkan retensi) sekaligus mencegah rasa bosan.</p>
+    </div>
+  </section>
+
+  <!-- 4B. MEMBUAT ANAK SENANG -->
+  <section>
+    <div class="section-label">Bagian 4B — Prioritas Utama</div>
+    <h2>Membuat Anak Suka &amp; Betah</h2>
+    <p>App edukasi terbaik (Duolingo, Khan Academy Kids, Prodigy) menang bukan karena soalnya, tapi karena <strong>terasa seperti bermain, bukan belajar</strong>. Berikut sistem yang membuat anak <em>ingin</em> kembali tiap hari.</p>
+
+    <p style="font-weight:700; margin-top:1rem;">Mesin Keterlibatan (Engagement Loop)</p>
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="fi-icon">🦊</span>
+        <div class="fi-text"><strong>Maskot Pendamping</strong><span>Satu karakter (mis. rubah/robot pintar) yang menemani, bereaksi tiap jawaban — melompat gembira saat benar, memberi semangat saat salah. Punya nama, bisa diberi aksesori.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🗺️</span>
+        <div class="fi-text"><strong>Peta Petualangan</strong><span>Tiap kelas = sebuah "dunia", tiap mapel = pulau. Level adalah titik di jalur yang terisi saat ditamatkan. Anak melihat kemajuannya secara visual, bukan daftar angka.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🎁</span>
+        <div class="fi-text"><strong>Peti Kejutan (Reward Variabel)</strong><span>Selesai level → peti hadiah berisi koin, stiker, atau item langka acak. Kejutan yang tak terduga adalah pendorong kembali terkuat — dipakai semua game top (versi sehat, tanpa uang).</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🔥</span>
+        <div class="fi-text"><strong>Streak Harian (Lembut)</strong><span>Main tiap hari → api streak menyala. Tapi ada "pelindung streak" gratis agar anak tidak trauma kehilangan — memotivasi tanpa membuat cemas.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">👕</span>
+        <div class="fi-text"><strong>Kustomisasi Avatar &amp; Maskot</strong><span>Koin dari belajar dipakai beli baju, topi, latar. Anak punya "miliknya sendiri" — rasa kepemilikan bikin betah. Semua gratis, hanya perlu main.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🎮</span>
+        <div class="fi-text"><strong>Mini-Game Hadiah</strong><span>Tiap beberapa level, unlock permainan murni (puzzle, mewarnai, tap cepat) — BUKAN soal. Jeda bermain ini yang membuat belajar terasa ringan.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🎉</span>
+        <div class="fi-text"><strong>Perayaan Penuh</strong><span>Jawaban benar → confetti, suara ceria, maskot menari. Naik level → animasi kembang api. Otak anak mencari "momen menang" ini berulang-ulang.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">📔</span>
+        <div class="fi-text"><strong>Album Koleksi</strong><span>Kartu hewan, tokoh, atau benda yang dikumpulkan dari belajar. "Tinggal 2 lagi lengkap!" mendorong anak main satu sesi lagi.</span></div>
+      </div>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.5rem;">Visual Tidak Monoton</p>
+    <p style="font-size:13.5px;">Kebosanan visual = anak berhenti main. Aturan desain: <strong>tidak ada dua layar yang terasa sama</strong>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Sumber Variasi</th><th>Bagaimana</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Tema per mapel</strong></td><td>Math = luar angkasa &amp; robot · English = hutan dongeng · Science = laboratorium &amp; alam · Bhs. Indonesia = Nusantara/wayang · Agama = pola geometris Islami &amp; masjid</td></tr>
+          <tr><td><strong>Dunia per kelas</strong></td><td>Tiap kelas punya palet &amp; latar berbeda — Kelas 1 cerah ceria, naik ke Kelas 6 makin "keren/dewasa" agar terasa tumbuh</td></tr>
+          <tr><td><strong>Ekspresi karakter</strong></td><td>Maskot &amp; tokoh soal berganti ekspresi &amp; pose — senang, kaget, berpikir — bukan gambar statis</td></tr>
+          <tr><td><strong>Konteks soal bergambar</strong></td><td>Soal dibungkus ilustrasi (kue untuk pecahan, kebun binatang untuk berhitung) — bukan teks polos</td></tr>
+          <tr><td><strong>Latar &amp; cuaca dinamis</strong></td><td>Waktu hari &amp; musim di peta berubah; event spesial (Ramadan, 17 Agustus, tahun baru) bawa skin khusus</td></tr>
+          <tr><td><strong>Animasi mikro</strong></td><td>Tombol memantul, bintang berkelap-kelip, elemen mengambang — layar terasa "hidup", bukan diam</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Prinsip Emas: Susah Boleh, Membosankan Tidak</div>
+      <p>Riset jelas — tantangan yang pas justru bikin ketagihan (kondisi "flow"). Yang membuat anak berhenti bukan soal sulit, tapi <strong>pengulangan yang membosankan dan kegagalan yang menghukum</strong>. Maka: soal boleh menantang (gate 80%), tapi setiap sesi harus terasa segar secara visual &amp; bentuk soal, dan setiap kegagalan dibingkai sebagai "coba lagi, hampir!" bukan "kamu salah".</p>
+    </div>
+  </section>
+
+  <!-- 5. LOGIN & PROFIL -->
+  <section>
+    <div class="section-label">Bagian 5</div>
+    <h2>Sistem Login & Profil</h2>
+
+    <p>Satu akun orang tua bisa mengelola hingga <strong>5 profil anak</strong>. Setiap profil benar-benar terpisah: level, skor, dan preferensi tidak bercampur.</p>
+
+    <div class="level-row">
+      <div class="level-name">AKUN UTAMA</div>
+      <div><strong>"Masuk dengan Google" sebagai cara utama</strong> — satu tap, tanpa isi form, tanpa ingat password. Email/password disediakan sebagai cadangan. Ini akun orang tua — untuk manajemen profil &amp; melihat laporan kemajuan anak.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">GOOGLE LOGIN</div>
+      <div>Di Flutter pakai paket <code>google_sign_in</code>: app dapat token ID dari Google, backend Hostinger tinggal <strong>verifikasi token via kunci publik Google</strong>. Berjalan di shared hosting biasa — tidak perlu server khusus. Cepat, aman, dan familiar bagi orang tua.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">PROFIL ANAK</div>
+      <div>Nama &amp; avatar pilihan (semua mulai Kelas 1). Saat buka app, tampil pilihan profil dengan avatar besar — anak cukup tap nama mereka, tanpa perlu ingat password.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">PIN OPSIONAL</div>
+      <div>Profil anak bisa dikunci PIN 4 digit untuk menghindari anak lain masuk ke profil temannya secara tidak sengaja.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">OFFLINE MODE</div>
+      <div>Setelah login pertama kali, data progres tersimpan lokal. Bisa main tanpa internet. Otomatis sinkronisasi ke cloud saat ada koneksi.</div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Data Anak & Privasi</div>
+      <p>Profil anak tidak memerlukan email atau data pribadi apapun — hanya nama tampilan. Sesuai standar COPPA/UU PDP Indonesia. Tidak ada iklan, tidak ada in-app purchase tersembunyi.</p>
+    </div>
+  </section>
+
+  <!-- 6. TEKNOLOGI & HOSTING -->
+  <section>
+    <div class="section-label">Bagian 6</div>
+    <h2>Teknologi & Hosting</h2>
+
+    <p>Dengan hosting Hostinger shared yang sudah dimiliki, kita bisa memaksimalkan apa yang ada dan <strong>menekan biaya server menjadi nol</strong>. Kuncinya: pisahkan data soal (besar, statis) dari data user (kecil, dinamis).</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Insight Kunci: Soal Tidak Perlu Server ✓</div>
+      <p>Bank soal (~14.400 soal) adalah data <em>statis</em> — tidak berubah setelah launch. Daripada taruh di server dan query via internet setiap sesi bermain, lebih efisien <strong>bundle langsung ke dalam app</strong> sebagai file SQLite. Query langsung dari storage HP — jauh lebih cepat, gratis sepenuhnya, dan berjalan offline 100%. File SQLite 14.400 soal teks ≈ 8–12 MB saja.</p>
+    </div>
+
+    <p style="margin-top:1.25rem; font-weight:700;">Arsitektur yang Direkomendasikan</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Data / Fungsi</th><th>Disimpan Di</th><th>Alasan</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Bank Soal</strong> (~14.400 soal)</td>
+            <td>SQLite di dalam APK</td>
+            <td>Statis, besar, butuh query cepat — lokal jauh lebih baik dari network</td>
+          </tr>
+          <tr>
+            <td><strong>Progres lokal</strong> (soal yang sudah dilihat, skor)</td>
+            <td>SQLite / Hive lokal di HP</td>
+            <td>Akses instan, offline, tidak butuh server</td>
+          </tr>
+          <tr>
+            <td><strong>Akun & Auth</strong></td>
+            <td>Hostinger MySQL + PHP</td>
+            <td>Sudah ada, tinggal pakai</td>
+          </tr>
+          <tr>
+            <td><strong>Profil anak & progres cloud</strong></td>
+            <td>Hostinger MySQL + PHP</td>
+            <td>Data kecil (~KB per user), MySQL cukup</td>
+          </tr>
+          <tr>
+            <td><strong>Leaderboard</strong></td>
+            <td>Hostinger MySQL + PHP</td>
+            <td>Query ranking per kelas — SQL sangat cocok</td>
+          </tr>
+          <tr>
+            <td><strong>Audio TTS</strong></td>
+            <td>flutter_tts (on-device)</td>
+            <td>Tidak butuh file audio dari server</td>
+          </tr>
+          <tr>
+            <td><strong>Musik</strong></td>
+            <td>Bundled di APK (MP3 kecil)</td>
+            <td>File musik per mapel ~2–3 MB total, cukup bundle</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:1.25rem; font-weight:700;">Apa yang Dibangun di Hostinger?</p>
+    <div class="level-row">
+      <div class="level-name">BAHASA</div>
+      <div>PHP (sudah tersedia di semua shared hosting Hostinger). Tidak perlu Node.js, Python, atau runtime khusus.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">DATABASE</div>
+      <div>MySQL (sudah tersedia). Tabel: users, child_profiles, progress, leaderboard. Data ini kecil — ratusan ribu user pun masih ringan untuk MySQL shared.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">API</div>
+      <div>REST API sederhana dalam PHP: register, login, simpan progres, ambil leaderboard. Tidak perlu framework besar — file PHP plain sudah cukup, atau pakai Slim Framework jika mau lebih terstruktur.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">PANEL ADMIN</div>
+      <div><strong>Tidak perlu buat dari awal.</strong> phpMyAdmin sudah tersedia di cPanel Hostinger — gunakan itu untuk import data awal dan monitor database. Hemat waktu development untuk app.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">KEAMANAN</div>
+      <div>JWT token untuk auth antara app dan PHP API. Password di-hash dengan bcrypt. SSL gratis dari Hostinger (Let's Encrypt). Rate limiting di PHP untuk cegah brute force login.</div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Keterbatasan Shared Hosting yang Perlu Diketahui</div>
+      <p>Shared hosting tidak mendukung WebSockets (tidak ada realtime sync otomatis). Ini tidak masalah — progres disinkronisasi saat app dibuka atau sesi selesai (pull-on-open), bukan realtime. <strong>Google Login tetap bisa</strong>: OAuth ditangani di sisi app (paket <code>google_sign_in</code>), backend PHP cukup memverifikasi token ID Google — tidak butuh fitur server khusus.</p>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Ringkasan Stack Final ✓</div>
+      <div style="margin-top:0.5rem">
+        <div class="stack-row"><span class="stack-layer">App</span><span class="stack-choice">Flutter + Dart</span><span class="stack-why">&nbsp;— sudah dimulai, cross-platform</span></div>
+        <div class="stack-row"><span class="stack-layer">State Mgmt</span><span class="stack-choice">Riverpod</span><span class="stack-why">&nbsp;— reactive, tidak rebuild berlebihan</span></div>
+        <div class="stack-row"><span class="stack-layer">Soal (lokal)</span><span class="stack-choice">SQLite bundled</span><span class="stack-why">&nbsp;— ~14.400 soal di dalam APK, query offline</span></div>
+        <div class="stack-row"><span class="stack-layer">Progres lokal</span><span class="stack-choice">Hive (lokal)</span><span class="stack-why">&nbsp;— tracking soal dilihat, skor offline</span></div>
+        <div class="stack-row"><span class="stack-layer">Backend</span><span class="stack-choice">Hostinger PHP + MySQL</span><span class="stack-why">&nbsp;— auth, profil, leaderboard</span></div>
+        <div class="stack-row"><span class="stack-layer">Audio</span><span class="stack-choice">flutter_tts + audioplayers</span><span class="stack-why">&nbsp;— TTS on-device, musik bundled</span></div>
+        <div class="stack-row"><span class="stack-layer">Admin panel</span><span class="stack-choice">phpMyAdmin (Hostinger)</span><span class="stack-why">&nbsp;— sudah ada, tidak perlu buat baru</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. AUDIO -->
+  <section>
+    <div class="section-label">Bagian 7</div>
+    <h2>Sistem Audio</h2>
+
+    <p>Audio adalah elemen kritis — bukan hanya musik latar, tapi juga bagian dari penilaian (listening Bahasa Inggris). Dua keputusan sudah dikonfirmasi: musik dibuat dengan AI, dan listening menggunakan TTS.</p>
+
+    <p style="margin-top:1rem; font-weight:700;">Perbedaan TTS vs Pre-Recorded Audio</p>
+    <p style="font-size:13.5px; color:var(--text-2); max-width:none;">Ini adalah dua pendekatan berbeda untuk menghasilkan suara di aplikasi:</p>
+
+    <div class="audio-compare-row">
+      <div class="ac-header"></div>
+      <div class="ac-header ac-tts">TTS (Text-to-Speech) ✓ Dipilih</div>
+      <div class="ac-header">Pre-Recorded Audio</div>
+      <div class="ac-label">Apa itu?</div>
+      <div class="ac-chosen">Software mengubah teks menjadi suara secara otomatis. Tidak perlu rekaman manusia.</div>
+      <div class="ac-prerec">File MP3/WAV yang direkam oleh manusia nyata (misal: native speaker di studio rekaman).</div>
+      <div class="ac-label">Kualitas</div>
+      <div class="ac-chosen">TTS modern (Google WaveNet, ElevenLabs) sangat natural — sulit dibedakan dari manusia asli.</div>
+      <div class="ac-prerec">Kualitas terbaik, paling natural, ada emosi dan intonasi yang tulus.</div>
+      <div class="ac-label">Biaya</div>
+      <div class="ac-chosen">Gratis (flutter_tts) atau sangat murah (ElevenLabs API untuk kata kosakata utama).</div>
+      <div class="ac-prerec">Perlu bayar voice actor / studio. Mahal jika ada ratusan atau ribuan kata.</div>
+      <div class="ac-label">Skalabilitas</div>
+      <div class="ac-chosen">Bisa generate suara untuk kata/kalimat baru kapan saja, otomatis.</div>
+      <div class="ac-prerec">Setiap kata baru butuh sesi rekaman ulang. Tidak fleksibel saat bank soal berkembang.</div>
+      <div class="ac-label">Cocok untuk</div>
+      <div class="ac-chosen">Seluruh listening Bahasa Inggris, pembacaan soal, pengucapan kosakata.</div>
+      <div class="ac-prerec">Cocok hanya jika budget tersedia dan kata yang direkam sudah final (tidak akan berubah).</div>
+    </div>
+
+    <div class="feature-list" style="margin-top:1.25rem;">
+      <div class="feature-item">
+        <span class="fi-icon">🎵</span>
+        <div class="fi-text">
+          <strong>Musik Latar — AI Generated ✓</strong>
+          <span>Dibuat dengan tools AI (Suno / Udio). Tiap mapel punya tema: mellow untuk Bahasa, energik untuk Math, misterius untuk Sains, syahdu untuk Agama. Royalty-free sepenuhnya.</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🔊</span>
+        <div class="fi-text">
+          <strong>Efek Suara</strong>
+          <span>Jawaban benar (koin/fanfare), salah (wobble lembut), level up, bintang muncul, kenaikan kelas. Dari library open-source (Zapsplat, Freesound).</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🎧</span>
+        <div class="fi-text">
+          <strong>Listening Bahasa Inggris — TTS ✓</strong>
+          <span>flutter_tts untuk kata-kata sederhana. ElevenLabs API untuk kosakata kunci 200–300 kata (kualitas lebih baik, di-cache lokal). Dengar soal dibacakan berkali-kali.</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">☪️</span>
+        <div class="fi-text">
+          <strong>Lafal Agama Islam</strong>
+          <span>Surat pendek dan doa dilafalkan dengan audio TTS berbahasa Arab. Kualitas pelafalan Arab dari Google TTS sudah sangat baik. Diulang sebelum soal lafal ditampilkan.</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🗣️</span>
+        <div class="fi-text">
+          <strong>Soal Dibacakan (Kelas 1–2)</strong>
+          <span>Untuk anak yang belum lancar membaca, teks soal bisa didengarkan dengan tap ikon speaker. Menggunakan TTS Bahasa Indonesia.</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🔕</span>
+        <div class="fi-text">
+          <strong>Kontrol Volume</strong>
+          <span>Musik & SFX dikontrol terpisah. Bisa mute total. Preferensi tersimpan per profil anak.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. MANAJEMEN BANK SOAL -->
+  <section>
+    <div class="section-label">Bagian 8</div>
+    <h2>Bank Soal — Generate Semua Sekaligus Sebelum Launch ✓</h2>
+
+    <p>Karena kurikulum Cambridge sudah terstruktur jelas (Cambridge Primary Framework tersedia publik), kita bisa generate seluruh bank soal <strong>satu kali sebelum launch</strong> — dan tidak perlu update soal lagi setelahnya. Anak tidak akan pernah dapat soal yang sama karena banknya jauh lebih besar dari yang dimainkan.</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Strategi: One-Time Batch Generation ✓ Dikonfirmasi</div>
+      <p>Sebelum launch: jalankan satu script yang memanggil Claude API secara batch, menghasilkan ribuan soal berdasarkan semua topik Cambridge Primary Framework. Setelah itu selesai, bank soal siap untuk bertahun-tahun tanpa maintenance. Soal baru bisa ditambahkan kapan saja, tapi tidak wajib.</p>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Skala Bank Soal</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Mapel</th><th>Metode</th><th>Estimasi Soal</th><th>Maintenance</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>🔢 Matematika</td>
+            <td>Algoritmik (angka acak)</td>
+            <td>∞ — tidak pernah habis</td>
+            <td>Tidak perlu</td>
+          </tr>
+          <tr>
+            <td>🌍 Bahasa Inggris</td>
+            <td>AI batch generation (Cambridge)</td>
+            <td>~3.000 soal (500 per kelas)</td>
+            <td>Tidak perlu setelah launch</td>
+          </tr>
+          <tr>
+            <td>🔬 Sains</td>
+            <td>AI batch generation (Cambridge)</td>
+            <td>~3.000 soal (500 per kelas)</td>
+            <td>Tidak perlu setelah launch</td>
+          </tr>
+          <tr>
+            <td>📚 Bhs. Indonesia</td>
+            <td>AI batch generation</td>
+            <td>~3.000 soal (500 per kelas)</td>
+            <td>Tidak perlu setelah launch</td>
+          </tr>
+          <tr>
+            <td>☪️ Agama Islam</td>
+            <td>AI generation + review manual</td>
+            <td>~2.400 soal (400 per kelas)</td>
+            <td>Review wajib (akurasi agama)</td>
+          </tr>
+          <tr>
+            <td>🗺️ IPS</td>
+            <td>AI batch generation</td>
+            <td>~3.000 soal (500 per kelas)</td>
+            <td>Tidak perlu setelah launch</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700">Total</td>
+            <td></td>
+            <td style="font-weight:700">~14.400 soal + ∞ Mat</td>
+            <td>Review kunci jawaban semua mapel</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Matematika "Tidak Berulang" — Penjelasan Teknis</div>
+      <p>Sistem tracking soal per anak: setiap soal punya ID unik, dan app menyimpan daftar ID yang sudah dimainkan per anak per mapel per kelas. Saat level dimulai, sistem <strong>selalu ambil dari soal yang belum pernah dilihat terlebih dahulu</strong>. Baru jika pool soal-belum-dilihat habis, mulai dari awal lagi. Dengan 500 soal per kelas per mapel dan 15 soal per sesi, anak perlu memainkan level-level di kelas yang sama <strong>33+ kali</strong> sebelum satu soal pun berulang. Itu ekuivalen bermain setiap hari selama lebih dari sebulan tanpa henti di satu kelas — tidak mungkin terjadi secara natural.</p>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Distribusi Tipe Soal dalam Bank</p>
+    <p style="font-size:13.5px;">Bank soal bukan semuanya pilihan ganda. Setiap tipe soal butuh prompt AI yang berbeda dan struktur JSON yang berbeda di database. App membaca field <code>question_type</code> dan render UI yang sesuai.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Tipe Soal</th><th>Proporsi</th><th>Soal per 500</th><th>Cocok untuk</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>🔘 Pilihan Ganda (4 opsi)</td><td>40%</td><td>200</td><td>Semua mapel — dasar</td></tr>
+          <tr><td>✏️ Isi Jawaban (teks/angka)</td><td>20%</td><td>100</td><td>Math, English vocabulary, BI</td></tr>
+          <tr><td>✅ Benar / Salah</td><td>15%</td><td>75</td><td>Sains, Agama Islam, fakta</td></tr>
+          <tr><td>🔗 Pasangkan (2 kolom)</td><td>15%</td><td>75</td><td>English vocab, Agama, Sains</td></tr>
+          <tr><td>↕️ Susun Urutan</td><td>7%</td><td>35</td><td>Sains (siklus), Agama (urutan sholat)</td></tr>
+          <tr><td>🎧 Listening (audio TTS)</td><td>3%</td><td>15</td><td>English saja</td></tr>
+          <tr style="font-weight:700"><td>Total</td><td>100%</td><td>500</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.25rem;">Proses Generasi (Satu Kali Saja)</p>
+    <div class="level-row">
+      <div class="level-name">LANGKAH 1</div>
+      <div>Ambil <strong>kode objektif Cambridge</strong> (mis. <code>4Bs.01</code>) dari framework. Prompt AI per objektif, bukan per topik generik — hasilnya otomatis Cambridge-aligned &amp; cakupannya terlacak.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">LANGKAH 2</div>
+      <div>Jalankan script Python yang memanggil Claude API untuk setiap objektif + tiap tipe soal. Setiap call: generate 20–30 soal dalam format JSON. Script berjalan otomatis, menghasilkan belasan ribu soal.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">LANGKAH 3 <span style="color:var(--warn-bdr)">⚠ WAJIB</span></div>
+      <div><strong>Review kunci jawaban SEMUA soal — bukan sampel.</strong> Riset membuktikan sepertiga soal AI mentah tidak valid (validitas kunci jawaban GPT hanya ~70%). Untuk anak yang belajar fakta dasar, soal salah mengajarkan hal keliru. Bisa dipercepat: AI kedua sebagai pengecek + Anda review yang di-flag. Agama Islam butuh review manusia yang paham agama.</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">LANGKAH 4</div>
+      <div>Import soal yang sudah lolos review ke database. Soal langsung aktif. Selesai — bank soal terkunci &amp; terverifikasi, tidak perlu disentuh lagi.</div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">⚠ Review Bukan Opsional — Berbasis Riset</div>
+      <p>Temuan terverifikasi: hanya <strong>63% soal GPT-4 lolos validitas</strong> setelah review ahli; GPT-sebagai-reviewer hanya menangkap 79% cacat. Bahkan Duolingo — yang pakai GPT-4 untuk tes resmi — <strong>tidak pernah</strong> deploy tanpa 2 tahap review manusia. Maka: generasi AI menghemat 90% waktu penulisan, tapi <strong>review kunci jawaban tetap wajib</strong>. Ini pekerjaan sekali di awal, lalu selesai selamanya.</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Catatan Khusus: Agama Islam</div>
+      <p>Prioritas review tertinggi — soal lafal doa, ayat Al-Quran, dan hukum fiqh butuh verifikasi manusia yang paham ilmu agama (akurasi sumber HR. Bukhari, dll.). Untuk mapel ini, jangan andalkan pengecekan AI saja.</p>
+    </div>
+  </section>
+
+  <!-- 9. IDE TAMBAHAN -->
+  <section>
+    <div class="section-label">Bagian 9</div>
+    <h2>Ide Tambahan</h2>
+    <p>Fitur-fitur di bawah bisa diimplementasikan di versi berikutnya (v2.1 ke atas) atau diprioritaskan berdasarkan feedback.</p>
+
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="fi-icon">🏆</span>
+        <div class="fi-text"><strong>Sistem Achievement</strong><span>Badge khusus: "100 Soal Diselesaikan", "3 Bintang Semua Level", "Matematika Master".</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">📅</span>
+        <div class="fi-text"><strong>Tantangan Harian</strong><span>5 soal spesial setiap hari. Hadiah koin virtual atau karakter eksklusif jika berhasil 7 hari berturut.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">👤</span>
+        <div class="fi-text"><strong>Maskot & Karakter</strong><span>Satu karakter utama yang bereaksi terhadap jawaban. Bisa dikustomisasi pakaiannya dengan koin virtual.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">📊</span>
+        <div class="fi-text"><strong>Dashboard Orang Tua</strong><span>Pantau waktu belajar, mata pelajaran favorit, dan area yang perlu diperkuat per anak.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🎮</span>
+        <div class="fi-text"><strong>Mini Game Reward</strong><span>Setelah menyelesaikan level, unlock puzzle atau coloring book sebagai hadiah. Bukan soal — murni bermain.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🌙</span>
+        <div class="fi-text"><strong>Mode Malam Otomatis</strong><span>Dark mode menyesuaikan sistem atau jadwal (misal: setelah pukul 19.00 otomatis redup).</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">📖</span>
+        <div class="fi-text"><strong>Buku Kosakata</strong><span>Koleksi kata Bahasa Inggris yang pernah dipelajari, bisa di-review kapan saja dengan audio TTS pengucapan.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🧠</span>
+        <div class="fi-text"><strong>Kesulitan Adaptif</strong><span>Jika anak menjawab 5 soal berturut benar, tingkatkan sedikit. Jika 3 berturut salah, turunkan. Tetap terasa menantang.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🏫</span>
+        <div class="fi-text"><strong>Mode Kelas (Guru)</strong><span>Guru bisa buat kode kelas, siswa join, guru lihat progres semua murid. Fitur v3.0.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">📜</span>
+        <div class="fi-text"><strong>Sertifikat Digital</strong><span>PDF sertifikat kenaikan kelas yang bisa diprint. Nama anak, kelas, dan tanggal selesai.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">🔤</span>
+        <div class="fi-text"><strong>Aksesibilitas</strong><span>Ukuran teks bisa diperbesar, kontras tinggi untuk low-vision, teks soal bisa didengarkan.</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="fi-icon">📿</span>
+        <div class="fi-text"><strong>Hafalan Surat (Agama)</strong><span>Mode khusus hafalan — dengarkan surat, lalu lengkapi ayat yang hilang. Dilengkapi dengan transliterasi dan terjemahan.</span></div>
+      </div>
+    </div>
+
+    <p style="font-weight:700; margin-top:1.5rem;">Tiga Tambahan Baru — Direkomendasikan Masuk v1 (Berbasis Riset)</p>
+    <div class="feature-list">
+      <div class="feature-item" style="border-color:var(--accent);">
+        <span class="fi-icon">1️⃣</span>
+        <div class="fi-text"><strong>Semua Anak Mulai dari Kelas 1 ✓</strong><span>Tidak ada tes penempatan. Setiap anak memulai dari Kelas 1 agar merasakan perjalanan naik level dari awal — seperti game sungguhan yang mulai dari level 1. Anak berbakat tetap bisa melaju cepat lewat gate 80%, tapi tetap melewati semua tahap fondasi.</span></div>
+      </div>
+      <div class="feature-item" style="border-color:var(--accent);">
+        <span class="fi-icon">⏰</span>
+        <div class="fi-text"><strong>Batas Waktu Sehat (Diatur Orang Tua)</strong><span>Orang tua bisa set batas main harian (mis. 30–60 menit). Saat habis: "Kerja bagus hari ini! Sampai jumpa besok 👋". Riset: dosis efektif hanya ~30–60 menit/hari — lebih dari itu tak menambah hasil. Melindungi mata &amp; mencegah kecanduan.</span></div>
+      </div>
+      <div class="feature-item" style="border-color:var(--accent);">
+        <span class="fi-icon">🔄</span>
+        <div class="fi-text"><strong>Pemulihan Akun &amp; Cadangan</strong><span>Karena progres berharga, login Google memastikan data aman &amp; bisa dipulihkan di HP baru. Sinkronisasi otomatis saat online. Ganti HP tidak menghapus kemajuan anak.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. KEPUTUSAN -->
+  <section>
+    <div class="section-label">Bagian 10</div>
+    <h2>Status Keputusan</h2>
+    <p>Ringkasan semua keputusan — sudah dikonfirmasi maupun yang masih terbuka.</p>
+
+    <div class="decision-list">
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Flutter tetap dipakai atau ganti ke Kotlin Native? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Flutter dilanjutkan. Tidak perlu restart project.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Supabase atau Firebase sebagai backend? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Supabase. Lebih hemat dan SQL cocok untuk bank soal.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Audio listening Bahasa Inggris: TTS atau pre-recorded? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ TTS (flutter_tts + ElevenLabs untuk kosakata kunci). Pre-recorded tidak dipilih karena mahal dan tidak scalable saat soal bertambah.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Musik: beli lisensi, open-source, atau generate AI? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Generate dengan AI (Suno / Udio). Royalty-free, bisa dibuat tema per mapel sesuai kebutuhan.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Model monetisasi: gratis, freemium, atau berlangganan? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Gratis sepenuhnya. Semua fitur terbuka, tanpa iklan, tanpa in-app purchase.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Kurikulum: Cambridge Track atau Kurikulum Merdeka? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Fokus Cambridge untuk Math, English, Science. Bahasa Indonesia dan Agama Islam tetap ada sebagai mapel Indonesia-specific (tidak ada di Cambridge). IPS menjadi "Global Perspectives" bonus, buka di Kelas 3+.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Ranking publik: wajib, opt-in, atau tidak ada? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Selalu aktif, nama profil tampil langsung (bukan username anonim). Nama profil diisi sendiri oleh orang tua saat setup, jadi mereka sudah tahu nama apa yang muncul.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Bagaimana update soal tanpa tim konten? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Generate semua soal sekaligus sebelum launch dengan Claude API (~14.400 soal non-Matematika). Matematika algoritmik tanpa batas. Review kunci jawaban semua mapel wajib sebelum import (riset: sepertiga soal AI mentah tidak valid). Setelah launch, tidak perlu update soal lagi.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Gerbang kenaikan kelas — bagaimana agar tidak terlalu cepat? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Lulus level ≥80% (naik dari 70%) + Ujian Penguasaan Kelas tertunda + Mastery Decay. Bukan lewat menambah level atau batas harian. Berbasis riset Khan Academy &amp; Math Academy.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Bobot mapel — sama rata atau tidak? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Seragam 12 level untuk semua 6 mapel. Sempat dipertimbangkan Science 8 level (jam belajar lebih sedikit), tapi objektif Science justru terbanyak (311) — jadi tetap 12. 72 level/kelas, 432 total.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Framework English: 0058 (native) atau 0837 (ESL)? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ 0058 (native, penuh). Konten dinaikkan ke level ini. Konsekuensi: butuh scaffolding kuat (TTS, visual, hint) agar anak Indonesia tidak kewalahan.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Metode login? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ "Masuk dengan Google" sebagai cara utama (jalan di Hostinger via verifikasi token). Email/password sebagai cadangan.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">IPS mulai kapan? <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Mulai Kelas 1 sebagai mapel inti ke-6 (semua mapel mulai Kelas 1). K1–2 pakai konten sosial usia dini (keluarga, lingkungan); rasa Cambridge Global Perspectives ditambah dari K3+.</div>
+        </div>
+      </div>
+      <div class="decision-item resolved">
+        <div class="decision-num">✓</div>
+        <div>
+          <div class="decision-q">Jumlah objektif English 0058 per-stage <span class="decision-badge badge-done">Selesai</span></div>
+          <div class="decision-answer">→ Dihitung dari PDF resmi: 72 · 81 · 84 · 90 · 77 · 76 = <strong>480 objektif</strong> (terbanyak dari ketiga mapel Cambridge). Konfirmasi 120–150 jam/stage.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. KURIKULUM CAMBRIDGE -->
+  <section>
+    <div class="section-label">Bagian 11</div>
+    <h2>Kurikulum Cambridge — Detail Implementasi</h2>
+
+    <p>Cambridge Assessment International Education (CAIE) menyediakan kurikulum <strong>Cambridge Primary</strong> untuk usia 5–11 tahun (Stages 1–6), yang persis sejajar dengan SD kelas 1–6. Kita <em>menyelaraskan</em> konten dengan Cambridge — ini legal dan umum dilakukan app edukasi.</p>
+
+    <div class="callout teal">
+      <div class="callout-label">Apa Artinya "Cambridge-Aligned"?</div>
+      <p>Kita tidak bisa mengklaim sertifikasi resmi Cambridge tanpa partnership berbayar dengan CAIE. Yang kita lakukan: menyebut soal sebagai <strong>"Cambridge-style"</strong> — topik, kedalaman, dan gaya soal mengikuti Cambridge Primary Framework yang tersedia publik.</p>
+    </div>
+
+    <p style="margin-top:1rem; font-weight:700;">Pemetaan Mapel Cambridge ke App</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Cambridge Subject</th>
+            <th>Status di App</th>
+            <th>Contoh Topik Unik (vs Kurikulum Merdeka)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Mathematics</strong></td>
+            <td>✅ Ada (mapel utama)</td>
+            <td>Pattern & algebra sejak Stage 3; probability dasar Stage 5; "Thinking mathematically" — soal tanpa formula tunggal</td>
+          </tr>
+          <tr>
+            <td><strong>English</strong></td>
+            <td>✅ Ada (mapel utama)</td>
+            <td>Reading comprehension teks nyata; writing composition; speaking & listening formal</td>
+          </tr>
+          <tr>
+            <td><strong>Science</strong></td>
+            <td>✅ Ada (mapel utama)</td>
+            <td>Scientific method & hypothesis sejak Stage 1; "predict → observe → explain"; chemistry dasar Stage 4–6</td>
+          </tr>
+          <tr>
+            <td><strong>Global Perspectives</strong></td>
+            <td>✅ Mapel inti (mulai Kelas 1)</td>
+            <td>Isu lingkungan, kesehatan dunia, kolaborasi lintas budaya</td>
+          </tr>
+          <tr>
+            <td><strong>Bahasa Indonesia</strong></td>
+            <td>✅ Ada (Indonesia-specific)</td>
+            <td>Tidak ada di Cambridge — khas Indonesia, tetap penting</td>
+          </tr>
+          <tr>
+            <td><strong>Agama Islam</strong></td>
+            <td>✅ Ada (Indonesia-specific)</td>
+            <td>Tidak ada di Cambridge — khas Indonesia, wajib untuk anak Muslim</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Teknis: Tagging Soal di Database</div>
+      <p>Setiap soal di database diberi tag: <code>curriculum: ["cambridge"]</code>, <code>curriculum: ["indonesia"]</code>, atau <code>curriculum: ["cambridge", "indonesia"]</code> (berlaku di keduanya). Filter otomatis berjalan di query. Tim konten hanya perlu memilih tag yang sesuai saat menambah soal baru.</p>
+    </div>
+  </section>
+
+  <!-- 11B. BLUEPRINT CAMBRIDGE TERVERIFIKASI -->
+  <section>
+    <div class="section-label">Bagian 11B — Berbasis Riset</div>
+    <h2>Cetak Biru Cambridge (Terverifikasi dari Framework Resmi)</h2>
+
+    <p>Struktur di bawah ditarik langsung dari PDF framework resmi Cambridge Assessment International Education dan diverifikasi silang (vote skeptis 3-0). Inilah kerangka nyata yang membuat tiap level app benar-benar "Cambridge-aligned", bukan sekadar klaim.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Mapel</th><th>Strand</th><th>Objektif per Stage (K1→K6)</th><th>Total</th><th>Jam/Tahun</th><th>Strand Pemikiran</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>📐 Mathematics</strong><br><span style="font-size:11px;color:var(--text-2)">0096</span></td>
+            <td>3 strand · 10 sub-strand<br><span style="font-size:11px;color:var(--text-2)">Number · Geometry &amp; Measure · Statistics &amp; Probability</span></td>
+            <td>36 · 48 · 53 · 46 · 51 · 54</td>
+            <td><strong>288</strong></td>
+            <td>120–150</td>
+            <td>TWM (8 karakteristik)</td>
+          </tr>
+          <tr>
+            <td><strong>📖 English</strong><br><span style="font-size:11px;color:var(--text-2)">0058</span></td>
+            <td>3 strand<br><span style="font-size:11px;color:var(--text-2)">Reading · Writing · Speaking &amp; Listening</span></td>
+            <td>72 · 81 · 84 · 90 · 77 · 76</td>
+            <td><strong>480</strong></td>
+            <td>120–150</td>
+            <td>Tidak ada (5 learner attributes)</td>
+          </tr>
+          <tr>
+            <td><strong>🔬 Science</strong><br><span style="font-size:11px;color:var(--text-2)">0097</span></td>
+            <td>6 strand<br><span style="font-size:11px;color:var(--text-2)">Biology · Chemistry · Physics · Earth &amp; Space · TWSc · Science in Context</span></td>
+            <td>35 · 44 · 51 · 63 · 59 · 59</td>
+            <td><strong>311</strong></td>
+            <td><strong>45 · 45 · 60 · 60 · 75 · 75</strong></td>
+            <td>TWSc (4 komponen)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Temuan Kunci #1 — Materi Melimpah, Semua 12 Level ✓ Terverifikasi</div>
+      <p>Ketiga mapel inti punya objektif berlimpah: <strong>English 480, Science 311, Math 288</strong> per 6 kelas. Science memang jam belajarnya lebih sedikit (45–75 jam vs 120–150), tapi objektifnya justru <em>lebih banyak</em> dari Math — jadi materi lebih dari cukup untuk 12 level penuh. Semua mapel seragam <strong>12 level</strong>: konsisten, kaya konten, dan tetap Cambridge-aligned. Perbedaan jam belajar ditangani lewat kedalaman/kecepatan, bukan mengurangi jumlah level.</p>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Temuan Kunci #2 — Kode Objektif = Panduan Generasi Soal AI ✓ Terverifikasi</div>
+      <p>Tiap objektif punya kode unik (mis. <code>4Bs.01</code> = Stage 4, Biology, sub-strand "Structure &amp; function", objektif 01: "Identify important bones in the human body"). Alih-alih prompt AI generik "buat soal Sains Kelas 4", kita prompt <strong>per kode objektif</strong>. Hasilnya: soal otomatis Cambridge-aligned, terkontrol, dan mudah dilacak cakupannya (tahu persis objektif mana yang sudah/belum punya cukup soal).</p>
+    </div>
+
+    <p style="margin-top:1.25rem; font-weight:700;">Pemetaan Objektif → Level App</p>
+    <p style="font-size:13.5px;">Dengan 35–90 objektif per stage dibagi ke 12 level, tiap level memuat <strong>3–8 objektif berkode</strong> (English paling padat). Level disusun mengikuti urutan strand Cambridge, bukan tingkat kesulitan generik.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Mapel</th><th>Contoh Objektif Berkode (verbatim dari framework)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>📐 Math (K1)</td><td><code>1Nc.01</code> Count objects from 0 to 20, recognising conservation of number</td></tr>
+          <tr><td>📖 English (K1)</td><td><code>1Rw.01</code> Know the name of each letter in the English alphabet and the most common sound (phoneme)</td></tr>
+          <tr><td>📖 English (K4)</td><td><code>4Wg.03</code> Use apostrophes for singular and plural possession</td></tr>
+          <tr><td>🔬 Science (K1)</td><td><code>1Bp.01</code> Identify living things and things that have never been alive</td></tr>
+          <tr><td>🔬 Science (K4)</td><td><code>4Bs.01</code> Identify some of the important bones in the human body (skull, jaw, rib cage…)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Sub-Strand Codes (untuk Tag Database)</div>
+      <p style="font-size:12.5px;"><strong>Math:</strong> Nc, Nf, Ni, Nm, Np (Number) · Gp, Gg, Gt (Geometry) · Sp, Ss (Statistics)<br>
+      <strong>English:</strong> Rw, Rv, Rg, Rs, Ri, Ra (Reading) · Ww, Wv, Wg, Ws, Wc, Wp (Writing) · SL (Speaking &amp; Listening)<br>
+      <strong>Science:</strong> Bs, Bp, Be (Biology) · Cm, Cp, Cc (Chemistry) · Pf, Ps, Pe (Physics) · ESp, ESs, ESc (Earth &amp; Space) · TWSm/p/c/a · SIC (Science in Context)</p>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">Keputusan: English Ikuti 0058 (Native) ✓ Dikonfirmasi</div>
+      <p>English mengikuti <strong>Cambridge Primary English 0058</strong> penuh — standar penutur asli. Ini pilihan ambisius: Stage 1 sudah baca dengan fonik &amp; tulis kalimat berkapital, Stage 4 pakai apostrof kepemilikan. Konten di tabel Bagian 2 sudah disesuaikan ke level ini (bukan lagi gaya EFL "salam &amp; warna").</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">⚠ Konsekuensi: English 0058 Butuh Scaffolding Kuat</div>
+      <p>Karena 0058 dirancang untuk penutur asli, anak Indonesia butuh dukungan ekstra agar tidak kewalahan: <strong>(1)</strong> semua teks soal bisa didengar (TTS/audio) — listening-first; <strong>(2)</strong> dukungan visual/gambar di setiap soal; <strong>(3)</strong> kamus gambar &amp; buku kosakata bawaan; <strong>(4)</strong> hint bertahap yang murah hati; <strong>(5)</strong> Level 1–2 tiap stage ekstra pelan. Tanpa ini, gate 80% di English akan terasa terlalu berat. Ini prioritas desain khusus English.</p>
+    </div>
+
+    <div class="callout teal">
+      <div class="callout-label">English 0058 Objektif — Terhitung ✓</div>
+      <p>Dihitung langsung dari PDF resmi 0058: Stage 1–6 = <strong>72 · 81 · 84 · 90 · 77 · 76 = 480 objektif</strong>. Ini yang terbanyak dari ketiga mapel Cambridge (Math 288, Science 311), karena English native punya sub-strand Reading + Writing + Speaking &amp; Listening yang sangat rinci. Konsekuensi: tiap level English memuat ~6–8 objektif (paling padat) — makin menegaskan perlunya scaffolding kuat.</p>
+    </div>
+  </section>
+
+  <!-- 12. SISTEM RANKING -->
+  <section>
+    <div class="section-label">Bagian 12</div>
+    <h2>Sistem Ranking</h2>
+
+    <div class="callout teal">
+      <div class="callout-label">Ranking Selalu Aktif, Nama Asli Tampil ✓ Dikonfirmasi</div>
+      <p>Semua ranking <strong>aktif secara default</strong>. Nama yang tampil di leaderboard adalah <strong>nama profil yang diisi orang tua</strong> (misal: "Ahmad", "Siti") — bukan nama lengkap atau data pribadi apapun. Orang tua yang membuat nama profil sendiri, jadi mereka sudah tahu nama apa yang akan muncul. Tidak perlu sistem username terpisah — lebih simpel.</p>
+    </div>
+
+    <p style="margin-top:1rem; font-weight:700;">Tiga Lapisan Ranking</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Lapisan</th>
+            <th>Nama</th>
+            <th>Lingkup</th>
+            <th>Nama Tampil</th>
+            <th>Default</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>🏠 Tier 1</td>
+            <td><strong>Family Scoreboard</strong></td>
+            <td>Antar profil dalam 1 akun</td>
+            <td>Nama profil (privat dalam akun)</td>
+            <td>✅ Selalu aktif</td>
+          </tr>
+          <tr>
+            <td>🏫 Tier 2</td>
+            <td><strong>Grade Leaderboard</strong></td>
+            <td>Semua profil sekelas di seluruh app</td>
+            <td>Nama profil (misal: "Ahmad")</td>
+            <td>✅ Selalu aktif</td>
+          </tr>
+          <tr>
+            <td>⚡ Tier 3</td>
+            <td><strong>Weekly Challenge</strong></td>
+            <td>Soal spesial mingguan, semua kelas</td>
+            <td>Nama profil (misal: "Siti")</td>
+            <td>✅ Selalu aktif</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="level-row" style="margin-top:1.25rem;">
+      <div class="level-name">NAMA PROFIL</div>
+      <div>Orang tua mengisi nama saat buat profil — bisa nama panggilan, nama depan, atau nama apapun. Nama ini yang tampil di leaderboard. Tidak ada field lain yang diekspos ke publik (tidak ada foto, tidak ada info akun).</div>
+    </div>
+    <div class="level-row">
+      <div class="level-name">FORMULA SKOR</div>
+      <div>Skor Ranking = (Akurasi % × 60) + (Kecepatan rata-rata × 20) + (Tingkat Kesulitan Level × 20). Leaderboard direset setiap Senin. Segmentasi ketat per kelas — tidak pernah ada perbandingan lintas kelas.</div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Desain Psikologi: Selalu Positif</div>
+      <p>Anak yang tidak masuk top 10 tetap mendapat feedback positif — tampilkan posisi mereka dengan framing "Naik X peringkat minggu ini!" bukan "Kamu peringkat ke-87". Fokus selalu pada progres pribadi, bukan posisi absolut. Family Scoreboard lebih condong ke "siapa yang paling rajin" (jumlah soal dikerjakan) bukan "siapa yang paling pintar" (nilai tertinggi).</p>
+    </div>
+  </section>
+
+  <footer class="doc-footer">
+    BelajarYuk! 2.0 — Dokumen Perencanaan Produk. Dikembangkan oleh <b>Amirullah</b>. Diperbarui Juli 2026.
+    Status: pembangunan berjalan — backend live, Kelas 1 dapat dimainkan, login &amp; profil aktif.
+  </footer>
+
+</div>

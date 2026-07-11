@@ -8,6 +8,7 @@ import '../utils/app_colors.dart';
 import 'level_map_screen.dart';
 import 'login_screen.dart';
 import 'profile_select_screen.dart';
+import 'about_screen.dart';
 
 /// Beranda BelajarYuk! 2.0 — pilih mata pelajaran (Kelas 1).
 class HomeV2Screen extends StatefulWidget {
@@ -98,6 +99,19 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                     .fadeIn(delay: (80 * i).ms)
                     .slideY(begin: 0.15, end: 0);
               }),
+
+              const SizedBox(height: 8),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const AboutScreen())),
+                  icon: const Icon(Icons.info_outline_rounded, size: 18),
+                  label: Text('Tentang BelajarYuk!',
+                      style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w700, color: kMuted)),
+                  style: TextButton.styleFrom(foregroundColor: kMuted),
+                ),
+              ),
             ],
           ),
         ),
