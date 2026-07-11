@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'home_v2_screen.dart';
+import '../utils/app_colors.dart';
+import 'app_gate.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,12 +28,12 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _rocketController, curve: Curves.easeInOut),
     );
 
-    Future.delayed(const Duration(milliseconds: 2500), () {
+    Future.delayed(const Duration(milliseconds: 2200), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                const HomeV2Screen(),
+                const AppGate(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);
@@ -58,11 +59,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF6C63FF),
-              Color(0xFF3B37C8),
-              Color(0xFF2196F3),
-            ],
+            colors: [kPrimaryLight, kPrimary, kPrimaryDark],
           ),
         ),
         child: SafeArea(
@@ -78,10 +75,8 @@ class _SplashScreenState extends State<SplashScreen>
                       child: child,
                     );
                   },
-                  child: const Text(
-                    '🚀',
-                    style: TextStyle(fontSize: 80),
-                  ),
+                  child: Image.asset('assets/img/mascot.png',
+                      width: 120, height: 120),
                 ),
                 const SizedBox(height: 24),
                 Text(

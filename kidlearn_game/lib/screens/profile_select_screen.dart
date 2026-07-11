@@ -7,8 +7,10 @@ import '../utils/app_colors.dart';
 import 'home_v2_screen.dart';
 
 /// Pilih profil anak (maks 5 per akun). Semua mulai Kelas 1.
+/// [mustCreate] = arahkan langsung membuat profil bila belum ada.
 class ProfileSelectScreen extends StatefulWidget {
-  const ProfileSelectScreen({super.key});
+  final bool mustCreate;
+  const ProfileSelectScreen({super.key, this.mustCreate = false});
 
   @override
   State<ProfileSelectScreen> createState() => _ProfileSelectScreenState();
@@ -46,6 +48,10 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
       }
     }
     if (mounted) setState(() => _loading = false);
+    // Arahkan langsung membuat profil pertama bila belum ada.
+    if (widget.mustCreate && _profiles.isEmpty && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _addProfile());
+    }
   }
 
   Future<void> _pick(ChildProfile p) async {
@@ -67,7 +73,12 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
     final res =
         await _api.createProfile(token, result['name']!, result['avatar']!);
     if (res['ok'] == true) {
+      final wasEmpty = _profiles.isEmpty;
       await _load();
+      // Profil pertama → langsung pilih & masuk beranda (arahkan pengguna).
+      if (wasEmpty && _profiles.isNotEmpty) {
+        await _pick(_profiles.last);
+      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${res['error'] ?? "Gagal menambah profil"}')));

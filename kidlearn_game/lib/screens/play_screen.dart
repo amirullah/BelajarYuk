@@ -318,7 +318,7 @@ class _PlayScreenState extends State<PlayScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      childAspectRatio: 1.5,
+      childAspectRatio: 1.35,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
       children: List.generate(_q.options.length, (i) {
@@ -336,16 +336,21 @@ class _PlayScreenState extends State<PlayScreen> {
           onTap: () => _answer(i),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: border, width: 2.5),
             ),
-            child: Center(
+            // Kecilkan otomatis agar emoji/gambar tak terpotong.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
               child: Text(_q.options[i],
                   style: const TextStyle(fontSize: 52)),
             ),
-          ),
+          )
+              .animate(target: state == false ? 1 : 0)
+              .shakeX(amount: 4, duration: 400.ms),
         );
       }),
     );

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import 'profile_select_screen.dart';
+import 'home_v2_screen.dart';
 
 /// Layar login orang tua — email/password atau "Masuk dengan Google".
+/// [asGate] = dipakai sebagai gerbang awal (menyembunyikan tombol kembali).
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final bool asGate;
+  const LoginScreen({super.key, this.asGate = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -38,10 +42,20 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     setState(() => _busy = false);
     if (err == null) {
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ProfileSelectScreen()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (_) => const ProfileSelectScreen(mustCreate: true)));
     } else {
       setState(() => _error = err);
+    }
+  }
+
+  /// Cadangan: main tanpa akun (progres tersimpan di HP saja).
+  Future<void> _skip() async {
+    final storage = StorageService();
+    await storage.ensureLocalProfile();
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeV2Screen()));
     }
   }
 
@@ -53,6 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: kDark,
+        automaticallyImplyLeading: !widget.asGate,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -60,13 +75,18 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('🦊', style: TextStyle(fontSize: 64)),
+              Center(
+                child: Image.asset('assets/img/mascot.png',
+                    width: 96, height: 96),
+              ),
               const SizedBox(height: 8),
               Text(_register ? 'Buat Akun Orang Tua' : 'Masuk',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.nunito(
                       fontSize: 26, fontWeight: FontWeight.w900, color: kDark)),
-              Text('Simpan progres & main di perangkat manapun',
+              Text(widget.asGate
+                  ? 'Yuk masuk dulu, lalu buat profil anak untuk mulai belajar'
+                  : 'Simpan progres & main di perangkat manapun',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.nunito(fontSize: 13, color: kMuted)),
               const SizedBox(height: 24),
@@ -138,6 +158,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: GoogleFonts.nunito(
                         color: kPrimary, fontWeight: FontWeight.w700)),
               ),
+              if (widget.asGate)
+                TextButton(
+                  onPressed: _busy ? null : _skip,
+                  child: Text('Main dulu tanpa akun (progres di HP saja)',
+                      style: GoogleFonts.nunito(
+                          color: kMuted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600)),
+                ),
             ],
           ),
         ),

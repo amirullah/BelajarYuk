@@ -8,6 +8,7 @@ import 'about_screen.dart';
 import 'parent_dashboard_screen.dart';
 import 'profile_select_screen.dart';
 import 'login_screen.dart';
+import 'app_gate.dart';
 
 /// Pengaturan akun — dashboard, tentang, ganti profil, logout.
 class SettingsScreen extends StatefulWidget {
@@ -143,7 +144,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     if (ok == true) {
       await _auth.logout();
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const AppGate()),
+            (r) => false);
+      }
     }
   }
 

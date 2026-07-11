@@ -77,7 +77,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
           final level = _levels[i];
           final unlocked = _isUnlocked(i);
           final stars = _profile?.starsFor(level.id) ?? 0;
-          return _LevelNode(
+          final isNext = unlocked && stars == 0; // level berikutnya yg dimainkan
+          final node = _LevelNode(
             level: level,
             color: _info.color,
             unlocked: unlocked,
@@ -90,6 +91,15 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                   }
                 : null,
           );
+          // Level berikutnya "berdenyut" agar menarik perhatian anak.
+          if (!isNext) return node;
+          return node
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                  begin: const Offset(1, 1),
+                  end: const Offset(1.08, 1.08),
+                  duration: 700.ms,
+                  curve: Curves.easeInOut);
         }),
             ),
           ),

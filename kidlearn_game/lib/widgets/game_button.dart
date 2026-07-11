@@ -87,17 +87,20 @@ class _GameButtonState extends State<GameButton>
           child: Material(
             color: Colors.transparent,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
               child: Center(
-                child: Text(
-                  widget.text,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: widget.isCorrect == null
-                        ? kDark
-                        : Colors.white,
+                // Kecilkan otomatis agar teks panjang tak terpotong.
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    widget.text,
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    style: GoogleFonts.nunito(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: widget.isCorrect == null ? kDark : Colors.white,
+                    ),
                   ),
                 ),
               ),

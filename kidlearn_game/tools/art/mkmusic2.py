@@ -46,18 +46,18 @@ def bass(freq,dur,vol=0.26):
     y=np.sin(2*np.pi*freq*t)+0.25*np.sin(2*np.pi*2*freq*t)
     return y*adsr(n,0.01,0.1,0.55,0.12)*vol
 
-def kick(dur=0.16,vol=0.5):
+def kick(dur=0.16,vol=0.62):
     n=int(dur*SR); t=np.arange(n)/SR
     f=110*np.exp(-t*24)+45
     y=np.sin(2*np.pi*np.cumsum(f)/SR)
     return y*np.exp(-t*10)*vol
 
-def hat(dur=0.05,vol=0.14):
+def hat(dur=0.05,vol=0.17):
     n=int(dur*SR)
     y=(np.random.RandomState(1).randn(n))
     return y*np.exp(-np.arange(n)/SR*90)*vol
 
-def clap(dur=0.09,vol=0.22):
+def clap(dur=0.09,vol=0.30):
     n=int(dur*SR)
     y=np.random.RandomState(7).randn(n)
     return y*np.exp(-np.arange(n)/SR*45)*vol
@@ -132,13 +132,13 @@ def make_track(tempo, style, tsemi, bars=8, drums='full', bright=1.0):
 
 # Konfigurasi per mata pelajaran (nama file = nilai enum Subject)
 TRACKS = {
-    'home':        dict(tempo=118, style='bounce',  tsemi=0,  drums='full'),
-    'math':        dict(tempo=124, style='bounce',  tsemi=2,  drums='full'),   # D, bouncy
-    'english':     dict(tempo=116, style='march',   tsemi=7,  drums='full'),   # G, marching
-    'indonesian':  dict(tempo=108, style='gentle',  tsemi=5,  drums='soft'),   # F, hangat
-    'science':     dict(tempo=126, style='sparkle', tsemi=9,  drums='full'),   # A, sparkly
-    'religion':    dict(tempo=96,  style='gentle',  tsemi=-2, drums='soft', bright=0.9), # Bb, tenang
-    'socialStudies':dict(tempo=112,style='march',   tsemi=4,  drums='full'),   # E, petualang
+    'home':        dict(tempo=123, style='bounce',  tsemi=0,  drums='full'),
+    'math':        dict(tempo=129, style='bounce',  tsemi=2,  drums='full'),   # D, bouncy
+    'english':     dict(tempo=121, style='march',   tsemi=7,  drums='full'),   # G, marching
+    'indonesian':  dict(tempo=113, style='gentle',  tsemi=5,  drums='soft'),   # F, hangat
+    'science':     dict(tempo=131, style='sparkle', tsemi=9,  drums='full'),   # A, sparkly
+    'religion':    dict(tempo=101,  style='gentle',  tsemi=-2, drums='soft', bright=0.9), # Bb, tenang
+    'socialStudies':dict(tempo=117,style='march',   tsemi=4,  drums='full'),   # E, petualang
 }
 
 out = os.path.dirname(os.path.abspath(__file__))+'/sfx/'

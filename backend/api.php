@@ -61,12 +61,37 @@ function google_login(): void {
     $idToken = $b['id_token'] ?? '';
     if (!$idToken) fail('id_token wajib');
 
-    $resp = @file_get_contents('https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($idToken));
+    $url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' . urlencode($idToken);
+    $resp = false;
+    // Utamakan cURL (lebih andal di shared hosting); jatuh ke file_get_contents.
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $resp = curl_exec($ch);
+        curl_close($ch);
+    }
+    if ($resp === false) {
+        $resp = @file_get_contents($url);
+    }
     $info = $resp ? json_decode($resp, true) : null;
-    if (!is_array($info) || !isset($info['sub'])) fail('Token Google tidak valid', 401);
+    if (!is_array($info) || !isset($info['sub'])) {
+        $reason = is_array($info) ? ($info['error_description'] ?? $info['error'] ?? '') : 'tidak ada respons';
+        fail('Token Google tidak valid' . ($reason ? " ($reason)" : ''), 401);
+    }
 
-    $expected = cfg()['google_client_id'];
-    if ($expected && ($info['aud'] ?? '') !== $expected) fail('Client ID tidak cocok', 401);
+    // Terima audience dari Web Client ID maupun Android Client ID.
+    $c = cfg();
+    $allowed = array_filter([
+        $c['google_client_id'] ?? '',
+        $c['google_client_id_android'] ?? '',
+    ]);
+    if (!empty($allowed) && !in_array($info['aud'] ?? '', $allowed, true)) {
+        fail('Client ID tidak cocok', 401);
+    }
 
     $sub = $info['sub'];
     $email = strtolower($info['email'] ?? ($sub . '@google'));

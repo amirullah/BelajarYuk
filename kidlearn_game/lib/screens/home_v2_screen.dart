@@ -241,7 +241,8 @@ class _WelcomeBanner extends StatelessWidget {
         children: [
           Image.asset('assets/img/mascot.png', width: 84, height: 84)
               .animate(onPlay: (c) => c.repeat(reverse: true))
-              .moveY(begin: 0, end: -6, duration: 1400.ms, curve: Curves.easeInOut),
+              .moveY(begin: 0, end: -6, duration: 1400.ms, curve: Curves.easeInOut)
+              .rotate(begin: -0.02, end: 0.02, duration: 1400.ms),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
