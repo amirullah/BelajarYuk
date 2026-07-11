@@ -6,3 +6,8 @@ backend/config.php
 *.secret
 .env
 .env.*
+
+# Android signing — JANGAN commit
+**/key.properties
+**/*.jks
+**/*.keystore
