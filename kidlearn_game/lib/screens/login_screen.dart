@@ -34,6 +34,37 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  /// Validasi di sisi klien agar tak menembak server (dan berputar lama di
+  /// koneksi lambat) saat field kosong/tidak valid. Kembalikan pesan bila ada.
+  String? _validate() {
+    final email = _email.text.trim();
+    final pass = _pass.text;
+    if (_register && _name.text.trim().isEmpty) return 'Isi nama dulu ya.';
+    if (email.isEmpty) return 'Isi email dulu ya.';
+    final emailOk = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
+    if (!emailOk) return 'Format email belum benar.';
+    if (pass.isEmpty) return 'Isi password dulu ya.';
+    if (_register && pass.length < 6) return 'Password minimal 6 karakter.';
+    return null;
+  }
+
+  /// Jalankan aksi email (daftar/masuk) setelah validasi klien.
+  void _submitEmail() {
+    final err = _validate();
+    if (err != null) {
+      setState(() => _error = err);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(err),
+        backgroundColor: kError,
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
+    _run(() => _register
+        ? _auth.registerEmail(_email.text.trim(), _pass.text, _name.text.trim())
+        : _auth.loginEmail(_email.text.trim(), _pass.text));
+  }
+
   Future<void> _run(Future<String?> Function() action) async {
     setState(() {
       _busy = true;
@@ -159,12 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
 
               ElevatedButton(
-                onPressed: _busy
-                    ? null
-                    : () => _run(() => _register
-                        ? _auth.registerEmail(
-                            _email.text, _pass.text, _name.text)
-                        : _auth.loginEmail(_email.text, _pass.text)),
+                onPressed: _busy ? null : _submitEmail,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
