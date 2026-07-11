@@ -63,6 +63,22 @@ class StorageService {
     return null;
   }
 
+  /// Pastikan ada profil aktif. Bila belum login, buat profil tamu lokal
+  /// agar progres tetap tersimpan (id non-numerik → sync backend dilewati).
+  Future<ChildProfile> ensureLocalProfile() async {
+    final existing = await currentProfile();
+    if (existing != null) return existing;
+    final list = await loadProfiles();
+    if (list.isNotEmpty) {
+      await setCurrentProfileId(list.first.id);
+      return list.first;
+    }
+    final p = ChildProfile(id: 'local-1', name: 'Pemain', avatar: '🦊');
+    await upsertProfile(p);
+    await setCurrentProfileId(p.id);
+    return p;
+  }
+
   /// Catat hasil level pada profil lokal & simpan. Return true bila rekor baru.
   Future<bool> recordLevelResult(
       ChildProfile profile, String levelId, int stars, int pct) async {
