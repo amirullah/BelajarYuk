@@ -15,6 +15,7 @@ try {
         case 'login':         login(); break;
         case 'google_login':  google_login(); break;
         case 'me':            me(); break;
+        case 'change_password': change_password(); break;
         case 'profiles':      profiles(); break;
         case 'create_profile':create_profile(); break;
         case 'update_profile':update_profile(); break;
@@ -126,6 +127,29 @@ function me(): void {
         'name' => $row['display_name'] ?? '',
         'google' => (bool) ($row['google'] ?? false),
     ]);
+}
+
+// Ganti kata sandi akun email (butuh kata sandi lama yang benar).
+function change_password(): void {
+    $uid = auth_user();
+    $b = body();
+    $old = $b['old_password'] ?? '';
+    $new = $b['new_password'] ?? '';
+    if (strlen($new) < 6) fail('Password baru minimal 6 karakter');
+    $st = db()->prepare('SELECT password_hash FROM users WHERE id = ?');
+    $st->execute([$uid]);
+    $row = $st->fetch();
+    // Akun Google tanpa password tak bisa ganti di sini.
+    if (!$row || !$row['password_hash']) {
+        fail('Akun ini masuk lewat Google, tidak punya kata sandi', 409);
+    }
+    if (!password_verify($old, $row['password_hash'])) {
+        fail('Kata sandi lama salah', 401);
+    }
+    $hash = password_hash($new, PASSWORD_DEFAULT);
+    db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+        ->execute([$hash, $uid]);
+    send_json(['ok' => true]);
 }
 
 // ── Profil ──

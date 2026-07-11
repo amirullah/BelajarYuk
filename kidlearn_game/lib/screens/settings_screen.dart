@@ -37,14 +37,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _initAccount() async {
     final loggedIn = await _storage.isLoggedIn;
-    if (mounted) setState(() => _loggedIn = loggedIn);
+    // Tampilkan email dari cache dulu agar tetap terlihat walau offline.
+    final cached = await _storage.cachedEmail();
+    if (mounted) {
+      setState(() {
+        _loggedIn = loggedIn;
+        if (loggedIn) _email = cached;
+      });
+    }
     if (loggedIn) {
       final token = await _storage.getToken();
       if (token != null) {
         final res = await ApiService().me(token);
         if (res['ok'] == true && mounted) {
+          final email = res['email'] as String?;
+          if (email != null && email.isNotEmpty) _storage.cacheEmail(email);
           setState(() {
-            _email = res['email'] as String?;
+            _email = email ?? _email;
             _google = res['google'] == true;
           });
         }
@@ -117,6 +126,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'Simpan progres ke cloud', () => _push(const LoginScreen())),
           _tile(Icons.info_outline_rounded, 'Tentang', 'BelajarYuk! v2.0',
               () => _push(const AboutScreen())),
+          if (_loggedIn && !_google)
+            _tile(Icons.password_rounded, 'Ganti Kata Sandi',
+                'Perbarui kata sandi akun', _changePassword),
           if (_loggedIn) ...[
             const SizedBox(height: 8),
             _tile(Icons.logout_rounded, 'Keluar', 'Logout dari akun', _logout,
@@ -181,6 +193,93 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _push(Widget screen) {
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  Future<void> _changePassword() async {
+    final oldC = TextEditingController();
+    final newC = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        String? err;
+        bool busy = false;
+        return StatefulBuilder(builder: (ctx, setLocal) {
+          Future<void> submit() async {
+            if (newC.text.length < 6) {
+              setLocal(() => err = 'Kata sandi baru minimal 6 karakter.');
+              return;
+            }
+            setLocal(() {
+              busy = true;
+              err = null;
+            });
+            final token = await _storage.getToken();
+            final res = await ApiService()
+                .changePassword(token ?? '', oldC.text, newC.text);
+            if (res['ok'] == true) {
+              if (ctx.mounted) Navigator.pop(ctx, true);
+            } else {
+              setLocal(() {
+                busy = false;
+                err = res['error']?.toString() ?? 'Gagal mengganti kata sandi.';
+              });
+            }
+          }
+
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text('Ganti Kata Sandi',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w900)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                    controller: oldC,
+                    obscureText: true,
+                    decoration:
+                        const InputDecoration(labelText: 'Kata sandi lama')),
+                const SizedBox(height: 8),
+                TextField(
+                    controller: newC,
+                    obscureText: true,
+                    decoration:
+                        const InputDecoration(labelText: 'Kata sandi baru')),
+                if (err != null) ...[
+                  const SizedBox(height: 8),
+                  Text(err!,
+                      style: GoogleFonts.nunito(
+                          color: kError, fontWeight: FontWeight.w600)),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                  onPressed: busy ? null : () => Navigator.pop(ctx, false),
+                  child: Text('Batal',
+                      style: GoogleFonts.nunito(color: kMuted))),
+              ElevatedButton(
+                onPressed: busy ? null : submit,
+                style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+                child: busy
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : Text('Simpan',
+                        style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.w800, color: Colors.white)),
+              ),
+            ],
+          );
+        });
+      },
+    );
+    if (ok == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Kata sandi berhasil diganti ✅')));
+    }
   }
 
   /// Dashboard adalah area orang tua → lindungi dengan gerbang.

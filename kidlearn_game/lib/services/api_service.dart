@@ -85,6 +85,12 @@ class ApiService {
 
   Future<Map<String, dynamic>> me(String token) => _get('me', null, token);
 
+  Future<Map<String, dynamic>> changePassword(
+          String token, String oldPassword, String newPassword) =>
+      _post('change_password',
+          {'old_password': oldPassword, 'new_password': newPassword},
+          token: token);
+
   // ── Profil ──
   Future<Map<String, dynamic>> profiles(String token) =>
       _get('profiles', null, token);

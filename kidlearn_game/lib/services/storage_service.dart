@@ -9,6 +9,7 @@ class StorageService {
   static const _kToken = 'auth_token';
   static const _kProfiles = 'profiles';
   static const _kCurrent = 'current_profile';
+  static const _kEmail = 'account_email';
 
   final ApiService api;
   StorageService({ApiService? api}) : api = api ?? ApiService();
@@ -26,6 +27,11 @@ class StorageService {
       (await _prefs).setString(_kToken, token);
   Future<void> clearToken() async => (await _prefs).remove(_kToken);
   Future<bool> get isLoggedIn async => (await getToken()) != null;
+
+  // ── Email akun (cache agar tampil walau offline) ──
+  Future<String?> cachedEmail() async => (await _prefs).getString(_kEmail);
+  Future<void> cacheEmail(String email) async =>
+      (await _prefs).setString(_kEmail, email);
 
   // ── Profil (cache lokal) ──
   Future<List<ChildProfile>> loadProfiles() async {
@@ -311,6 +317,7 @@ class StorageService {
     // Buang profil ter-cache milik akun ini agar tak bocor ke akun berikutnya
     // (mis. di perangkat berbagi). Sesi berikut menarik ulang dari server.
     await p.remove(_kProfiles);
+    await p.remove(_kEmail);
     _statePulled = false;
   }
 }

@@ -97,6 +97,27 @@ class Achievement {
       earned: (p) => _subjectStars(p, Subject.science) >= 30,
     ),
     Achievement(
+      id: 'indonesian_master',
+      title: 'Jago Bahasa Indonesia',
+      emoji: '📖',
+      desc: 'Kumpulkan 30 bintang Bahasa Indonesia',
+      earned: (p) => _subjectStars(p, Subject.indonesian) >= 30,
+    ),
+    Achievement(
+      id: 'religion_master',
+      title: 'Rajin Agama Islam',
+      emoji: '🕌',
+      desc: 'Kumpulkan 30 bintang Agama Islam',
+      earned: (p) => _subjectStars(p, Subject.religion) >= 30,
+    ),
+    Achievement(
+      id: 'social_master',
+      title: 'Jago IPS',
+      emoji: '🌏',
+      desc: 'Kumpulkan 30 bintang IPS',
+      earned: (p) => _subjectStars(p, Subject.socialStudies) >= 30,
+    ),
+    Achievement(
       id: 'grade2',
       title: 'Naik ke Kelas 2',
       emoji: '🎓',
