@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../services/api_service.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
@@ -24,13 +25,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _loggedIn = false;
   bool _sfx = SfxService.instance.enabled;
   bool _music = SfxService.instance.musicEnabled;
+  String? _email; // email akun yang login
+  bool _google = false;
 
   @override
   void initState() {
     super.initState();
-    _storage.isLoggedIn.then((v) {
-      if (mounted) setState(() => _loggedIn = v);
-    });
+    _initAccount();
+  }
+
+  Future<void> _initAccount() async {
+    final loggedIn = await _storage.isLoggedIn;
+    if (mounted) setState(() => _loggedIn = loggedIn);
+    if (loggedIn) {
+      final token = await _storage.getToken();
+      if (token != null) {
+        final res = await ApiService().me(token);
+        if (res['ok'] == true && mounted) {
+          setState(() {
+            _email = res['email'] as String?;
+            _google = res['google'] == true;
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -47,6 +65,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (_loggedIn && _email != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: kPrimary.withOpacity(0.10),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  Icon(_google ? Icons.g_mobiledata_rounded : Icons.email_rounded,
+                      color: kPrimary, size: 28),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Masuk sebagai',
+                            style: GoogleFonts.nunito(
+                                fontSize: 11, color: kMuted)),
+                        Text(_email!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.nunito(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: kDark)),
+                      ],
+                    ),
+                  ),
+                  if (_google)
+                    Text('Google',
+                        style: GoogleFonts.nunito(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: kMuted)),
+                ],
+              ),
+            ),
           _soundTile(),
           _musicTile(),
           _tile(Icons.bar_chart_rounded, 'Progres Anak', 'Lihat kemajuan per mapel',

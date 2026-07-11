@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/profile.dart';
+import '../models/avatars.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
@@ -17,13 +18,8 @@ class _AvatarShopScreenState extends State<AvatarShopScreen> {
   final _storage = StorageService();
   ChildProfile? _profile;
 
-  /// Katalog avatar: emoji -> harga koin (0 = gratis).
-  static const Map<String, int> catalog = {
-    '🦊': 0, '🐼': 50, '🐰': 50, '🐨': 50,
-    '🦁': 100, '🐯': 100, '🦉': 100, '🐧': 100,
-    '🦄': 200, '🐲': 200, '🦖': 200, '🤖': 200,
-    '👑': 300, '🚀': 300, '🌟': 300, '🦸': 300,
-  };
+  /// Katalog avatar berjenjang (lihat models/avatars.dart).
+  static const Map<String, int> catalog = Avatars.catalog;
 
   @override
   void initState() {
@@ -40,11 +36,13 @@ class _AvatarShopScreenState extends State<AvatarShopScreen> {
   Future<void> _tap(String emoji, int price) async {
     final p = _profile;
     if (p == null) return;
-    if (p.ownsAvatar(emoji)) {
-      // Pakai.
+    // Avatar gratis atau sudah dimiliki → langsung pakai.
+    if (price == 0 || p.ownsAvatar(emoji)) {
+      if (!p.ownsAvatar(emoji)) p.ownedAvatars.add(emoji);
       p.avatar = emoji;
       await _storage.upsertProfile(p);
       setState(() {});
+      _storage.syncProfile(p);
       return;
     }
     // Beli.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/profile.dart';
+import '../models/avatars.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
@@ -23,7 +24,8 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
   List<ChildProfile> _profiles = [];
   bool _loading = true;
 
-  static const _avatars = ['🦊', '🐼', '🦁', '🐰', '🐨', '🐯', '🦉', '🐧'];
+  // Saat buat profil hanya boleh pilih avatar gratis (yang mahal dibeli di toko).
+  static final _avatars = Avatars.free;
 
   @override
   void initState() {
@@ -96,7 +98,7 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
   Future<void> _addProfile() async {
     final result = await showDialog<Map<String, String>>(
       context: context,
-      builder: (_) => const _AddProfileDialog(avatars: _avatars),
+      builder: (_) => _AddProfileDialog(avatars: _avatars),
     );
     if (result == null) return;
     final name = result['name']!;
@@ -249,6 +251,13 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
         foregroundColor: kDark,
         title: Text('Siapa yang mau belajar?',
             style: GoogleFonts.nunito(fontWeight: FontWeight.w800)),
+        actions: [
+          IconButton(
+            onPressed: _loading ? null : _load,
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Muat ulang dari server',
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

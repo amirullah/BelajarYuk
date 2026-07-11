@@ -51,8 +51,11 @@ class SfxService {
     _enabled = sp.getBool(_prefKey) ?? true;
     _musicEnabled = sp.getBool(_musicKey) ?? true;
     try {
+      // maxStreams > 1 WAJIB: default 1 membuat efek suara (mis. sentuh maskot)
+      // menghentikan musik latar karena berebut satu-satunya stream.
       _pool = Soundpool.fromOptions(
-        options: const SoundpoolOptions(streamType: StreamType.music),
+        options: const SoundpoolOptions(
+            streamType: StreamType.music, maxStreams: 12),
       );
       for (final name in _sfxFiles) {
         final data = await rootBundle.load('assets/sfx/$name.wav');

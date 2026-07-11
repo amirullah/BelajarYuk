@@ -29,7 +29,7 @@ class ApiService {
             },
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 30));
       return _decode(res);
     } catch (e) {
       return _netError(e);
@@ -42,7 +42,7 @@ class ApiService {
       final res = await _client.get(
         _u(action, q),
         headers: {if (token != null) 'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 30));
       return _decode(res);
     } catch (e) {
       return _netError(e);
@@ -82,6 +82,8 @@ class ApiService {
 
   Future<Map<String, dynamic>> googleLogin(String idToken) =>
       _post('google_login', {'id_token': idToken});
+
+  Future<Map<String, dynamic>> me(String token) => _get('me', null, token);
 
   // ── Profil ──
   Future<Map<String, dynamic>> profiles(String token) =>

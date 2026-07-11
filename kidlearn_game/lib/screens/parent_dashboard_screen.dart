@@ -17,6 +17,7 @@ class ParentDashboardScreen extends StatefulWidget {
 
 class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   final _storage = StorageService();
+  List<ChildProfile> _all = [];
   ChildProfile? _profile;
 
   @override
@@ -26,9 +27,17 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
   }
 
   Future<void> _load() async {
-    final p = await _storage.currentProfile() ??
+    final list = await _storage.loadProfiles();
+    final current = await _storage.currentProfile() ??
         await _storage.ensureLocalProfile();
-    if (mounted) setState(() => _profile = p);
+    if (list.isEmpty) list.add(current);
+    if (mounted) {
+      setState(() {
+        _all = list;
+        _profile = list.firstWhere((p) => p.id == current.id,
+            orElse: () => list.first);
+      });
+    }
   }
 
   /// (levelSelesai, bintang) untuk satu mapel di semua kelas yang terbuka.
@@ -85,6 +94,49 @@ class _ParentDashboardScreenState extends State<ParentDashboardScreen> {
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
+                // ── Pemilih anak (bila lebih dari satu) ──
+                if (_all.length > 1) ...[
+                  SizedBox(
+                    height: 44,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: _all.map((c) {
+                        final sel = c.id == p.id;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: GestureDetector(
+                            onTap: () => setState(() => _profile = c),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: sel ? kPrimary : kSurface,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                    color: sel
+                                        ? kPrimary
+                                        : kMuted.withOpacity(0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(c.avatar,
+                                      style: const TextStyle(fontSize: 18)),
+                                  const SizedBox(width: 6),
+                                  Text(c.name,
+                                      style: GoogleFonts.nunito(
+                                          fontWeight: FontWeight.w800,
+                                          color:
+                                              sel ? Colors.white : kDark)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 // ── Kartu ringkasan ──
                 Container(
                   padding: const EdgeInsets.all(18),

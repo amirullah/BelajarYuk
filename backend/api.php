@@ -14,6 +14,7 @@ try {
         case 'register':      register(); break;
         case 'login':         login(); break;
         case 'google_login':  google_login(); break;
+        case 'me':            me(); break;
         case 'profiles':      profiles(); break;
         case 'create_profile':create_profile(); break;
         case 'update_profile':update_profile(); break;
@@ -111,6 +112,20 @@ function google_login(): void {
         $uid = (int) db()->lastInsertId();
     }
     send_json(['ok' => true, 'token' => jwt_issue($uid)]);
+}
+
+// Info akun yang sedang login.
+function me(): void {
+    $uid = auth_user();
+    $st = db()->prepare('SELECT email, display_name, (google_sub IS NOT NULL) AS google FROM users WHERE id = ?');
+    $st->execute([$uid]);
+    $row = $st->fetch();
+    send_json([
+        'ok' => true,
+        'email' => $row['email'] ?? '',
+        'name' => $row['display_name'] ?? '',
+        'google' => (bool) ($row['google'] ?? false),
+    ]);
 }
 
 // ── Profil ──
