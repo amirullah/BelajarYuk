@@ -16,7 +16,11 @@ import 'level_result_screen.dart';
 /// langsung diwarnai benar/salah, lalu lanjut otomatis.
 class PlayScreen extends StatefulWidget {
   final GameLevel level;
-  const PlayScreen({super.key, required this.level});
+
+  /// Seed opsional untuk membuat urutan soal deterministik (dipakai pengujian
+  /// otomatis). Bila null, soal diacak seperti biasa.
+  final int? seed;
+  const PlayScreen({super.key, required this.level, this.seed});
 
   @override
   State<PlayScreen> createState() => _PlayScreenState();
@@ -60,7 +64,7 @@ class _PlayScreenState extends State<PlayScreen> {
   @override
   void initState() {
     super.initState();
-    _questions = LevelService().buildQuestions(widget.level);
+    _questions = LevelService(widget.seed).buildQuestions(widget.level);
     _setupMatching();
     _maybeAutoPlay();
     _resetIdle();
