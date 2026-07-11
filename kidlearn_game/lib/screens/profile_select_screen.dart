@@ -60,10 +60,11 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
                   id: id, name: name, avatar: avatar, unlockedGrade: ug));
             }
           }
-          // Profil lokal yang belum ada di server (mis. 'local-*') tetap ada.
-          merged.addAll(byId.values);
+          // Saat login, HANYA tampilkan profil server (jangan campur profil
+          // tamu 'local-*' agar gameplay tak nyasar ke profil tak sinkron),
+          // tapi tetap simpan profil tamu di storage agar tak hilang.
           _profiles = merged;
-          await _storage.saveProfiles(_profiles);
+          await _storage.saveProfiles([...merged, ...byId.values]);
         } else {
           _profiles = local;
         }
@@ -107,11 +108,14 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
       try {
         final res = await _api.createProfile(token, name, avatar);
         if (res['ok'] == true) {
-          final wasEmpty = _profiles.isEmpty;
+          final newId = '${res['id']}';
           await _load();
-          if (wasEmpty && _profiles.isNotEmpty) {
-            await _pick(_profiles.last);
-          }
+          // Pilih tepat profil yang baru dibuat (berdasarkan id server).
+          final created = _profiles.firstWhere((p) => p.id == newId,
+              orElse: () => _profiles.isNotEmpty
+                  ? _profiles.last
+                  : ChildProfile(id: newId, name: name, avatar: avatar));
+          await _pick(created);
           return;
         }
       } catch (_) {

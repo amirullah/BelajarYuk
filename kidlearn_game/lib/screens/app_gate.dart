@@ -31,15 +31,14 @@ class _AppGateState extends State<AppGate> {
       // Belum login → arahkan ke login (wajib, sebagai gerbang awal).
       next = const LoginScreen(asGate: true);
     } else {
-      final profiles = await storage.loadProfiles();
+      // Saat login, gameplay HARUS pakai profil server (id angka) agar progres
+      // tersimpan. Bila profil aktif belum ada / masih profil lokal → pilih dulu.
       final current = await storage.currentProfile();
-      if (profiles.isEmpty) {
-        next = const ProfileSelectScreen(mustCreate: true);
-      } else if (current == null) {
-        next = const ProfileSelectScreen();
-      } else {
-        next = const HomeV2Screen();
-      }
+      final currentIsServer =
+          current != null && int.tryParse(current.id) != null;
+      next = currentIsServer
+          ? const HomeV2Screen()
+          : const ProfileSelectScreen(mustCreate: true);
     }
     if (!mounted) return;
     Navigator.of(context).pushReplacement(

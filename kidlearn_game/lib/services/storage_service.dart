@@ -86,13 +86,36 @@ class StorageService {
   /// Pastikan ada profil aktif. Bila belum login, buat profil tamu lokal
   /// agar progres tetap tersimpan (id non-numerik → sync backend dilewati).
   Future<ChildProfile> ensureLocalProfile() async {
-    final existing = await currentProfile();
-    if (existing != null) return existing;
+    final loggedIn = await isLoggedIn;
     final list = await loadProfiles();
+    bool isServer(ChildProfile p) => int.tryParse(p.id) != null;
+
+    final existing = await currentProfile();
+    if (existing != null) {
+      // Saat login, jangan biarkan gameplay di profil tamu 'local-*' (tak
+      // sinkron). Alihkan ke profil server bila ada.
+      if (loggedIn && !isServer(existing)) {
+        final server = list.where(isServer).toList();
+        if (server.isNotEmpty) {
+          await setCurrentProfileId(server.first.id);
+          return server.first;
+        }
+      }
+      return existing;
+    }
+
+    if (loggedIn) {
+      final server = list.where(isServer).toList();
+      if (server.isNotEmpty) {
+        await setCurrentProfileId(server.first.id);
+        return server.first;
+      }
+    }
     if (list.isNotEmpty) {
       await setCurrentProfileId(list.first.id);
       return list.first;
     }
+    // Mode tamu: profil lokal.
     final p = ChildProfile(id: 'local-1', name: 'Pemain', avatar: '🦊');
     await upsertProfile(p);
     await setCurrentProfileId(p.id);
