@@ -32,25 +32,38 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final token = await _storage.getToken();
-    if (token != null) {
-      final res = await _api.profiles(token);
-      if (res['ok'] == true && res['profiles'] is List) {
-        _profiles = (res['profiles'] as List).map((p) {
-          return ChildProfile(
-            id: '${p['id']}',
-            name: p['name'] as String,
-            avatar: (p['avatar'] as String?) ?? '🦊',
-            unlockedGrade: (p['unlocked_grade'] as num?)?.toInt() ?? 1,
-          );
-        }).toList();
-        await _storage.saveProfiles(_profiles);
+    try {
+      final token = await _storage.getToken();
+      if (token != null) {
+        final res = await _api.profiles(token);
+        if (res['ok'] == true && res['profiles'] is List) {
+          _profiles = (res['profiles'] as List).map((p) {
+            return ChildProfile(
+              id: '${p['id']}',
+              name: p['name'] as String,
+              avatar: (p['avatar'] as String?) ?? '🦊',
+              unlockedGrade: (p['unlocked_grade'] as num?)?.toInt() ?? 1,
+            );
+          }).toList();
+          await _storage.saveProfiles(_profiles);
+        } else {
+          // Respons tak sesuai → pakai cache lokal yang ada.
+          _profiles = await _storage.loadProfiles();
+        }
+      } else {
+        _profiles = await _storage.loadProfiles();
       }
+    } catch (_) {
+      // Offline / lambat / gagal → jangan menggantung, pakai cache lokal.
+      _profiles = await _storage.loadProfiles();
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-    if (mounted) setState(() => _loading = false);
     // Arahkan langsung membuat profil pertama bila belum ada.
     if (widget.mustCreate && _profiles.isEmpty && mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _addProfile());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _addProfile();
+      });
     }
   }
 
@@ -68,21 +81,39 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
       builder: (_) => const _AddProfileDialog(avatars: _avatars),
     );
     if (result == null) return;
+    final name = result['name']!;
+    final avatar = result['avatar']!;
     final token = await _storage.getToken();
-    if (token == null) return;
-    final res =
-        await _api.createProfile(token, result['name']!, result['avatar']!);
-    if (res['ok'] == true) {
-      final wasEmpty = _profiles.isEmpty;
-      await _load();
-      // Profil pertama → langsung pilih & masuk beranda (arahkan pengguna).
-      if (wasEmpty && _profiles.isNotEmpty) {
-        await _pick(_profiles.last);
+
+    // Coba buat di server bila login; kalau gagal/offline → buat lokal.
+    if (token != null) {
+      try {
+        final res = await _api.createProfile(token, name, avatar);
+        if (res['ok'] == true) {
+          final wasEmpty = _profiles.isEmpty;
+          await _load();
+          if (wasEmpty && _profiles.isNotEmpty) {
+            await _pick(_profiles.last);
+          }
+          return;
+        }
+      } catch (_) {
+        // jatuh ke pembuatan lokal di bawah
       }
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${res['error'] ?? "Gagal menambah profil"}')));
     }
+
+    // Fallback lokal — pengguna tetap bisa lanjut walau server tak terjangkau.
+    final local = ChildProfile(
+      id: 'local-${DateTime.now().millisecondsSinceEpoch}',
+      name: name,
+      avatar: avatar,
+    );
+    await _storage.upsertProfile(local);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Profil dibuat. (Tersimpan di HP; akan disinkronkan bila online)')));
+    }
+    await _pick(local);
   }
 
   @override
