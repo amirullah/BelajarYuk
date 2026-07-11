@@ -6,6 +6,7 @@ import '../models/profile.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/uku_mascot.dart';
 import 'level_map_screen.dart';
 import 'about_screen.dart';
 import 'avatar_shop_screen.dart';
@@ -208,13 +209,24 @@ class _SubjectCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: info.color,
+            gradient: LinearGradient(
+              colors: [
+                info.color,
+                HSLColor.fromColor(info.color)
+                    .withLightness(
+                        (HSLColor.fromColor(info.color).lightness - 0.12)
+                            .clamp(0.0, 1.0))
+                    .toColor(),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
                   color: info.color.withOpacity(0.35),
-                  blurRadius: 10,
-                  offset: const Offset(0, 5)),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6)),
             ],
           ),
           child: Row(
@@ -355,10 +367,7 @@ class _WelcomeBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Image.asset('assets/img/mascot.png', width: 84, height: 84)
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .moveY(begin: 0, end: -6, duration: 1400.ms, curve: Curves.easeInOut)
-              .rotate(begin: -0.02, end: 0.02, duration: 1400.ms),
+          const UkuMascot(size: 84, bubble: false, autoLiven: true),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

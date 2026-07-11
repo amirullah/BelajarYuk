@@ -4,6 +4,7 @@ import '../models/profile.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/uku_mascot.dart';
 import 'home_v2_screen.dart';
 
 /// Pilih profil anak (maks 5 per akun). Semua mulai Kelas 1.
@@ -129,15 +130,26 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : GridView.count(
-              padding: const EdgeInsets.all(20),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+          : Column(
               children: [
-                ..._profiles.map((p) => _ProfileTile(profile: p, onTap: () => _pick(p))),
-                if (_profiles.length < 5)
-                  _AddTile(onTap: _addProfile),
+                const Padding(
+                  padding: EdgeInsets.only(top: 4, bottom: 8),
+                  child: UkuMascot(
+                      size: 76, greeting: 'Pilih atau buat profilmu ya!'),
+                ),
+                Expanded(
+                  child: GridView.count(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    children: [
+                      ..._profiles.map(
+                          (p) => _ProfileTile(profile: p, onTap: () => _pick(p))),
+                      if (_profiles.length < 5) _AddTile(onTap: _addProfile),
+                    ],
+                  ),
+                ),
               ],
             ),
     );

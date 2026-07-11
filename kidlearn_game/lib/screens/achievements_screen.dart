@@ -4,6 +4,7 @@ import '../models/achievement.dart';
 import '../models/profile.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/uku_mascot.dart';
 
 /// Layar lencana pencapaian — yang sudah diraih berwarna, yang belum abu-abu.
 class AchievementsScreen extends StatefulWidget {
@@ -40,7 +41,17 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       ),
       body: p == null
           ? const Center(child: CircularProgressIndicator())
-          : GridView.count(
+          : Column(children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 6),
+                child: UkuMascot(
+                    size: 72,
+                    greeting: earnedCount == 0
+                        ? 'Ayo raih lencana pertamamu!'
+                        : 'Keren! Sudah $earnedCount lencana 🎉'),
+              ),
+              Expanded(
+                child: GridView.count(
               padding: const EdgeInsets.all(16),
               crossAxisCount: 3,
               crossAxisSpacing: 12,
@@ -83,7 +94,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   ),
                 );
               }).toList(),
-            ),
+                ),
+              ),
+            ]),
     );
   }
 }

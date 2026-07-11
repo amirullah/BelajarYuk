@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/uku_mascot.dart';
 import 'profile_select_screen.dart';
 import 'home_v2_screen.dart';
 
@@ -75,9 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Image.asset('assets/img/mascot.png',
-                    width: 96, height: 96),
+              const Center(
+                child: UkuMascot(size: 100, greeting: 'Halo! Aku Uku 🦉'),
               ),
               const SizedBox(height: 8),
               Text(_register ? 'Buat Akun Orang Tua' : 'Masuk',

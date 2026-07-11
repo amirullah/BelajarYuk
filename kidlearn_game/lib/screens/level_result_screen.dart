@@ -9,6 +9,7 @@ import '../services/tts_service.dart';
 import '../services/storage_service.dart';
 import '../widgets/confetti_overlay.dart';
 import '../widgets/score_stars.dart';
+import '../widgets/uku_mascot.dart';
 import '../utils/app_colors.dart';
 import 'play_screen.dart';
 
@@ -184,9 +185,10 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(passed ? '🎉' : '💪', style: const TextStyle(fontSize: 80))
-                    .animate()
-                    .scale(duration: 500.ms, curve: Curves.elasticOut),
+                UkuMascot(
+                  size: 104,
+                  greeting: passed ? 'Hore, kamu berhasil! 🎉' : 'Coba lagi ya, semangat! 💪',
+                ),
                 const SizedBox(height: 8),
                 Text(
                   passed ? 'Hebat!' : 'Coba Lagi, Hampir!',

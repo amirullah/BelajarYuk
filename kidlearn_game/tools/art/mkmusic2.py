@@ -133,10 +133,10 @@ def make_track(tempo, style, tsemi, bars=8, drums='full', bright=1.0):
 # Konfigurasi per mata pelajaran (nama file = nilai enum Subject)
 TRACKS = {
     'home':        dict(tempo=123, style='bounce',  tsemi=0,  drums='full'),
-    'math':        dict(tempo=129, style='bounce',  tsemi=2,  drums='full'),   # D, bouncy
+    'math':        dict(tempo=104, style='gentle',  tsemi=2,  drums='soft'),   # D, tenang (tidak bikin panik)
     'english':     dict(tempo=121, style='march',   tsemi=7,  drums='full'),   # G, marching
     'indonesian':  dict(tempo=113, style='gentle',  tsemi=5,  drums='soft'),   # F, hangat
-    'science':     dict(tempo=131, style='sparkle', tsemi=9,  drums='full'),   # A, sparkly
+    'science':     dict(tempo=116, style='sparkle', tsemi=9,  drums='full'),   # A, sparkly (lebih adem)
     'religion':    dict(tempo=101,  style='gentle',  tsemi=-2, drums='soft', bright=0.9), # Bb, tenang
     'socialStudies':dict(tempo=117,style='march',   tsemi=4,  drums='full'),   # E, petualang
 }

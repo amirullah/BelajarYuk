@@ -40,8 +40,8 @@ class SfxService {
     'home', 'math', 'english', 'indonesian', 'science', 'religion',
     'socialStudies',
   ];
-  // Rekaman suara anak (CC0). Bisa ditambah/diganti pengguna.
-  static const _voiceFiles = ['voice_yay.mp3'];
+  // Rekaman suara anak (CC0, sudah dinormalisasi keras). Bisa diganti pengguna.
+  static const _voiceFiles = ['voice_yay.wav'];
 
   bool get hasVoice => _voiceIds.isNotEmpty;
 
@@ -90,23 +90,50 @@ class SfxService {
     }
   }
 
-  /// Putar trek [key] (loop) dengan fade-in agar pergantian musik halus.
-  /// Jika trek yang sama sudah berputar, biarkan (tidak restart).
+  String? _playingKey;
+  String? _desiredMusic; // trek yang diinginkan (target)
+  bool _musicBusy = false; // kunci agar tak ada dua loop tumpang-tindih
+
+  /// Putar trek [key] (loop) dengan fade-in. Aman dipanggil bersamaan/cepat:
+  /// permintaan dikumpulkan lewat [_desiredMusic] dan diproses satu per satu,
+  /// sehingga tidak pernah ada dua musik berputar sekaligus.
   Future<void> playMusic(String key) async {
     _currentMusic = key;
+    _desiredMusic = key;
+    if (!_musicEnabled || _pool == null || _musicIds[key] == null) return;
+    if (_playingKey == key && _musicStream != null) return; // sudah main
+    if (_musicBusy) return; // sedang berganti — loop di bawah akan menanganinya
+    _musicBusy = true;
+    try {
+      while (_desiredMusic != null &&
+          _desiredMusic != _playingKey &&
+          _musicEnabled) {
+        await _switchTo(_desiredMusic!);
+      }
+    } finally {
+      _musicBusy = false;
+    }
+  }
+
+  /// Ganti ke satu trek: hentikan yang lama lalu mainkan yang baru (dengan fade).
+  Future<void> _switchTo(String key) async {
     final pool = _pool;
     final id = _musicIds[key];
-    if (!_musicEnabled || pool == null || id == null) return;
-    if (_musicStream != null && _playingKey == key) return;
-    await stopMusic();
+    if (pool == null || id == null) return;
+    if (_musicStream != null) {
+      try {
+        await pool.stop(_musicStream!);
+      } catch (_) {}
+      _musicStream = null;
+      _playingKey = null;
+    }
     try {
-      _musicStream = await pool.play(id, repeat: -1);
+      final s = await pool.play(id, repeat: -1);
+      _musicStream = s;
       _playingKey = key;
       await _fadeTo(_musicVol, steps: 6, ms: 360);
     } catch (_) {}
   }
-
-  String? _playingKey;
 
   /// Ramp volume musik ke [target] secara bertahap (fade halus).
   Future<void> _fadeTo(double target, {int steps = 6, int ms = 300}) async {
@@ -136,6 +163,7 @@ class SfxService {
   }
 
   Future<void> stopMusic() async {
+    _desiredMusic = null; // jangan biarkan loop menyalakan kembali
     final pool = _pool;
     final s = _musicStream;
     if (pool != null && s != null) {
