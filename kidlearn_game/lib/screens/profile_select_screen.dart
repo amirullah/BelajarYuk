@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/num_parse.dart';
+import '../widgets/avatar_view.dart';
 import '../widgets/uku_mascot.dart';
 import '../widgets/parent_gate.dart';
 import 'home_v2_screen.dart';
@@ -332,7 +333,7 @@ class _ProfileTile extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(profile.avatar, style: const TextStyle(fontSize: 56)),
+                  AvatarView(profile.avatar, size: 56),
                   const SizedBox(height: 8),
                   Text(profile.name,
                       style: GoogleFonts.nunito(

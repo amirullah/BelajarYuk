@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,6 +40,9 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
   int _earned = 0;
   bool _gradeUp = false;
   int _subjectsCleared = 0; // mapel yang boss-nya sudah lulus di kelas ini
+  final _rng = Random();
+  int _chestBonus = 0; // Peti Kejutan (hadiah acak) — 0 = tak muncul
+  bool _chestOpened = false;
 
   LevelResult get _result =>
       LevelResult(correct: widget.correct, total: widget.total);
@@ -103,6 +107,12 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
     // Koin: 2 per jawaban benar + 5 per bintang + bonus combo.
     final earned = widget.correct * 2 + _result.stars * 5 + widget.comboBonus;
     profile.coins += earned;
+    // Peti Kejutan: sesekali (±1 dari 3 kelulusan) muncul hadiah koin ACAK —
+    // kejutan tak terduga bikin anak ingin main lagi. Pakai koin (tanpa konsep baru).
+    if (_result.passed(widget.level) && _rng.nextInt(3) == 0) {
+      _chestBonus = const [5, 10, 15, 20, 30][_rng.nextInt(5)];
+      profile.coins += _chestBonus;
+    }
     await storage.upsertProfile(profile);
     // Naik kelas HANYA bila boss (level 12) SEMUA mapel di kelas ini sudah
     // lulus — mencegah anak lompat kelas hanya dengan menyelesaikan 1 mapel.
@@ -280,6 +290,42 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
                             fontWeight: FontWeight.w800,
                             color: _gradeUp ? kSuccess : kPrimary)),
                   ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.3, end: 0),
+                ],
+                // ── Peti Kejutan (hadiah acak) — ketuk untuk membuka ──
+                if (_chestBonus > 0) ...[
+                  const SizedBox(height: 14),
+                  GestureDetector(
+                    onTap: _chestOpened
+                        ? null
+                        : () {
+                            setState(() => _chestOpened = true);
+                            SfxService.instance.coin();
+                            TtsService.instance
+                                .ukuSay('Huu-huu! Ada kejutan untukmu!');
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: kStar.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: kStar, width: 2),
+                      ),
+                      child: _chestOpened
+                          ? Text('🎉 Peti Kejutan: +$_chestBonus koin! 🪙',
+                              style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w900, color: kDark))
+                          : Text('🎁 Ketuk Peti Kejutan!',
+                                  style: GoogleFonts.nunito(
+                                      fontWeight: FontWeight.w900,
+                                      color: kDark))
+                              .animate(onPlay: (c) => c.repeat(reverse: true))
+                              .scale(
+                                  begin: const Offset(1, 1),
+                                  end: const Offset(1.06, 1.06),
+                                  duration: 600.ms),
+                    ),
+                  ).animate().fadeIn(delay: 650.ms).shakeX(hz: 3, amount: 2),
                 ],
                 const SizedBox(height: 32),
                 Row(

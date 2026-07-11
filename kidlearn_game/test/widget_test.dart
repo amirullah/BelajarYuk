@@ -21,7 +21,8 @@ void main() {
     // Kartu teratas pasti terlihat di viewport test (800x600).
     expect(find.text('Matematika'), findsOneWidget);
     expect(find.text('Bahasa Inggris'), findsOneWidget);
-    expect(find.textContaining('Halo'), findsOneWidget);
+    // Sapaan beranda "Halo, <nama>!" (koma membedakan dari tombol intro Uku).
+    expect(find.textContaining('Halo,'), findsOneWidget);
   });
 
   test('MathGenerator menghasilkan soal valid untuk semua kelas', () {

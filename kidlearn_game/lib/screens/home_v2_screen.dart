@@ -7,6 +7,8 @@ import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/uku_mascot.dart';
+import '../widgets/avatar_view.dart';
+import '../services/tts_service.dart';
 import 'level_map_screen.dart';
 import 'about_screen.dart';
 import 'avatar_shop_screen.dart';
@@ -42,6 +44,11 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
     // masih kosong TIDAK menimpa data di server (hanya menarik/mengadopsi).
     await _storage.syncProfile(p, pushState: false);
     if (mounted) setState(() => _profile = p);
+    // Perkenalan Uku (sekali) sebelum hadiah harian.
+    if (!await _storage.ukuIntroSeen() && mounted) {
+      await _showUkuIntro();
+      await _storage.markUkuIntroSeen();
+    }
     // Hadiah harian (setelah sync agar tak dobel bila sudah klaim di perangkat lain).
     final reward = await _storage.claimDailyReward(p);
     if (reward > 0 && mounted) {
@@ -49,6 +56,44 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
       SfxService.instance.coin();
       _showDailyReward(reward);
     }
+  }
+
+  /// Perkenalan maskot Uku saat pertama kali membuka app.
+  Future<void> _showUkuIntro() async {
+    TtsService.instance.ukuSay('Huu-huu! Halo, aku Uku!');
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Column(children: [
+          Image.asset('assets/img/ukus/uku_cheer.png', width: 96, height: 96)
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .rotate(begin: -0.05, end: 0.05, duration: 700.ms),
+          const SizedBox(height: 8),
+          Text('Hai, aku Uku! 🦉',
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w900, color: kDark)),
+        ]),
+        content: Text(
+            'Aku burung hantu teman belajarmu! Aku akan menemani, '
+            'menyemangati, dan bertepuk tangan saat kamu benar. '
+            'Ayo kumpulkan bintang & koin bersama Uku! ⭐🪙',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.nunito(
+                fontSize: 14, height: 1.4, color: kDark)),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+              child: Text('Halo Uku! 👋',
+                  style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800, color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _showDailyReward(int coins) async {
@@ -195,8 +240,7 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: Text(_profile?.avatar ?? '🦊',
-                        style: const TextStyle(fontSize: 30)),
+                    child: AvatarView(_profile?.avatar ?? '🦊', size: 30),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

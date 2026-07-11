@@ -1,6 +1,6 @@
 /// Katalog avatar berjenjang. Harga 0 = gratis (bisa dipakai tanpa beli).
-/// Semakin mahal, semakin "keren" (hewan biasa → fantasi → premium) agar anak
-/// termotivasi mengumpulkan koin.
+/// Semakin mahal, semakin "keren" (hewan biasa → fantasi → premium → BERGERAK)
+/// agar anak termotivasi mengumpulkan koin.
 class Avatars {
   static const Map<String, int> catalog = {
     // ── Gratis (untuk buat profil) ──
@@ -11,7 +11,13 @@ class Avatars {
     '🦄': 250, '🐲': 250, '🦖': 250, '🤖': 250, '👽': 250,
     // ── Premium: paling istimewa ──
     '👑': 500, '🚀': 500, '🦸': 500, '🧙': 500, '🌟': 500,
+    // ── BERGERAK (tier termahal): avatar beranimasi hidup ──
+    '🐉': 900, '🦋': 900, '🌈': 900, '🔥': 900, '💎': 900, '🎇': 900,
   };
+
+  /// Avatar yang BERGERAK (dianimasikan saat tampil). Tier termahal.
+  static const Set<String> animated = {'🐉', '🦋', '🌈', '🔥', '💎', '🎇'};
+  static bool isAnimated(String a) => animated.contains(a);
 
   /// Avatar gratis (harga 0) — dipakai saat membuat profil.
   static List<String> get free =>

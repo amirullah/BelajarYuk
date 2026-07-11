@@ -85,6 +85,12 @@ class StorageService {
     }
   }
 
+  /// Perkenalan Uku hanya sekali (per perangkat).
+  Future<bool> ukuIntroSeen() async =>
+      (await _prefs).getBool('uku_intro_seen') ?? false;
+  Future<void> markUkuIntroSeen() async =>
+      (await _prefs).setBool('uku_intro_seen', true);
+
   Future<String?> getCurrentProfileId() async =>
       (await _prefs).getString(_kCurrent);
   Future<void> setCurrentProfileId(String id) async =>

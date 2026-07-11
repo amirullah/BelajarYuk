@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/profile.dart';
 import '../models/avatars.dart';
+import '../widgets/avatar_view.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
@@ -168,12 +169,18 @@ class _AvatarTile extends StatelessWidget {
               children: [
                 Opacity(
                   opacity: locked ? 0.35 : 1,
-                  child: Text(emoji, style: const TextStyle(fontSize: 44)),
+                  child: AvatarView(emoji, size: 44),
                 ),
                 if (locked)
                   const Icon(Icons.lock_rounded, size: 20, color: kMuted),
               ],
             ),
+            if (Avatars.isAnimated(emoji))
+              Text('✨ Bergerak',
+                  style: GoogleFonts.nunito(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: kPrimary)),
             const SizedBox(height: 6),
             if (equipped)
               Text('Dipakai',
