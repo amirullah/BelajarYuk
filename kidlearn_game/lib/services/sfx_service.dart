@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:soundpool/soundpool.dart';
@@ -22,6 +23,9 @@ class SfxService {
   Soundpool? _pool;
   final Map<String, int> _sfxIds = {};
   final Map<String, int> _musicIds = {};
+  final List<int> _ukuVoiceIds = []; // suara KHAS Uku (celoteh sintetis)
+  int _ukuTurn = -1;
+  final _rng = Random();
 
   int? _musicStream; // stream musik yang sedang berputar
   String? _currentMusic; // kunci trek yang sedang diputar
@@ -29,6 +33,11 @@ class SfxService {
   static const _sfxFiles = [
     'correct', 'wrong', 'tap', 'star', 'coin', 'levelup', 'perfect',
     'graduation', 'uku',
+  ];
+  // Suara khas Uku (celoteh burung hantu, disintesis sendiri) — bukan TTS,
+  // jadi jelas berbeda dari suara benar/salah. Diputar bergiliran acak.
+  static const _ukuVoiceFiles = [
+    'uku_v1', 'uku_v2', 'uku_v3', 'uku_v4', 'uku_v5', 'uku_v6',
   ];
 
   static const double _musicVol = 0.30; // volume musik latar normal
@@ -56,6 +65,12 @@ class SfxService {
       for (final name in _musicFiles) {
         final data = await rootBundle.load('assets/sfx/music_$name.wav');
         _musicIds[name] = await _pool!.load(data);
+      }
+      for (final name in _ukuVoiceFiles) {
+        try {
+          final data = await rootBundle.load('assets/sfx/$name.wav');
+          _ukuVoiceIds.add(await _pool!.load(data));
+        } catch (_) {}
       }
     } catch (_) {
       _pool = null; // audio tak tersedia — app tetap jalan tanpa suara
@@ -207,5 +222,22 @@ class SfxService {
   Future<void> perfect() => _play('perfect');
   Future<void> graduation() => _play('graduation');
   Future<void> uku() => _play('uku');
+
+  /// Suara KHAS Uku (celoteh) — dipakai saat Uku menyapa/mengintip/disentuh.
+  /// Bergiliran acak & tak mengulang berturut-turut agar bervariasi.
+  Future<void> ukuVoice() async {
+    if (!_enabled) return;
+    final pool = _pool;
+    if (pool == null || _ukuVoiceIds.isEmpty) return;
+    int i = _ukuTurn;
+    while (i == _ukuTurn && _ukuVoiceIds.length > 1) {
+      i = _rng.nextInt(_ukuVoiceIds.length);
+    }
+    if (i < 0) i = 0;
+    _ukuTurn = i;
+    try {
+      await pool.play(_ukuVoiceIds[i]);
+    } catch (_) {}
+  }
 
 }

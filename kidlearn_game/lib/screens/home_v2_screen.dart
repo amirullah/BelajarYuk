@@ -8,7 +8,6 @@ import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/uku_mascot.dart';
 import '../widgets/avatar_view.dart';
-import '../services/tts_service.dart';
 import 'level_map_screen.dart';
 import 'about_screen.dart';
 import 'avatar_shop_screen.dart';
@@ -60,7 +59,7 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
 
   /// Perkenalan maskot Uku saat pertama kali membuka app.
   Future<void> _showUkuIntro() async {
-    TtsService.instance.ukuSay('Huu-huu! Halo, aku Uku!');
+    SfxService.instance.ukuVoice();
     await showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(

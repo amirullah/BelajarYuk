@@ -300,8 +300,7 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
                         : () {
                             setState(() => _chestOpened = true);
                             SfxService.instance.coin();
-                            TtsService.instance
-                                .ukuSay('Huu-huu! Ada kejutan untukmu!');
+                            SfxService.instance.ukuVoice();
                           },
                     child: Container(
                       padding: const EdgeInsets.symmetric(

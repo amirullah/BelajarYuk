@@ -83,9 +83,8 @@ class _PlayScreenState extends State<PlayScreen> {
         _hintText = _hintPhrases[next];
         _showHint = true;
       });
-      // Suara khas Uku (chirp) + sesekali celetukan bersuara.
-      SfxService.instance.uku();
-      if (_rng.nextBool()) TtsService.instance.ukuSay();
+      // Suara KHAS Uku (celoteh) saat mengintip menyemangati.
+      SfxService.instance.ukuVoice();
     });
   }
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/sfx_service.dart';
-import '../services/tts_service.dart';
 import '../utils/app_colors.dart';
 
 /// Maskot Uku yang hidup: mengambang lembut, berganti ekspresi, dan bila
@@ -107,7 +106,7 @@ class _UkuMascotState extends State<UkuMascot> {
     // Suara lembut: umumnya "bloop" khas Uku; sesekali (tiap kelipatan 4
     // sentuhan) diselingi CELETUKAN bersuara khas Uku (nada tinggi & lucu).
     if (_tapTick % 4 == 0) {
-      TtsService.instance.ukuSay();
+      SfxService.instance.ukuVoice();
     } else {
       SfxService.instance.uku();
     }
