@@ -115,6 +115,20 @@ class StorageService {
     }
   }
 
+  /// Perbarui streak harian saat app dibuka. Beruntun bila main hari
+  /// berturut-turut; reset bila terlewat satu hari atau lebih.
+  Future<void> touchStreak(ChildProfile p) async {
+    final now = DateTime.now();
+    String key(DateTime d) => '${d.year}-${d.month}-${d.day}';
+    final today = key(now);
+    if (p.lastPlayedDate == today) return;
+    final yesterday = key(DateTime(now.year, now.month, now.day)
+        .subtract(const Duration(days: 1)));
+    p.streak = (p.lastPlayedDate == yesterday) ? p.streak + 1 : 1;
+    p.lastPlayedDate = today;
+    await upsertProfile(p);
+  }
+
   Future<void> logout() async {
     final p = await _prefs;
     await p.remove(_kToken);

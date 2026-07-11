@@ -30,6 +30,7 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
 
   Future<void> _init() async {
     final p = await _storage.ensureLocalProfile();
+    await _storage.touchStreak(p);
     if (mounted) setState(() => _profile = p);
   }
 
@@ -62,7 +63,10 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                         Text('Halo, ${_profile?.name ?? "Pemain"}! 👋',
                             style: GoogleFonts.nunito(
                                 fontSize: 22, fontWeight: FontWeight.w900)),
-                        Text('Ayo belajar sambil bermain — Kelas 1',
+                        Text(
+                            (_profile?.streak ?? 0) > 1
+                                ? '🔥 ${_profile!.streak} hari beruntun — hebat!'
+                                : 'Ayo belajar sambil bermain — Kelas 1',
                             style: GoogleFonts.nunito(
                                 fontSize: 13, color: kMuted)),
                       ],

@@ -17,6 +17,10 @@ class ChildProfile {
   /// Avatar yang sudah dimiliki (bisa dibeli dengan koin di toko).
   final List<String> ownedAvatars;
 
+  /// Streak harian (jumlah hari beruntun bermain) & tanggal main terakhir.
+  int streak;
+  String? lastPlayedDate;
+
   ChildProfile({
     required this.id,
     required this.name,
@@ -25,6 +29,8 @@ class ChildProfile {
     this.unlockedGrade = 1,
     this.coins = 0,
     List<String>? ownedAvatars,
+    this.streak = 0,
+    this.lastPlayedDate,
   })  : stars = stars ?? {},
         ownedAvatars = ownedAvatars ?? [avatar];
 
@@ -61,6 +67,8 @@ class ChildProfile {
         'unlockedGrade': unlockedGrade,
         'coins': coins,
         'ownedAvatars': ownedAvatars,
+        'streak': streak,
+        'lastPlayedDate': lastPlayedDate,
       };
 
   factory ChildProfile.fromJson(Map<String, dynamic> j) => ChildProfile(
@@ -74,5 +82,7 @@ class ChildProfile {
         unlockedGrade: (j['unlockedGrade'] as num?)?.toInt() ?? 1,
         coins: (j['coins'] as num?)?.toInt() ?? 0,
         ownedAvatars: (j['ownedAvatars'] as List?)?.cast<String>(),
+        streak: (j['streak'] as num?)?.toInt() ?? 0,
+        lastPlayedDate: j['lastPlayedDate'] as String?,
       );
 }
