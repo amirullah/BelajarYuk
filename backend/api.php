@@ -137,6 +137,22 @@ function sync(): void {
             ->execute([(int) $b['unlocked_grade'], $profileId]);
     }
 
+    // Perbarui total bintang di profil + skor leaderboard minggu ini.
+    $sum = db()->prepare('SELECT COALESCE(SUM(stars),0) FROM progress WHERE profile_id = ?');
+    $sum->execute([$profileId]);
+    $totalStars = (int) $sum->fetchColumn();
+    db()->prepare('UPDATE profiles SET total_stars = ? WHERE id = ?')
+        ->execute([$totalStars, $profileId]);
+
+    $gr = db()->prepare('SELECT unlocked_grade FROM profiles WHERE id = ?');
+    $gr->execute([$profileId]);
+    $grade = (int) $gr->fetchColumn();
+    $week = date('o-W'); // tahun-minggu ISO
+    db()->prepare(
+        'INSERT INTO leaderboard (profile_id, grade, week, score) VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE score = GREATEST(score, VALUES(score))'
+    )->execute([$profileId, $grade, $week, $totalStars]);
+
     // Kembalikan progres terbaru dari server.
     $st = db()->prepare('SELECT level_id, stars, best_pct FROM progress WHERE profile_id = ?');
     $st->execute([$profileId]);

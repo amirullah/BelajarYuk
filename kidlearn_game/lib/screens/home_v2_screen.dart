@@ -9,6 +9,7 @@ import 'level_map_screen.dart';
 import 'about_screen.dart';
 import 'avatar_shop_screen.dart';
 import 'settings_screen.dart';
+import 'leaderboard_screen.dart';
 
 /// Beranda BelajarYuk! 2.0 — pilih mata pelajaran (Kelas 1).
 class HomeV2Screen extends StatefulWidget {
@@ -90,6 +91,13 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                           style: GoogleFonts.nunito(
                               fontWeight: FontWeight.w800, color: kAccent)),
                     ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => const LeaderboardScreen())),
+                    icon: const Icon(Icons.emoji_events_outlined),
+                    color: kAccent,
+                    tooltip: 'Peringkat',
                   ),
                   IconButton(
                     onPressed: _openAccount,
