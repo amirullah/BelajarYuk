@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/level.dart';
 import '../models/subject.dart';
@@ -63,7 +64,11 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         title: Text('${_info.emoji} ${_info.name}',
             style: GoogleFonts.nunito(fontWeight: FontWeight.w800)),
       ),
-      body: GridView.count(
+      body: Column(
+        children: [
+          _header(),
+          Expanded(
+            child: GridView.count(
         padding: const EdgeInsets.all(16),
         crossAxisCount: 3,
         crossAxisSpacing: 12,
@@ -86,6 +91,59 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                 : null,
           );
         }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Header dengan ilustrasi khas mapel yang beranimasi (mengambang + berdenyut).
+  Widget _header() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
+      decoration: BoxDecoration(
+        color: _info.color,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 76,
+            height: 76,
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+                color: Colors.white, shape: BoxShape.circle),
+            child: Image.asset(
+                'assets/img/subjects/subj_${widget.subject.name}.png'),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .moveY(begin: 0, end: -6, duration: 1500.ms, curve: Curves.easeInOut),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_info.name,
+                    style: GoogleFonts.nunito(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white)),
+                const SizedBox(height: 2),
+                Text(_info.tagline,
+                    style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.95),
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

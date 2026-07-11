@@ -55,7 +55,10 @@ FULL = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 712 712">
   <clipPath id="r"><rect width="712" height="712" rx="150"/></clipPath>
   <g clip-path="url(#r)">
     <rect width="712" height="712" fill="url(#bg)"/>
-    <g transform="translate(356 356) scale(1.08) translate(-356 -500)">
+    <!-- cakram putih agar maskot kontras dengan latar biru -->
+    <circle cx="356" cy="356" r="250" fill="#FFFFFF"/>
+    <circle cx="356" cy="356" r="250" fill="none" stroke="#FFC93C" stroke-width="14"/>
+    <g transform="translate(356 356) scale(0.82) translate(-356 -500)">
       {OWL}
     </g>
   </g>
@@ -64,7 +67,9 @@ FULL = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 712 712">
 # Foreground adaptive: owl saja (tanpa latar) — diperkecil agar aman di zona aman
 FG = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 712 712">
   {DEFS}
-  <g transform="translate(356 356) scale(0.78) translate(-356 -500)">
+  <circle cx="356" cy="356" r="205" fill="#FFFFFF"/>
+  <circle cx="356" cy="356" r="205" fill="none" stroke="#FFC93C" stroke-width="12"/>
+  <g transform="translate(356 356) scale(0.66) translate(-356 -500)">
     {OWL}
   </g>
 </svg>'''

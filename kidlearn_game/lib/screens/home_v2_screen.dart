@@ -172,7 +172,19 @@ class _SubjectCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Text(info.emoji, style: const TextStyle(fontSize: 40)),
+              // Lencana putih berisi ilustrasi khas mapel (agar kontras di kartu).
+              Container(
+                width: 60,
+                height: 60,
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Image.asset('assets/img/subjects/subj_${info.subject.name}.png'),
+              )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .moveY(begin: 0, end: -4, duration: 1600.ms, curve: Curves.easeInOut),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
