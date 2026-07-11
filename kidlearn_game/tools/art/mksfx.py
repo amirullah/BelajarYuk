@@ -114,4 +114,10 @@ _b2 = chord([C6,E6,G6,C7], 0.7, 0.85); _b2[:len(kick())] += kick()
 _grad.append(_b2)
 save('graduation.wav', np.concatenate(_grad))
 
+# ── UKU: "bloop" lembut & lucu saat maskot disentuh (tidak mengganggu) ──
+_ud = 0.20; _un = int(SR*_ud); _ut = np.arange(_un)/SR
+_uf = 560 + 260*np.sin(np.pi*_ut/_ud)
+_uph = 2*np.pi*np.cumsum(_uf)/SR
+save('uku.wav', (np.sin(_uph) + 0.2*np.sin(2*_uph)) * env(_un) * 0.6)
+
 print('\nSelesai. SFX di', OUT)

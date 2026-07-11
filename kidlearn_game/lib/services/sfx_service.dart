@@ -30,7 +30,7 @@ class SfxService {
 
   static const _sfxFiles = [
     'correct', 'wrong', 'tap', 'star', 'coin', 'levelup', 'perfect',
-    'graduation',
+    'graduation', 'uku',
   ];
 
   static const double _musicVol = 0.30; // volume musik latar normal
@@ -217,6 +217,7 @@ class SfxService {
   Future<void> levelUp() => _play('levelup');
   Future<void> perfect() => _play('perfect');
   Future<void> graduation() => _play('graduation');
+  Future<void> uku() => _play('uku');
 
   /// Putar satu klip suara anak (bergiliran). Return true bila dimainkan.
   Future<bool> voice() async {

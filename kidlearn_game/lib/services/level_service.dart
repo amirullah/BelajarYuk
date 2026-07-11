@@ -21,13 +21,15 @@ class LevelService {
   List<Question> buildQuestions(GameLevel level) {
     if (level.subject == Subject.math) {
       final qs = MathGenerator().generate(level.grade, count: level.questionCount);
-      // Selipkan 1-2 soal "pilih gambar" untuk kelas kecil agar lebih variatif.
-      if (level.grade <= 2) {
-        final imgs = List<Question>.from(_imageChoiceExtras(Subject.math))
-          ..shuffle(_rng);
-        for (int k = 0; k < imgs.length && k < 2; k++) {
+      // Selipkan soal variatif (pilih gambar + susun urutan) agar lebih menarik.
+      final extras = <Question>[];
+      if (level.grade <= 2) extras.addAll(_imageChoiceExtras(Subject.math));
+      extras.addAll(_mathSequences(level.grade));
+      if (extras.isNotEmpty) {
+        extras.shuffle(_rng);
+        for (int k = 0; k < extras.length && k < 2; k++) {
           final pos = 1 + _rng.nextInt(qs.length);
-          qs.insert(pos.clamp(0, qs.length), imgs[k]);
+          qs.insert(pos.clamp(0, qs.length), extras[k]);
         }
         return _avoidMonotony(qs.take(level.questionCount).toList());
       }
@@ -207,14 +209,68 @@ class LevelService {
     }
   }
 
-  List<Question> _bankFor(Subject s, int grade) {
-    if (grade <= 3 && s != Subject.math) {
-      final extras = [..._matchingExtras(s), ..._imageChoiceExtras(s)];
-      if (grade <= 2) extras.addAll(_listeningExtras(s));
-      final base = _rawBank(s, grade);
-      return [...base, ...extras];
+  /// Soal "susun urutan" untuk Matematika (urutkan angka kecil→besar).
+  List<Question> _mathSequences(int grade) {
+    final maxN = grade <= 1 ? 9 : grade <= 2 ? 20 : grade <= 3 ? 50 : 100;
+    final nums = <int>{};
+    while (nums.length < 4) {
+      nums.add(1 + _rng.nextInt(maxN));
     }
-    return _rawBank(s, grade);
+    final sorted = nums.toList()..sort();
+    return [
+      Question.sequence(
+          question: 'Urutkan dari kecil ke besar',
+          order: sorted.map((e) => '$e').toList(),
+          emoji: '🔢'),
+    ];
+  }
+
+  /// Soal "susun urutan" khas tiap mapel.
+  List<Question> _sequenceExtras(Subject s) {
+    switch (s) {
+      case Subject.english:
+        return [
+          Question.sequence(
+              question: 'Arrange the letters in order',
+              order: const ['A', 'B', 'C', 'D'],
+              emoji: '🔤'),
+        ];
+      case Subject.indonesian:
+        return [
+          Question.sequence(
+              question: 'Urutkan huruf sesuai abjad',
+              order: const ['A', 'B', 'C', 'D'],
+              emoji: '🔤'),
+        ];
+      case Subject.science:
+        return [
+          Question.sequence(
+              question: 'Urutkan tahap pertumbuhan kupu-kupu',
+              order: const ['Telur', 'Ulat', 'Kepompong', 'Kupu-kupu'],
+              emoji: '🦋'),
+        ];
+      case Subject.socialStudies:
+        return [
+          Question.sequence(
+              question: 'Urutkan hari dalam seminggu',
+              order: const ['Senin', 'Selasa', 'Rabu', 'Kamis'],
+              emoji: '📅'),
+        ];
+      default:
+        return const [];
+    }
+  }
+
+  List<Question> _bankFor(Subject s, int grade) {
+    final base = _rawBank(s, grade);
+    final extras = <Question>[];
+    if (grade <= 3) {
+      extras.addAll(_matchingExtras(s));
+      extras.addAll(_imageChoiceExtras(s));
+      if (grade <= 2) extras.addAll(_listeningExtras(s));
+    }
+    extras.addAll(_sequenceExtras(s));
+    return extras.isEmpty ? base : [...base, ...extras];
   }
 
   List<Question> _rawBank(Subject s, int grade) {

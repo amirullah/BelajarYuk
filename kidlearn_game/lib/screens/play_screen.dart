@@ -38,6 +38,10 @@ class _PlayScreenState extends State<PlayScreen> {
   List<String> _rightOrder = [];
   String? _wrongRight;
 
+  // ── State soal susun urutan ──
+  List<String> _seqPool = [];
+  final List<String> _seqPicked = [];
+
   Timer? _idleTimer;
   bool _showHint = false;
 
@@ -85,6 +89,44 @@ class _PlayScreenState extends State<PlayScreen> {
     } else {
       _rightOrder = [];
     }
+    // Susun urutan: acak kolam sampai berbeda dari urutan benar.
+    _seqPicked.clear();
+    if (_q.type == QuestionType.sequence && _q.sequence != null) {
+      _seqPool = List<String>.from(_q.sequence!);
+      if (_seqPool.length > 1) {
+        do {
+          _seqPool.shuffle();
+        } while (_listEq(_seqPool, _q.sequence!));
+      }
+    } else {
+      _seqPool = [];
+    }
+  }
+
+  bool _listEq(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  void _seqPick(String item) {
+    if (_locked || _seqPicked.contains(item)) return;
+    setState(() => _seqPicked.add(item));
+    SfxService.instance.tap();
+    if (_seqPicked.length == _q.sequence!.length) {
+      final ok = _listEq(_seqPicked, _q.sequence!);
+      setState(() => _locked = true);
+      if (ok) _correct++;
+      _feedback(ok);
+      _timer = Timer(const Duration(milliseconds: 1000), _next);
+    }
+  }
+
+  void _seqRemove(int index) {
+    if (_locked || index >= _seqPicked.length) return;
+    setState(() => _seqPicked.removeAt(index));
   }
 
   void _tapLeft(String key) {
@@ -259,8 +301,14 @@ class _PlayScreenState extends State<PlayScreen> {
                               end: const Offset(1, 1)),
                     ),
                   Text('⭐ $_correct',
-                      style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w800, fontSize: 16)),
+                          style: GoogleFonts.nunito(
+                              fontWeight: FontWeight.w800, fontSize: 16))
+                      .animate(key: ValueKey('score_$_correct'))
+                      .scale(
+                          duration: 300.ms,
+                          curve: Curves.elasticOut,
+                          begin: const Offset(1.4, 1.4),
+                          end: const Offset(1, 1)),
                 ],
               ),
             ),
@@ -378,9 +426,97 @@ class _PlayScreenState extends State<PlayScreen> {
         return _matchingArea();
       case QuestionType.imageChoice:
         return _imageGrid();
+      case QuestionType.sequence:
+        return _sequenceArea();
       default:
         return _mcGrid();
     }
+  }
+
+  Widget _seqChip(String label, {required VoidCallback? onTap, required bool filled}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: filled ? _info.color : kSurface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: filled ? _info.color : kMuted.withOpacity(0.3), width: 2),
+        ),
+        child: Text(label,
+            style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: filled ? Colors.white : kDark)),
+      ),
+    );
+  }
+
+  Widget _sequenceArea() {
+    final seq = _q.sequence!;
+    return Column(
+      children: [
+        Text('Ketuk sesuai urutan yang benar',
+            style: GoogleFonts.nunito(fontSize: 12, color: kMuted)),
+        const SizedBox(height: 10),
+        // Slot jawaban (urutan yang sudah dipilih).
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: _info.color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(seq.length, (i) {
+              final has = i < _seqPicked.length;
+              return (has
+                      ? _seqChip(_seqPicked[i],
+                          filled: true,
+                          onTap: _locked ? null : () => _seqRemove(i))
+                      : Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 14),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                                color: kMuted.withOpacity(0.3),
+                                width: 2,
+                                style: BorderStyle.solid),
+                          ),
+                          child: Text('${i + 1}',
+                              style: GoogleFonts.nunito(
+                                  fontSize: 18, color: kMuted)),
+                        ))
+                  .animate(key: ValueKey('slot_${_index}_${i}_$has'))
+                  .fadeIn(duration: 200.ms)
+                  .scale(begin: const Offset(0.7, 0.7), end: const Offset(1, 1));
+            }),
+          ),
+        ),
+        const SizedBox(height: 14),
+        // Kolam pilihan.
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 10,
+          runSpacing: 10,
+          children: _seqPool.map((item) {
+            final used = _seqPicked.contains(item);
+            return Opacity(
+              opacity: used ? 0.25 : 1,
+              child: _seqChip(item,
+                  filled: false,
+                  onTap: (_locked || used) ? null : () => _seqPick(item)),
+            );
+          }).toList(),
+        ),
+      ],
+    );
   }
 
   /// Grid pilih-gambar: emoji besar yang bisa diketuk.

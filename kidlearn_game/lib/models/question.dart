@@ -90,6 +90,22 @@ class Question {
     );
   }
 
+  /// Pintasan membuat soal Susun Urutan. [order] = urutan yang benar.
+  factory Question.sequence({
+    required String question,
+    required List<String> order,
+    String emoji = '🔢',
+    String? objectiveCode,
+  }) {
+    return Question(
+      question: question,
+      emoji: emoji,
+      type: QuestionType.sequence,
+      sequence: order,
+      objectiveCode: objectiveCode,
+    );
+  }
+
   /// Pintasan membuat soal Dengar (TTS) lalu pilih jawaban.
   factory Question.listening({
     required String question,

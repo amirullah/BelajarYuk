@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 /// Klien HTTP untuk backend BelajarYuk! (PHP + MySQL di Hostinger).
@@ -17,26 +19,45 @@ class ApiService {
     Map<String, dynamic> body, {
     String? token,
   }) async {
-    final res = await _client
-        .post(
-          _u(action),
-          headers: {
-            'Content-Type': 'application/json',
-            if (token != null) 'Authorization': 'Bearer $token',
-          },
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 20));
-    return _decode(res);
+    try {
+      final res = await _client
+          .post(
+            _u(action),
+            headers: {
+              'Content-Type': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+      return _decode(res);
+    } catch (e) {
+      return _netError(e);
+    }
   }
 
   Future<Map<String, dynamic>> _get(String action,
       [Map<String, String>? q, String? token]) async {
-    final res = await _client.get(
-      _u(action, q),
-      headers: {if (token != null) 'Authorization': 'Bearer $token'},
-    ).timeout(const Duration(seconds: 20));
-    return _decode(res);
+    try {
+      final res = await _client.get(
+        _u(action, q),
+        headers: {if (token != null) 'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 15));
+      return _decode(res);
+    } catch (e) {
+      return _netError(e);
+    }
+  }
+
+  /// Ubah exception jaringan jadi pesan ramah (bukan lempar/menggantung).
+  Map<String, dynamic> _netError(Object e) {
+    if (e is TimeoutException) {
+      return {'ok': false, 'error': 'Server lama merespons. Coba lagi ya.'};
+    }
+    if (e is SocketException) {
+      return {'ok': false, 'error': 'Tidak ada koneksi internet.'};
+    }
+    return {'ok': false, 'error': 'Gagal terhubung ke server.'};
   }
 
   Map<String, dynamic> _decode(http.Response res) {
@@ -69,6 +90,15 @@ class ApiService {
   Future<Map<String, dynamic>> createProfile(
           String token, String name, String avatar) =>
       _post('create_profile', {'name': name, 'avatar': avatar}, token: token);
+
+  Future<Map<String, dynamic>> updateProfile(
+          String token, int profileId, String name, String avatar) =>
+      _post('update_profile',
+          {'profile_id': profileId, 'name': name, 'avatar': avatar},
+          token: token);
+
+  Future<Map<String, dynamic>> deleteProfile(String token, int profileId) =>
+      _post('delete_profile', {'profile_id': profileId}, token: token);
 
   // ── Sinkronisasi progres ──
   Future<Map<String, dynamic>> sync(

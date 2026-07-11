@@ -39,7 +39,12 @@ class _LoginScreenState extends State<LoginScreen> {
       _busy = true;
       _error = null;
     });
-    final err = await action();
+    String? err;
+    try {
+      err = await action();
+    } catch (_) {
+      err = 'Terjadi kesalahan. Coba lagi ya.';
+    }
     if (!mounted) return;
     setState(() => _busy = false);
     if (err == null) {
@@ -47,6 +52,11 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (_) => const ProfileSelectScreen(mustCreate: true)));
     } else {
       setState(() => _error = err);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(err),
+        backgroundColor: kError,
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 

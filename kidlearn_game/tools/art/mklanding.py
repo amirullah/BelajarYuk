@@ -26,7 +26,7 @@ SUBJECTS = [
 FEATURES = [
     ('🎯', 'Kurikulum Cambridge', 'Materi selaras kerangka Cambridge Primary, dari Kelas 1 sampai 6.'),
     ('🦉', 'Maskot Uku yang hidup', 'Karakter pendamping dengan banyak ekspresi & animasi; disentuh, ia bereaksi dan menyemangati.'),
-    ('🧩', 'Beragam bentuk soal', 'Pilihan ganda, benar/salah, isian, pasangkan, pilih gambar, dan dengar.'),
+    ('🧩', 'Beragam bentuk soal', 'Pilihan ganda, benar/salah, isian, pasangkan, pilih gambar, dengar, dan susun urutan.'),
     ('🎵', 'Suara & musik ceria', 'Musik berbeda tiap pelajaran (seimbang, tidak bikin panik) dan suara semangat yang ramah anak.'),
     ('🏅', 'Lencana & tantangan harian', 'Hadiah harian, tantangan harian, dan lencana pencapaian menjaga semangat.'),
     ('🏆', 'Bintang, koin & peringkat', 'Kumpulkan bintang, beli avatar, dan naik papan peringkat mingguan.'),

@@ -16,6 +16,8 @@ try {
         case 'google_login':  google_login(); break;
         case 'profiles':      profiles(); break;
         case 'create_profile':create_profile(); break;
+        case 'update_profile':update_profile(); break;
+        case 'delete_profile':delete_profile(); break;
         case 'sync':          sync(); break;
         case 'leaderboard':   leaderboard(); break;
         default:              fail('Aksi tidak dikenal: ' . $action, 404);
@@ -131,6 +133,33 @@ function create_profile(): void {
     $st = db()->prepare('INSERT INTO profiles (user_id, name, avatar) VALUES (?, ?, ?)');
     $st->execute([$uid, mb_substr($name, 0, 50), $b['avatar'] ?? '🦊']);
     send_json(['ok' => true, 'id' => (int) db()->lastInsertId()]);
+}
+
+function update_profile(): void {
+    $uid = auth_user();
+    $b = body();
+    $pid = (int) ($b['profile_id'] ?? 0);
+    $name = trim($b['name'] ?? '');
+    if ($name === '') fail('Nama wajib');
+    // Pastikan profil milik user ini.
+    $chk = db()->prepare('SELECT id FROM profiles WHERE id = ? AND user_id = ?');
+    $chk->execute([$pid, $uid]);
+    if (!$chk->fetch()) fail('Profil tidak ditemukan', 404);
+    $st = db()->prepare('UPDATE profiles SET name = ?, avatar = ? WHERE id = ? AND user_id = ?');
+    $st->execute([mb_substr($name, 0, 50), $b['avatar'] ?? '🦊', $pid, $uid]);
+    send_json(['ok' => true]);
+}
+
+function delete_profile(): void {
+    $uid = auth_user();
+    $b = body();
+    $pid = (int) ($b['profile_id'] ?? 0);
+    $chk = db()->prepare('SELECT id FROM profiles WHERE id = ? AND user_id = ?');
+    $chk->execute([$pid, $uid]);
+    if (!$chk->fetch()) fail('Profil tidak ditemukan', 404);
+    // Progres & leaderboard ikut terhapus (ON DELETE CASCADE).
+    db()->prepare('DELETE FROM profiles WHERE id = ? AND user_id = ?')->execute([$pid, $uid]);
+    send_json(['ok' => true]);
 }
 
 // ── Sinkronisasi progres (pull-on-open) ──

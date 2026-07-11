@@ -94,11 +94,12 @@ class _UkuMascotState extends State<UkuMascot> {
         });
       }
     });
-    // Suara ringan bergiliran: kadang suara anak, kadang denting.
-    if (_tapTick.isEven && SfxService.instance.hasVoice) {
+    // Suara lembut & tidak mengganggu: umumnya "bloop" khas Uku; sesekali
+    // (tiap kelipatan 4 sentuhan) diselingi suara anak asli.
+    if (_tapTick % 4 == 0 && SfxService.instance.hasVoice) {
       SfxService.instance.voice();
     } else {
-      SfxService.instance.star();
+      SfxService.instance.uku();
     }
   }
 

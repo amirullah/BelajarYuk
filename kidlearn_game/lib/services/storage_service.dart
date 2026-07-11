@@ -48,6 +48,21 @@ class StorageService {
     await saveProfiles(list);
   }
 
+  /// Hapus profil dari cache lokal; bila itu profil aktif, alihkan/hapus.
+  Future<void> removeProfile(String id) async {
+    final list = await loadProfiles();
+    list.removeWhere((p) => p.id == id);
+    await saveProfiles(list);
+    final p = await _prefs;
+    if (p.getString(_kCurrent) == id) {
+      if (list.isNotEmpty) {
+        await p.setString(_kCurrent, list.first.id);
+      } else {
+        await p.remove(_kCurrent);
+      }
+    }
+  }
+
   Future<String?> getCurrentProfileId() async =>
       (await _prefs).getString(_kCurrent);
   Future<void> setCurrentProfileId(String id) async =>

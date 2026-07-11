@@ -117,6 +117,108 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
     await _pick(local);
   }
 
+  void _snack(String msg) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(msg), behavior: SnackBarBehavior.floating));
+    }
+  }
+
+  /// Menu tindakan profil (Edit / Hapus).
+  Future<void> _profileMenu(ChildProfile p) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('${p.avatar}  ${p.name}',
+                  style: GoogleFonts.nunito(
+                      fontSize: 18, fontWeight: FontWeight.w800)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_rounded, color: kPrimary),
+              title: Text('Edit profil', style: GoogleFonts.nunito()),
+              onTap: () => Navigator.pop(context, 'edit'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded, color: kError),
+              title: Text('Hapus profil',
+                  style: GoogleFonts.nunito(color: kError)),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (action == 'edit') await _editProfile(p);
+    if (action == 'delete') await _deleteProfile(p);
+  }
+
+  Future<void> _editProfile(ChildProfile p) async {
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (_) => _AddProfileDialog(
+        avatars: _avatars,
+        title: 'Edit Profil',
+        initialName: p.name,
+        initialAvatar: p.avatar,
+      ),
+    );
+    if (result == null) return;
+    final name = result['name']!;
+    final avatar = result['avatar']!;
+    final token = await _storage.getToken();
+    final serverId = int.tryParse(p.id);
+    if (token != null && serverId != null) {
+      final res = await _api.updateProfile(token, serverId, name, avatar);
+      if (res['ok'] != true) {
+        _snack('${res['error'] ?? "Gagal memperbarui profil"}');
+      }
+    }
+    // Perbarui salinan lokal apa pun hasilnya.
+    p.name = name;
+    p.avatar = avatar;
+    await _storage.upsertProfile(p);
+    await _load();
+  }
+
+  Future<void> _deleteProfile(ChildProfile p) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        content: Text('Hapus profil "${p.name}"? Semua progresnya akan hilang.',
+            style: GoogleFonts.nunito(fontSize: 15)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: kError),
+              child: const Text('Hapus')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final token = await _storage.getToken();
+    final serverId = int.tryParse(p.id);
+    if (token != null && serverId != null) {
+      final res = await _api.deleteProfile(token, serverId);
+      if (res['ok'] != true) {
+        _snack('${res['error'] ?? "Gagal menghapus profil"}');
+        return; // jangan hapus lokal bila server gagal (agar tetap konsisten)
+      }
+    }
+    await _storage.removeProfile(p.id);
+    await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,8 +246,10 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                     children: [
-                      ..._profiles.map(
-                          (p) => _ProfileTile(profile: p, onTap: () => _pick(p))),
+                      ..._profiles.map((p) => _ProfileTile(
+                          profile: p,
+                          onTap: () => _pick(p),
+                          onMenu: () => _profileMenu(p))),
                       if (_profiles.length < 5) _AddTile(onTap: _addProfile),
                     ],
                   ),
@@ -159,12 +263,15 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
 class _ProfileTile extends StatelessWidget {
   final ChildProfile profile;
   final VoidCallback onTap;
-  const _ProfileTile({required this.profile, required this.onTap});
+  final VoidCallback onMenu;
+  const _ProfileTile(
+      {required this.profile, required this.onTap, required this.onMenu});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onMenu,
       child: Container(
         decoration: BoxDecoration(
           color: kSurface,
@@ -176,16 +283,34 @@ class _ProfileTile extends StatelessWidget {
                 offset: const Offset(0, 4))
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            Text(profile.avatar, style: const TextStyle(fontSize: 56)),
-            const SizedBox(height: 8),
-            Text(profile.name,
-                style: GoogleFonts.nunito(
-                    fontSize: 18, fontWeight: FontWeight.w800, color: kDark)),
-            Text('⭐ ${profile.totalStars()}',
-                style: GoogleFonts.nunito(fontSize: 13, color: kAccent)),
+            Positioned.fill(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(profile.avatar, style: const TextStyle(fontSize: 56)),
+                  const SizedBox(height: 8),
+                  Text(profile.name,
+                      style: GoogleFonts.nunito(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: kDark)),
+                  Text('⭐ ${profile.totalStars()}',
+                      style: GoogleFonts.nunito(fontSize: 13, color: kAccent)),
+                ],
+              ),
+            ),
+            // Tombol menu (edit/hapus) di pojok.
+            Positioned(
+              top: 2,
+              right: 2,
+              child: IconButton(
+                icon: const Icon(Icons.more_vert_rounded, color: kMuted),
+                onPressed: onMenu,
+                tooltip: 'Edit / Hapus',
+              ),
+            ),
           ],
         ),
       ),
@@ -236,15 +361,23 @@ class DottedBorderBox extends StatelessWidget {
 
 class _AddProfileDialog extends StatefulWidget {
   final List<String> avatars;
-  const _AddProfileDialog({required this.avatars});
+  final String title;
+  final String? initialName;
+  final String? initialAvatar;
+  const _AddProfileDialog({
+    required this.avatars,
+    this.title = 'Profil Anak Baru',
+    this.initialName,
+    this.initialAvatar,
+  });
 
   @override
   State<_AddProfileDialog> createState() => _AddProfileDialogState();
 }
 
 class _AddProfileDialogState extends State<_AddProfileDialog> {
-  final _name = TextEditingController();
-  late String _avatar = widget.avatars.first;
+  late final _name = TextEditingController(text: widget.initialName ?? '');
+  late String _avatar = widget.initialAvatar ?? widget.avatars.first;
 
   @override
   void dispose() {
@@ -255,7 +388,7 @@ class _AddProfileDialogState extends State<_AddProfileDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Profil Anak Baru',
+      title: Text(widget.title,
           style: GoogleFonts.nunito(fontWeight: FontWeight.w800)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
