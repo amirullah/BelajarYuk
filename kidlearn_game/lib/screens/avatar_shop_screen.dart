@@ -73,6 +73,7 @@ class _AvatarShopScreenState extends State<AvatarShopScreen> {
       await _storage.upsertProfile(p);
       SfxService.instance.coin();
       setState(() {});
+      _storage.syncProfile(p); // simpan koin/avatar ke server
     }
   }
 

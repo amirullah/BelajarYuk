@@ -62,6 +62,34 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Cadangan: main tanpa akun (progres tersimpan di HP saja).
   Future<void> _skip() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Main tanpa akun?',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w900)),
+        content: Text(
+            'Tanpa akun, progres HANYA tersimpan di HP ini dan akan HILANG '
+            'jika aplikasi dihapus/ganti HP. Login (email atau Google) agar '
+            'data aman & bisa dipulihkan.',
+            style: GoogleFonts.nunito(fontSize: 14, height: 1.4)),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+            child: Text('Login dulu',
+                style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800, color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Tetap tanpa akun',
+                style: GoogleFonts.nunito(color: kMuted)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
     final storage = StorageService();
     await storage.ensureLocalProfile();
     if (mounted) {

@@ -13,6 +13,11 @@ class StorageService {
   final ApiService api;
   StorageService({ApiService? api}) : api = api ?? ApiService();
 
+  /// True setelah berhasil menarik state dari server minimal sekali (per sesi).
+  /// Selama false, JANGAN dorong state agar tak menimpa data server dengan
+  /// state lokal yang mungkin masih kosong (mis. tepat setelah pasang ulang).
+  static bool _statePulled = false;
+
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
 
   // ── Token sesi ──
@@ -104,7 +109,13 @@ class StorageService {
 
   // ── Sinkronisasi ke backend ──
   /// Kirim progres lokal ke server & tarik progres terbaru (merge ambil maksimum).
-  Future<void> syncProfile(ChildProfile profile) async {
+  ///
+  /// [pushState] = kirim state (koin/lencana/streak/avatar). Saat MEMBUKA app
+  /// (pull-on-open) set FALSE agar state kosong (mis. setelah pasang ulang)
+  /// TIDAK menimpa data di server; state hanya dikirim setelah benar-benar
+  /// berubah (selesai level, beli avatar). Progres bintang selalu aman dikirim
+  /// (server pakai GREATEST).
+  Future<void> syncProfile(ChildProfile profile, {bool pushState = true}) async {
     final token = await getToken();
     if (token == null) return; // mode offline / belum login
     final int? serverId = int.tryParse(profile.id);
@@ -114,20 +125,23 @@ class StorageService {
         .map((e) => {'level_id': e.key, 'stars': e.value, 'best_pct': 0})
         .toList();
 
-    // Kirim state penuh agar koin/lencana/streak/avatar ikut tersimpan &
-    // pulih setelah pasang ulang / pindah perangkat.
-    final state = <String, dynamic>{
-      'coins': profile.coins,
-      'streak': profile.streak,
-      'lastPlayedDate': profile.lastPlayedDate,
-      'badges': profile.badges,
-      'ownedAvatars': profile.ownedAvatars,
-      'avatar': profile.avatar,
-      'lastRewardDate': profile.lastRewardDate,
-      'dailyDate': profile.dailyDate,
-      'dailyCount': profile.dailyCount,
-      'dailyClaimed': profile.dailyClaimed,
-    };
+    // Kirim state penuh HANYA saat benar-benar berubah (pushState) DAN sudah
+    // pernah menarik state server (agar tak menimpa data server dgn state kosong
+    // setelah pasang ulang).
+    final Map<String, dynamic>? state = (pushState && _statePulled)
+        ? <String, dynamic>{
+            'coins': profile.coins,
+            'streak': profile.streak,
+            'lastPlayedDate': profile.lastPlayedDate,
+            'badges': profile.badges,
+            'ownedAvatars': profile.ownedAvatars,
+            'avatar': profile.avatar,
+            'lastRewardDate': profile.lastRewardDate,
+            'dailyDate': profile.dailyDate,
+            'dailyCount': profile.dailyCount,
+            'dailyClaimed': profile.dailyClaimed,
+          }
+        : null;
 
     try {
       final res = await api.sync(token, serverId,
@@ -135,6 +149,7 @@ class StorageService {
           unlockedGrade: profile.unlockedGrade,
           state: state);
       if (res['ok'] == true) {
+        _statePulled = true; // sudah berhasil kontak server sesi ini
         if (res['progress'] is List) {
           for (final row in res['progress'] as List) {
             final lid = row['level_id'] as String;
