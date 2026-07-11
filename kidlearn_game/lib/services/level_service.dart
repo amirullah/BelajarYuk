@@ -67,22 +67,25 @@ class LevelService {
     // Seed deterministik per level (bila tak ada seed eksplisit): isi tiap level
     // stabil saat diulang, dan berbeda antar level (seed beda per level.id).
     final rng = _seed != null ? _rng : Random(level.id.hashCode);
-    pool.shuffle(rng);
+
+    // Kesulitan naik seiring level: level 1-4 utamakan soal mudah (1),
+    // 5-8 sedang (2), 9-12 sulit (3). Bila bank di band itu kurang, isi dari
+    // band terdekat. (Sebelum soal ditandai, semua = 2 → perilaku sama.)
+    final target = level.index <= 4 ? 1 : level.index <= 8 ? 2 : 3;
+    final buckets = <int, List<Question>>{1: [], 2: [], 3: []};
+    for (final q in pool) {
+      buckets[q.difficulty.clamp(1, 3)]!.add(q);
+    }
+    for (final b in buckets.values) {
+      b.shuffle(rng);
+    }
+    final order = [1, 2, 3]
+      ..sort((a, b) => (a - target).abs().compareTo((b - target).abs()));
+    final ordered = [for (final d in order) ...buckets[d]!];
 
     final want = level.questionCount;
-    final out = <Question>[];
-    if (pool.length >= want) {
-      // Cukup: ambil soal DISTINCT (tanpa pengulangan).
-      for (int k = 0; k < want; k++) {
-        out.add(_shuffleOptions(pool[k]));
-      }
-    } else {
-      // Bank lebih kecil dari target → tampilkan SEMUA yang unik sekali saja
-      // (level lebih pendek lebih baik daripada mengulang soal yang sama).
-      for (final q in pool) {
-        out.add(_shuffleOptions(q));
-      }
-    }
+    final take = ordered.length >= want ? want : ordered.length;
+    final out = [for (int k = 0; k < take; k++) _shuffleOptions(ordered[k])];
     return _avoidMonotony(out);
   }
 

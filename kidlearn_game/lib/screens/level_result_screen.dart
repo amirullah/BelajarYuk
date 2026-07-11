@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/level.dart';
+import '../models/subject.dart';
+import '../models/profile.dart';
 import '../models/achievement.dart';
 import '../services/sfx_service.dart';
 import '../services/tts_service.dart';
@@ -35,30 +37,46 @@ class LevelResultScreen extends StatefulWidget {
 class _LevelResultScreenState extends State<LevelResultScreen> {
   bool _newRecord = false;
   int _earned = 0;
+  bool _gradeUp = false;
+  int _subjectsCleared = 0; // mapel yang boss-nya sudah lulus di kelas ini
 
   LevelResult get _result =>
       LevelResult(correct: widget.correct, total: widget.total);
 
+  /// Berapa mapel yang boss (level 12) kelas [grade]-nya sudah lulus.
+  int _subjectsClearedFor(ChildProfile p, int grade) =>
+      GameLevel.subjectsCleared(grade, p.isPassed);
+
   @override
   void initState() {
     super.initState();
-    _playResultSound();
+    // Suara perayaan menunggu hasil _save() agar "naik kelas" hanya berbunyi
+    // saat benar-benar naik (semua mapel selesai). Kasus non-boss tak menunggu.
+    if (!(widget.level.isBoss && _result.passed(widget.level))) {
+      _celebrate(false);
+    }
     _save();
   }
 
-  /// Suara berjenjang: naik kelas (boss lulus) paling meriah, lalu sempurna,
-  /// lalu naik level; gagal → semangat lembut. Musik "ditekan" agar sorak jelas.
-  void _playResultSound() {
+  /// Suara berjenjang: naik kelas (semua mapel lulus) paling meriah, lalu
+  /// boss selesai, sempurna, naik level; gagal → semangat lembut.
+  void _celebrate(bool gradeUp) {
     final passed = _result.passed(widget.level);
     final sfx = SfxService.instance;
     final tts = TtsService.instance;
-    if (passed && widget.level.isBoss) {
-      // Naik kelas — perayaan terbesar + musik energik.
+    if (passed && widget.level.isBoss && gradeUp) {
+      // NAIK KELAS — perayaan terbesar + musik energik.
       sfx.duckMusic(restoreAfterMs: 3200);
       sfx.graduation();
-      sfx.playMusic('home'); // trek ceria/energik untuk beranda berikutnya
+      sfx.playMusic('home');
       Future.delayed(const Duration(milliseconds: 900),
           () => tts.cheer('Selamat! Kamu naik kelas!'));
+    } else if (passed && widget.level.isBoss) {
+      // Boss lulus, tapi belum semua mapel → rayakan boss, belum naik kelas.
+      sfx.duckMusic();
+      sfx.graduation();
+      Future.delayed(const Duration(milliseconds: 800),
+          () => tts.cheer('Hebat! Boss selesai!'));
     } else if (passed && _result.stars >= 3) {
       sfx.duckMusic();
       sfx.perfect();
@@ -86,12 +104,17 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
     final earned = widget.correct * 2 + _result.stars * 5 + widget.comboBonus;
     profile.coins += earned;
     await storage.upsertProfile(profile);
-    // Buka kelas berikutnya bila boss level lulus.
+    // Naik kelas HANYA bila boss (level 12) SEMUA mapel di kelas ini sudah
+    // lulus — mencegah anak lompat kelas hanya dengan menyelesaikan 1 mapel.
+    bool gradeUp = false;
+    final gradeCleared = _subjectsClearedFor(profile, widget.level.grade);
     if (widget.level.isBoss &&
         _result.passed(widget.level) &&
-        profile.unlockedGrade == widget.level.grade) {
+        profile.unlockedGrade == widget.level.grade &&
+        gradeCleared == Subject.values.length) {
       profile.unlockedGrade = widget.level.grade + 1;
       await storage.upsertProfile(profile);
+      gradeUp = true;
     }
     // Tantangan harian hanya dihitung saat pertama kali lulus level (bukan
     // ulang) agar tidak bisa "diakali" dengan mengulang level yang sama.
@@ -111,7 +134,13 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
         _earned = earned;
         _dailyDone = daily?.justCompleted ?? false;
         _newBadges = newBadges;
+        _gradeUp = gradeUp;
+        _subjectsCleared = _subjectsClearedFor(profile, widget.level.grade);
       });
+      // Perayaan boss/naik-kelas menunggu di sini agar akurat.
+      if (widget.level.isBoss && _result.passed(widget.level)) {
+        _celebrate(gradeUp);
+      }
       _announceExtras();
     }
   }
@@ -231,6 +260,26 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
                         style: GoogleFonts.nunito(
                             fontWeight: FontWeight.w800, color: kAccent)),
                   ).animate().fadeIn(delay: 600.ms).scale(),
+                ],
+                // Info naik kelas: butuh SEMUA mapel selesai.
+                if (widget.level.isBoss && _result.passed(widget.level)) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: (_gradeUp ? kSuccess : kPrimary).withOpacity(0.14),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                        _gradeUp
+                            ? '🎉 Semua mapel selesai — naik ke Kelas ${widget.level.grade + 1}!'
+                            : '📚 Boss selesai! Tuntaskan semua mapel untuk naik kelas ($_subjectsCleared/${Subject.values.length})',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.w800,
+                            color: _gradeUp ? kSuccess : kPrimary)),
+                  ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.3, end: 0),
                 ],
                 const SizedBox(height: 32),
                 Row(

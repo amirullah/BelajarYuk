@@ -72,6 +72,13 @@ class GameLevel {
     });
   }
 
+  /// Berapa mapel yang boss (level terakhir) kelas [grade]-nya sudah lulus,
+  /// diuji lewat [isPassed]. Dipakai gerbang "naik kelas" (butuh SEMUA mapel).
+  static int subjectsCleared(int grade, bool Function(String levelId) isPassed) =>
+      Subject.values
+          .where((s) => isPassed(buildGrade(s, grade).last.id))
+          .length;
+
   static String kindLabel(LevelKind k) {
     switch (k) {
       case LevelKind.pengenalan:

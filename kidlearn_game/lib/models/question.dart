@@ -37,6 +37,10 @@ class Question {
   /// Kode objektif Cambridge (mis. "1Nc.01") untuk pelacakan cakupan.
   final String? objectiveCode;
 
+  /// Tingkat kesulitan: 1 = mudah, 2 = sedang, 3 = sulit. Dipakai agar soal
+  /// makin sulit di level yang lebih tinggi (untuk mapel non-Matematika).
+  final int difficulty;
+
   const Question({
     required this.question,
     this.emoji = '',
@@ -49,6 +53,7 @@ class Question {
     this.pairs,
     this.sequence,
     this.objectiveCode,
+    this.difficulty = 2,
   });
 
   Question copyWith({List<String>? options, int? correctIndex}) => Question(
@@ -63,6 +68,7 @@ class Question {
         pairs: pairs,
         sequence: sequence,
         objectiveCode: objectiveCode,
+        difficulty: difficulty,
       );
 
   /// Pintasan membuat soal Pasangkan (kiri → kanan).
@@ -71,6 +77,7 @@ class Question {
     required Map<String, String> pairs,
     String emoji = '',
     String? objectiveCode,
+    int difficulty = 2,
   }) {
     return Question(
       question: question,
@@ -78,6 +85,7 @@ class Question {
       type: QuestionType.matching,
       pairs: pairs,
       objectiveCode: objectiveCode,
+      difficulty: difficulty,
     );
   }
 
@@ -91,6 +99,7 @@ class Question {
     String? audioText,
     String? explanation,
     String? objectiveCode,
+    int difficulty = 2,
   }) {
     return Question(
       question: question,
@@ -101,6 +110,7 @@ class Question {
       type: QuestionType.imageChoice,
       audioText: audioText,
       objectiveCode: objectiveCode,
+      difficulty: difficulty,
     );
   }
 
@@ -110,6 +120,7 @@ class Question {
     required List<String> order,
     String emoji = '🔢',
     String? objectiveCode,
+    int difficulty = 2,
   }) {
     return Question(
       question: question,
@@ -117,6 +128,7 @@ class Question {
       type: QuestionType.sequence,
       sequence: order,
       objectiveCode: objectiveCode,
+      difficulty: difficulty,
     );
   }
 
@@ -128,6 +140,7 @@ class Question {
     required String audioText,
     String emoji = '🎧',
     String? objectiveCode,
+    int difficulty = 2,
   }) {
     return Question(
       question: question,
@@ -137,6 +150,7 @@ class Question {
       type: QuestionType.listening,
       audioText: audioText,
       objectiveCode: objectiveCode,
+      difficulty: difficulty,
     );
   }
 
@@ -147,6 +161,7 @@ class Question {
     String emoji = '',
     String? explanation,
     String? objectiveCode,
+    int difficulty = 2,
   }) {
     return Question(
       question: statement,
@@ -156,6 +171,7 @@ class Question {
       explanation: explanation,
       type: QuestionType.trueFalse,
       objectiveCode: objectiveCode,
+      difficulty: difficulty,
     );
   }
 }
