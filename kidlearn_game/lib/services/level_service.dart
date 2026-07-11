@@ -5,6 +5,10 @@ import '../models/level.dart';
 import '../data/math_generator.dart';
 import '../data/content_kelas1.dart';
 import '../data/content_kelas2.dart';
+import '../data/content_kelas3.dart';
+import '../data/content_kelas4.dart';
+import '../data/content_kelas5.dart';
+import '../data/content_kelas6.dart';
 
 /// Merakit daftar soal untuk sebuah level.
 /// - Matematika: dihasilkan algoritmik (tak pernah habis).
@@ -39,13 +43,16 @@ class LevelService {
         return ContentKelas1.forSubject(s);
       case 2:
         return ContentKelas2.forSubject(s);
+      case 3:
+        return ContentKelas3.forSubject(s);
+      case 4:
+        return ContentKelas4.forSubject(s);
+      case 5:
+        return ContentKelas5.forSubject(s);
+      case 6:
+        return ContentKelas6.forSubject(s);
       default:
-        // Kelas 3-6: sementara pakai campuran K1+K2 sampai bank AI (per objektif
-        // Cambridge) siap. Struktur sudah sesuai rencana; tinggal isi konten.
-        return [
-          ...ContentKelas2.forSubject(s),
-          ...ContentKelas1.forSubject(s),
-        ];
+        return ContentKelas1.forSubject(s);
     }
   }
 

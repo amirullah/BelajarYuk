@@ -4,6 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kidlearn_game/screens/home_v2_screen.dart';
 import 'package:kidlearn_game/data/math_generator.dart';
 import 'package:kidlearn_game/models/question.dart';
+import 'package:kidlearn_game/models/subject.dart';
+import 'package:kidlearn_game/models/level.dart';
+import 'package:kidlearn_game/services/level_service.dart';
 
 void main() {
   testWidgets('Home menampilkan mata pelajaran', (WidgetTester tester) async {
@@ -64,6 +67,21 @@ void main() {
             continue;
         }
         expect(correct, expected.toString(), reason: q.question);
+      }
+    }
+  });
+
+  test('Setiap kelas 1-6 & semua mapel menghasilkan level penuh', () {
+    final svc = LevelService(1);
+    for (int grade = 1; grade <= 6; grade++) {
+      for (final s in Subject.values) {
+        final level = GameLevel.buildGrade(s, grade).first;
+        final qs = svc.buildQuestions(level);
+        expect(qs.length, level.questionCount,
+            reason: 'Mapel $s Kelas $grade harus punya ${level.questionCount} soal');
+        for (final q in qs) {
+          expect(q.question.isNotEmpty, isTrue);
+        }
       }
     }
   });
