@@ -37,7 +37,46 @@ class LevelService {
     return _avoidMonotony(out);
   }
 
+  /// Beberapa soal "pasangkan" untuk menambah variasi tipe (Kelas 1-2).
+  List<Question> _matchingExtras(Subject s) {
+    switch (s) {
+      case Subject.english:
+        return [
+          Question.matching(question: 'Match the animal to its sound', emoji: '🔗', pairs: {
+            'Cat': 'Meow', 'Dog': 'Woof', 'Cow': 'Moo', 'Duck': 'Quack',
+          }),
+        ];
+      case Subject.science:
+        return [
+          Question.matching(question: 'Pasangkan hewan dengan tempat hidupnya', emoji: '🔗', pairs: {
+            'Ikan': 'Air', 'Burung': 'Udara', 'Cacing': 'Tanah',
+          }),
+        ];
+      case Subject.indonesian:
+        return [
+          Question.matching(question: 'Pasangkan kata dengan lawan katanya', emoji: '🔗', pairs: {
+            'Besar': 'Kecil', 'Panas': 'Dingin', 'Tinggi': 'Rendah',
+          }),
+        ];
+      case Subject.socialStudies:
+        return [
+          Question.matching(question: 'Pasangkan profesi dengan tempat kerjanya', emoji: '🔗', pairs: {
+            'Guru': 'Sekolah', 'Petani': 'Sawah', 'Nelayan': 'Laut',
+          }),
+        ];
+      default:
+        return const [];
+    }
+  }
+
   List<Question> _bankFor(Subject s, int grade) {
+    if (grade <= 2 && s != Subject.math) {
+      final extras = _matchingExtras(s);
+      final base = grade == 1
+          ? ContentKelas1.forSubject(s)
+          : ContentKelas2.forSubject(s);
+      return [...base, ...extras];
+    }
     switch (grade) {
       case 1:
         return ContentKelas1.forSubject(s);

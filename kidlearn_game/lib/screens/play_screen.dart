@@ -31,6 +31,12 @@ class _PlayScreenState extends State<PlayScreen> {
   final TextEditingController _fill = TextEditingController();
   Timer? _timer;
 
+  // ── State soal pasangkan ──
+  String? _matchLeft;
+  final Set<String> _matched = {};
+  List<String> _rightOrder = [];
+  String? _wrongRight;
+
   SubjectInfo get _info => SubjectInfo.of(widget.level.subject);
   Question get _q => _questions[_index];
 
@@ -38,6 +44,47 @@ class _PlayScreenState extends State<PlayScreen> {
   void initState() {
     super.initState();
     _questions = LevelService().buildQuestions(widget.level);
+    _setupMatching();
+  }
+
+  /// Siapkan urutan kolom kanan (acak) untuk soal pasangkan.
+  void _setupMatching() {
+    _matched.clear();
+    _matchLeft = null;
+    _wrongRight = null;
+    if (_q.type == QuestionType.matching && _q.pairs != null) {
+      _rightOrder = _q.pairs!.values.toList()..shuffle();
+    } else {
+      _rightOrder = [];
+    }
+  }
+
+  void _tapLeft(String key) {
+    if (_locked || _matched.contains(key)) return;
+    setState(() => _matchLeft = key);
+  }
+
+  void _tapRight(String value) {
+    if (_locked || _matchLeft == null) return;
+    final expected = _q.pairs![_matchLeft!];
+    if (expected == value) {
+      setState(() {
+        _matched.add(_matchLeft!);
+        _matchLeft = null;
+      });
+      if (_matched.length == _q.pairs!.length) {
+        setState(() {
+          _locked = true;
+          _correct++;
+        });
+        _timer = Timer(const Duration(milliseconds: 800), _next);
+      }
+    } else {
+      setState(() => _wrongRight = value);
+      Timer(const Duration(milliseconds: 400), () {
+        if (mounted) setState(() => _wrongRight = null);
+      });
+    }
   }
 
   @override
@@ -88,6 +135,7 @@ class _PlayScreenState extends State<PlayScreen> {
       _locked = false;
       _fillCorrect = null;
       _fill.clear();
+      _setupMatching();
     });
   }
 
@@ -200,9 +248,76 @@ class _PlayScreenState extends State<PlayScreen> {
         return _tfButtons();
       case QuestionType.fillBlank:
         return _fillInput();
+      case QuestionType.matching:
+        return _matchingArea();
       default:
         return _mcGrid();
     }
+  }
+
+  Widget _matchingArea() {
+    final keys = _q.pairs!.keys.toList();
+    Widget cell(String label, {required bool left}) {
+      final matched = left
+          ? _matched.contains(label)
+          : _matched.any((k) => _q.pairs![k] == label);
+      final selected = left && _matchLeft == label;
+      final wrong = !left && _wrongRight == label;
+      Color bg = kSurface;
+      if (matched) {
+        bg = kSuccess;
+      } else if (wrong) {
+        bg = kError;
+      } else if (selected) {
+        bg = _info.color;
+      }
+      final white = matched || wrong || selected;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: GestureDetector(
+          onTap: matched
+              ? null
+              : () => left ? _tapLeft(label) : _tapRight(label),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: kMuted.withOpacity(0.25)),
+            ),
+            child: Center(
+              child: Text(label,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      color: white ? Colors.white : kDark)),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Text('Pasangkan yang cocok',
+            style: GoogleFonts.nunito(fontSize: 12, color: kMuted)),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+                child: Column(
+                    children: keys.map((k) => cell(k, left: true)).toList())),
+            const SizedBox(width: 12),
+            Expanded(
+                child: Column(
+                    children:
+                        _rightOrder.map((v) => cell(v, left: false)).toList())),
+          ],
+        ),
+      ],
+    );
   }
 
   bool? _correctness(int i) {

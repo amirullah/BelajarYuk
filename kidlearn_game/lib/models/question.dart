@@ -51,6 +51,22 @@ class Question {
     this.objectiveCode,
   });
 
+  /// Pintasan membuat soal Pasangkan (kiri → kanan).
+  factory Question.matching({
+    required String question,
+    required Map<String, String> pairs,
+    String emoji = '',
+    String? objectiveCode,
+  }) {
+    return Question(
+      question: question,
+      emoji: emoji,
+      type: QuestionType.matching,
+      pairs: pairs,
+      objectiveCode: objectiveCode,
+    );
+  }
+
   /// Pintasan membuat soal Benar/Salah.
   factory Question.trueFalse({
     required String statement,
