@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
+import '../widgets/parent_gate.dart';
 import 'about_screen.dart';
 import 'parent_dashboard_screen.dart';
 import 'profile_select_screen.dart';
@@ -107,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _soundTile(),
           _musicTile(),
           _tile(Icons.bar_chart_rounded, 'Progres Anak', 'Lihat kemajuan per mapel',
-              () => _push(const ParentDashboardScreen())),
+              _openDashboard),
           if (_loggedIn)
             _tile(Icons.switch_account_rounded, 'Ganti Profil',
                 'Pilih anak lain', () => _push(const ProfileSelectScreen())),
@@ -180,6 +181,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _push(Widget screen) {
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  /// Dashboard adalah area orang tua → lindungi dengan gerbang.
+  Future<void> _openDashboard() async {
+    if (await ParentGate.show(context)) {
+      if (mounted) _push(const ParentDashboardScreen());
+    }
   }
 
   Future<void> _logout() async {

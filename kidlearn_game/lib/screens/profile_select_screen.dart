@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/uku_mascot.dart';
+import '../widgets/parent_gate.dart';
 import 'home_v2_screen.dart';
 
 /// Pilih profil anak (maks 5 per akun). Semua mulai Kelas 1.
@@ -217,6 +218,12 @@ class _ProfileSelectScreenState extends State<ProfileSelectScreen> {
   }
 
   Future<void> _deleteProfile(ChildProfile p) async {
+    // Gerbang orang tua: cegah anak menghapus progres (mis. milik saudaranya).
+    if (!await ParentGate.show(context,
+        reason: 'Menghapus profil bersifat permanen. Jawab soal ini dulu ya.')) {
+      return;
+    }
+    if (!mounted) return;
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
