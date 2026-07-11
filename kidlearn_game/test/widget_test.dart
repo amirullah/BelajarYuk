@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kidlearn_game/screens/home_v2_screen.dart';
 import 'package:kidlearn_game/data/math_generator.dart';
+import 'package:kidlearn_game/models/question.dart';
 
 void main() {
   testWidgets('Home menampilkan mata pelajaran', (WidgetTester tester) async {
@@ -20,9 +21,14 @@ void main() {
     final qs = MathGenerator(42).generate(1, count: 15);
     expect(qs.length, 15);
     for (final q in qs) {
-      expect(q.options.length, 4);
-      expect(q.correctIndex, inInclusiveRange(0, 3));
-      expect(q.options[q.correctIndex], isNotEmpty);
+      if (q.type == QuestionType.fillBlank) {
+        expect(q.answer, isNotNull);
+        expect(q.answer!.isNotEmpty, isTrue);
+      } else {
+        expect(q.options.length, 4);
+        expect(q.correctIndex, inInclusiveRange(0, 3));
+        expect(q.options[q.correctIndex], isNotEmpty);
+      }
     }
   });
 }

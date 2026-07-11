@@ -76,9 +76,19 @@ class MathGenerator {
         emoji: '％');
   }
 
-  // ── Bangun soal pilihan ganda dengan distraktor cerdas ──
+  // ── Bangun soal (kadang isian, kadang pilihan ganda) ──
   Question _mc(String q, int answer, {int spread = 3, String emoji = '🔢',
       String? objectiveCode}) {
+    // ~30% jadi soal isian agar bentuk soal bervariasi.
+    if (_rng.nextInt(10) < 3) {
+      return Question(
+        question: q,
+        emoji: emoji,
+        type: QuestionType.fillBlank,
+        answer: answer.toString(),
+        objectiveCode: objectiveCode,
+      );
+    }
     final Set<int> opts = {answer};
     int guard = 0;
     while (opts.length < 4 && guard++ < 50) {

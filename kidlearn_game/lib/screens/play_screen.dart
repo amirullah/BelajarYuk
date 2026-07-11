@@ -26,6 +26,8 @@ class _PlayScreenState extends State<PlayScreen> {
   int _correct = 0;
   int? _selected;
   bool _locked = false;
+  bool? _fillCorrect;
+  final TextEditingController _fill = TextEditingController();
   Timer? _timer;
 
   SubjectInfo get _info => SubjectInfo.of(widget.level.subject);
@@ -40,6 +42,7 @@ class _PlayScreenState extends State<PlayScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _fill.dispose();
     super.dispose();
   }
 
@@ -51,6 +54,19 @@ class _PlayScreenState extends State<PlayScreen> {
       if (i == _q.correctIndex) _correct++;
     });
     _timer = Timer(const Duration(milliseconds: 900), _next);
+  }
+
+  void _answerFill() {
+    if (_locked) return;
+    final expected = (_q.answer ?? '').trim().toLowerCase();
+    final given = _fill.text.trim().toLowerCase();
+    final ok = expected.isNotEmpty && given == expected;
+    setState(() {
+      _locked = true;
+      _fillCorrect = ok;
+      if (ok) _correct++;
+    });
+    _timer = Timer(const Duration(milliseconds: 1100), _next);
   }
 
   void _next() {
@@ -68,6 +84,8 @@ class _PlayScreenState extends State<PlayScreen> {
       _index++;
       _selected = null;
       _locked = false;
+      _fillCorrect = null;
+      _fill.clear();
     });
   }
 
@@ -80,7 +98,6 @@ class _PlayScreenState extends State<PlayScreen> {
       );
     }
     final double progress = (_index + 1) / _questions.length;
-    final bool isTF = _q.type == QuestionType.trueFalse;
 
     return Scaffold(
       backgroundColor: kBg,
@@ -156,7 +173,7 @@ class _PlayScreenState extends State<PlayScreen> {
             // ── Opsi jawaban ──
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: isTF ? _tfButtons() : _mcGrid(),
+              child: _answerArea(),
             ),
           ],
         ),
@@ -164,11 +181,68 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
+  Widget _answerArea() {
+    switch (_q.type) {
+      case QuestionType.trueFalse:
+        return _tfButtons();
+      case QuestionType.fillBlank:
+        return _fillInput();
+      default:
+        return _mcGrid();
+    }
+  }
+
   bool? _correctness(int i) {
     if (!_locked) return null;
     if (i == _q.correctIndex) return true;
     if (i == _selected) return false;
     return null;
+  }
+
+  Widget _fillInput() {
+    Color border = _info.color;
+    if (_locked) border = _fillCorrect == true ? kSuccess : kError;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _fill,
+          enabled: !_locked,
+          textAlign: TextAlign.center,
+          onSubmitted: (_) => _answerFill(),
+          style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w800),
+          decoration: InputDecoration(
+            hintText: 'Ketik jawaban…',
+            filled: true,
+            fillColor: kSurface,
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: border, width: 2)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: border, width: 2)),
+            disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: border, width: 2)),
+          ),
+        ),
+        if (_locked && _fillCorrect == false) ...[
+          const SizedBox(height: 8),
+          Text('Jawaban: ${_q.answer}',
+              style: GoogleFonts.nunito(
+                  color: kSuccess, fontWeight: FontWeight.w700)),
+        ],
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: GameButton(
+            text: 'Cek',
+            color: _info.color,
+            onPressed: _locked ? null : _answerFill,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _mcGrid() {
