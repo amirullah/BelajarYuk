@@ -109,7 +109,14 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              // ── Banner sambutan + maskot ──
+              _WelcomeBanner(name: _profile?.name)
+                  .animate()
+                  .fadeIn(duration: 400.ms)
+                  .slideY(begin: 0.1, end: 0),
+              const SizedBox(height: 20),
 
               // ── Kartu mata pelajaran ──
               ...List.generate(SubjectInfo.all.length, (i) {
@@ -189,6 +196,62 @@ class _SubjectCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Banner sambutan ceria dengan maskot burung hantu + gelembung ucapan.
+class _WelcomeBanner extends StatelessWidget {
+  final String? name;
+  const _WelcomeBanner({this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF8B7BFF), kPrimary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: kPrimary.withOpacity(0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Image.asset('assets/img/mascot.png', width: 84, height: 84)
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .moveY(begin: 0, end: -6, duration: 1400.ms, curve: Curves.easeInOut),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Hai${name != null ? ', $name' : ''}! 🌟',
+                    style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white)),
+                const SizedBox(height: 4),
+                Text('Aku Uku si burung hantu. Yuk main & kumpulkan bintang bersamaku!',
+                    style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        height: 1.3,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withOpacity(0.95))),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

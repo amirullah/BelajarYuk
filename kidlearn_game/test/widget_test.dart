@@ -12,7 +12,10 @@ void main() {
   testWidgets('Home menampilkan mata pelajaran', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const MaterialApp(home: HomeV2Screen()));
-    await tester.pumpAndSettle();
+    // Banner maskot memakai animasi berulang → pumpAndSettle tak akan selesai.
+    // Cukup pump beberapa frame agar profil termuat & UI terbentuk.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
 
     // Kartu teratas pasti terlihat di viewport test (800x600).
     expect(find.text('Matematika'), findsOneWidget);
