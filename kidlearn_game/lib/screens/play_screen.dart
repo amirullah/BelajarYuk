@@ -314,7 +314,6 @@ class _PlayScreenState extends State<PlayScreen> {
       setState(() => _locked = true);
       if (ok) _correct++;
       _feedback(ok);
-      _timer = Timer(const Duration(milliseconds: 1000), _next);
     }
   }
 
@@ -343,7 +342,6 @@ class _PlayScreenState extends State<PlayScreen> {
           _correct++;
         });
         _feedback(true);
-        _timer = Timer(const Duration(milliseconds: 1000), _next);
       }
     } else {
       SfxService.instance.wrong();
@@ -371,25 +369,37 @@ class _PlayScreenState extends State<PlayScreen> {
   void _feedback(bool ok) {
     SfxService.instance.stopUku();
     if (ok) {
-      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 2200));
+      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 2500));
       SfxService.instance.correct();
       SfxService.instance.cheer();
-      // Pujian langsung — TTS punya startup async sendiri (~200ms) yang
-      // menjadi jeda alami setelah chime. Tidak perlu tunda lebih.
-      TtsService.instance.praise(subject: widget.level.subject);
       _combo++;
       if (_combo >= 3) _comboBonus += 2;
+      // Maju ke soal berikutnya 300ms setelah pujian SELESAI diucapkan —
+      // timer 3 detik sebagai jaring pengaman bila TTS macet.
+      _timer = Timer(const Duration(milliseconds: 3000), _next);
+      TtsService.instance.praise(subject: widget.level.subject).then((_) {
+        if (mounted && _locked) {
+          _timer?.cancel();
+          _timer = Timer(const Duration(milliseconds: 300), _next);
+        }
+      });
     } else {
       unawaited(SfxService.instance.duckMusic(restoreAfterMs: 1600));
       SfxService.instance.wrong();
       SfxService.instance.aww();
-      TtsService.instance.encourage();
+      _timer = Timer(const Duration(milliseconds: 2000), _next);
+      TtsService.instance.encourage().then((_) {
+        if (mounted && _locked) {
+          _timer?.cancel();
+          _timer = Timer(const Duration(milliseconds: 300), _next);
+        }
+      });
       _combo = 0;
     }
     _idleTimer?.cancel();
     setState(() {
       _cheerOk = ok;
-      _cheerTick++; // memicu animasi lencana umpan balik
+      _cheerTick++;
       _showHint = false;
     });
   }
@@ -403,7 +413,6 @@ class _PlayScreenState extends State<PlayScreen> {
       if (ok) _correct++;
     });
     _feedback(ok);
-    _timer = Timer(Duration(milliseconds: ok ? 1050 : 1000), _next);
   }
 
   void _answerFill() {
@@ -417,11 +426,9 @@ class _PlayScreenState extends State<PlayScreen> {
       if (ok) _correct++;
     });
     _feedback(ok);
-    _timer = Timer(const Duration(milliseconds: 1150), _next);
   }
 
   void _next() {
-    // Hentikan TTS pujian/semangat agar tidak terbawa ke soal berikutnya.
     TtsService.instance.stop();
     if (_index + 1 >= _questions.length) {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
