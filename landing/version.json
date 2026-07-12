@@ -1,8 +1,8 @@
 {
-  "version": "2.2.4",
-  "build": 39,
+  "version": "2.2.5",
+  "build": 40,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Kunci Anak: home gesture & drag bawah diblokir penuh (Android Lock Task); PIN hanya untuk keluar.",
+  "notes": "Kunci Anak: tidak perlu PIN saat buka; PIN + Batal hanya muncul saat back dari beranda.",
   "mandatory": false
 }

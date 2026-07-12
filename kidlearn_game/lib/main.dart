@@ -42,30 +42,20 @@ class BelajarYukApp extends StatefulWidget {
 class _BelajarYukAppState extends State<BelajarYukApp>
     with WidgetsBindingObserver {
   final _navKey = GlobalKey<NavigatorState>();
-  bool _wasBackground = false;
   bool _lockShowing = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Periksa cold-start: bila app dikill saat di latar belakang dan kunci aktif,
-    // flag _prefBg masih tersimpan di disk → tampilkan layar kunci.
-    _checkColdStartLock();
+    _initLock();
   }
 
-  Future<void> _checkColdStartLock() async {
-    // Await load() langsung — aman dipanggil ulang karena SharedPreferences
-    // di-cache oleh paket; tidak ada duplikasi IO yang mahal.
+  // Muat kunci dan langsung pin app bila aktif — tanpa minta PIN saat buka.
+  Future<void> _initLock() async {
     await AppLockService.instance.load();
     if (!mounted) return;
-    if (AppLockService.instance.enabled && AppLockService.instance.wasBackgrounded) {
-      await AppLockService.instance.clearBackground();
-      _wasBackground = true;
-      _showResumeLock();
-      // enterLockTask() dipanggil oleh _showResumeLock → onUnlock
-    } else if (AppLockService.instance.enabled) {
-      // Cold start normal dengan kunci aktif — pin app segera.
+    if (AppLockService.instance.enabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         unawaited(AppLockService.instance.enterLockTask());
@@ -83,64 +73,29 @@ class _BelajarYukAppState extends State<BelajarYukApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       SfxService.instance.resumeMusic();
-      if (_wasBackground && AppLockService.instance.enabled) {
-        _showResumeLock();
-        // enterLockTask() dipanggil oleh _showResumeLock → onUnlock
-      } else if (AppLockService.instance.enabled && !_lockShowing) {
-        // Resume singkat (misal notifikasi ditutup) — pin kembali bila belum.
+      // Pin ulang bila kunci aktif (misal notifikasi menutup sebentar).
+      if (AppLockService.instance.enabled && !_lockShowing) {
         unawaited(AppLockService.instance.enterLockTask());
       }
-      _wasBackground = false;
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
-      // paused = app tidak terlihat (Home ditekan).
-      // hidden = semua view tersembunyi (beberapa versi Android/perangkat mengirim
-      //          hidden tanpa paused) — tangkap keduanya agar deteksi lebih andal.
       SfxService.instance.pauseMusic();
-      _wasBackground = true;
-      unawaited(AppLockService.instance.markBackground());
     } else if (state == AppLifecycleState.inactive) {
       SfxService.instance.pauseMusic();
-      // inactive = selingan singkat (dialog sistem, notifikasi) — bukan ke background.
     }
   }
 
-  // Intercept tombol back sistem saat tidak ada route yang bisa di-pop:
-  // jika kunci aktif, tampilkan layar PIN untuk konfirmasi keluar.
+  // Intercept back dari beranda (root) — satu-satunya jalan keluar yang diizinkan.
   @override
   Future<bool> didPopRoute() async {
     if (AppLockService.instance.enabled) {
       _showExitLock();
-      return true; // konsumsi event — cegah exit
+      return true;
     }
     return false;
   }
 
-  // Kunci resume: muncul saat app kembali dari background, tidak bisa dibatal.
-  void _showResumeLock() {
-    if (_lockShowing) return;
-    _lockShowing = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) { _lockShowing = false; return; }
-      final overlay = _navKey.currentState?.overlay;
-      if (overlay == null) { _lockShowing = false; return; }
-      late OverlayEntry entry;
-      entry = OverlayEntry(
-        builder: (_) => LockScreen(
-          onUnlock: () {
-            entry.remove();
-            _lockShowing = false;
-            unawaited(AppLockService.instance.clearBackground());
-            // Pin ulang — anak tetap terkunci meski orang tua buka layar.
-            unawaited(AppLockService.instance.enterLockTask());
-          },
-        ),
-      );
-      overlay.insert(entry);
-    });
-  }
-
-  // Kunci exit: muncul saat back ditekan di root; benar → keluar, batal → tetap.
+  // PIN keluar: ada tombol Batal agar anak bisa kembali belajar.
   void _showExitLock() {
     if (_lockShowing) return;
     _lockShowing = true;
@@ -154,7 +109,6 @@ class _BelajarYukAppState extends State<BelajarYukApp>
           onUnlock: () {
             entry.remove();
             _lockShowing = false;
-            // Unpin dulu, baru keluar — agar OS tak menolak penutupan task.
             AppLockService.instance.exitLockTask()
                 .whenComplete(SystemNavigator.pop);
           },
