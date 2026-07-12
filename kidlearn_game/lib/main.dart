@@ -55,8 +55,9 @@ class _BelajarYukAppState extends State<BelajarYukApp>
   }
 
   Future<void> _checkColdStartLock() async {
-    // Beri waktu AppLockService.load() selesai (dipanggil unawaited di main()).
-    await Future.delayed(const Duration(milliseconds: 300));
+    // Await load() langsung — aman dipanggil ulang karena SharedPreferences
+    // di-cache oleh paket; tidak ada duplikasi IO yang mahal.
+    await AppLockService.instance.load();
     if (!mounted) return;
     if (AppLockService.instance.enabled && AppLockService.instance.wasBackgrounded) {
       await AppLockService.instance.clearBackground();
@@ -96,28 +97,24 @@ class _BelajarYukAppState extends State<BelajarYukApp>
   void _showLockScreen() {
     if (_lockShowing) return;
     _lockShowing = true;
-    // Delay 80ms agar Navigator benar-benar siap setelah app kembali aktif.
-    // addPostFrameCallback tidak selalu fire bila tidak ada frame yang dijadwalkan
-    // segera setelah resumed; Future.delayed lebih andal di sini.
-    Future.delayed(const Duration(milliseconds: 80), () {
+    // addPostFrameCallback menjamin Overlay sudah ada saat callback jalan.
+    // OverlayEntry disisipkan di atas SEMUA route — tidak bergantung pada
+    // Navigator.push sehingga tidak bisa gagal karena navigator belum siap.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) { _lockShowing = false; return; }
-      final nav = _navKey.currentState;
-      if (nav == null) { _lockShowing = false; return; }
-      nav.push(PageRouteBuilder(
-        opaque: true,
-        fullscreenDialog: true,
-        settings: const RouteSettings(name: '/lock'),
-        transitionDuration: const Duration(milliseconds: 300),
-        pageBuilder: (_, __, ___) => LockScreen(
+      final overlay = _navKey.currentState?.overlay;
+      if (overlay == null) { _lockShowing = false; return; }
+      late OverlayEntry entry;
+      entry = OverlayEntry(
+        builder: (_) => LockScreen(
           onUnlock: () {
-            _navKey.currentState?.pop();
+            entry.remove();
             _lockShowing = false;
             unawaited(AppLockService.instance.clearBackground());
           },
         ),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-      )).then((_) => _lockShowing = false);
+      );
+      overlay.insert(entry);
     });
   }
 

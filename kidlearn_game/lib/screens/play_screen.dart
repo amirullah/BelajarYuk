@@ -149,19 +149,16 @@ class _PlayScreenState extends State<PlayScreen> {
     return base;
   }
 
-  /// Uku mengintip dari tepi/pojok layar (dirs 2–7).
-  /// Stack + clipBehavior.hardEdge memotong bagian yang melewati tepi layar
-  /// sehingga Uku terlihat "mengintip" dari luar — TIDAK menutup soal karena
-  /// soal ada di area atas, sedangkan Uku muncul di tepi/pojok.
+  /// Uku muncul dari tepi/pojok layar (dirs 2–7).
+  /// Posisi AKHIR selalu di DALAM batas layar (menghormati safe-area) sehingga
+  /// Uku — terutama wajahnya — selalu terlihat. Efek "datang dari luar" murni
+  /// dari animasi move(begin → zero); Stack.clipBehavior.hardEdge menyembunyikan
+  /// Uku selama ia masih di luar batas Stack.
   Widget _ukuEdgePeek() {
-    const ukuSz = 112.0;
-    // vis = porsi Uku yang TERLIHAT; diperbesar agar jelas & tidak hilang di tepi.
-    // Tepi atas/bawah: 68px dari 112 → lebih dari setengah badan terlihat.
-    // Pojok: 72px per sisi → ~2/3 Uku terlihat secara diagonal.
-    const visEdge = 68.0;
-    const visCorner = 72.0;
-
-    final sw = MediaQuery.sizeOf(context).width;
+    const ukuSz = 96.0;
+    final mq = MediaQuery.of(context);
+    final sw = mq.size.width;
+    final safePad = mq.padding; // inset status-bar / nav-bar
 
     final uku = GestureDetector(
       onTap: _ukuTap,
@@ -169,46 +166,42 @@ class _PlayScreenState extends State<PlayScreen> {
     );
 
     double? left, right, top, bottom;
-    // moveY/moveX begin: berapa banyak widget digeser SEBELUM animasi masuk
     double mx = 0, my = 0;
-
-    const offEdge   = ukuSz - visEdge;    // 44 — tersembunyi di tepi atas/bawah
-    const offCorner = ukuSz - visCorner;  // 40 — tersembunyi di pojok
+    const margin = 12.0; // jarak dari tepi dalam area aman
 
     switch (_hintDir) {
-      case 2: // atas-tengah
+      case 2: // atas-tengah: Uku meluncur turun, wajah masuk dari atas
         left = sw / 2 - ukuSz / 2;
-        top = -offEdge;
-        my = -offEdge - 8;
+        top = safePad.top + margin;
+        my = -(ukuSz + safePad.top + margin + 16);
         break;
-      case 3: // bawah-tengah
+      case 3: // bawah-tengah: Uku meluncur naik dari bawah
         left = sw / 2 - ukuSz / 2;
-        bottom = -offEdge;
-        my = offEdge + 8;
+        bottom = safePad.bottom + margin;
+        my = ukuSz + safePad.bottom + margin + 16;
         break;
       case 4: // pojok kiri-atas
-        left = -offCorner;
-        top = -offCorner;
-        mx = -offCorner; my = -offCorner;
+        left = margin;
+        top = safePad.top + margin;
+        mx = -(ukuSz + margin + 16); my = -(ukuSz + safePad.top + margin + 16);
         break;
       case 5: // pojok kanan-atas
-        right = -offCorner;
-        top = -offCorner;
-        mx = offCorner; my = -offCorner;
+        right = margin;
+        top = safePad.top + margin;
+        mx = ukuSz + margin + 16; my = -(ukuSz + safePad.top + margin + 16);
         break;
       case 6: // pojok kiri-bawah
-        left = -offCorner;
-        bottom = -offCorner;
-        mx = -offCorner; my = offCorner;
+        left = margin;
+        bottom = safePad.bottom + margin;
+        mx = -(ukuSz + margin + 16); my = ukuSz + safePad.bottom + margin + 16;
         break;
       default: // 7 — pojok kanan-bawah
-        right = -offCorner;
-        bottom = -offCorner;
-        mx = offCorner; my = offCorner;
+        right = margin;
+        bottom = safePad.bottom + margin;
+        mx = ukuSz + margin + 16; my = ukuSz + safePad.bottom + margin + 16;
         break;
     }
 
-    // Animasi dasar: fade + gerak masuk dari tepi
     var anim = uku
         .animate(key: ValueKey(_hintTurn))
         .fadeIn(duration: 260.ms)
@@ -218,30 +211,29 @@ class _PlayScreenState extends State<PlayScreen> {
             duration: 560.ms,
             curve: Curves.easeOutBack);
 
-    // Animasi lanjutan unik per arah
     switch (_hintDir) {
-      case 2: // atas: goyang kecil setelah muncul
+      case 2:
         anim = anim.then().shakeX(hz: 3, amount: 4, duration: 420.ms);
         break;
-      case 3: // bawah: sedikit memantul setelah muncul
+      case 3:
         anim = anim.then().moveY(
             begin: -8, end: 0, duration: 380.ms, curve: Curves.bounceOut);
         break;
-      case 4: // pojok kiri-atas: berputar masuk
+      case 4:
         anim = anim.then().rotate(
             begin: -0.15, end: 0, duration: 480.ms, curve: Curves.elasticOut);
         break;
-      case 5: // pojok kanan-atas: skala meletup
+      case 5:
         anim = anim.then().scaleXY(
             begin: 0.8, end: 1.0, duration: 380.ms, curve: Curves.elasticOut);
         break;
-      case 6: // pojok kiri-bawah: bergoyang senang
+      case 6:
         anim = anim.then()
             .rotate(begin: 0.1, end: -0.05, duration: 300.ms)
             .then()
             .rotate(begin: -0.05, end: 0, duration: 300.ms, curve: Curves.easeOut);
         break;
-      default: // pojok kanan-bawah: flip skala
+      default:
         anim = anim.then().scaleXY(
             begin: 1.2, end: 1.0, duration: 320.ms, curve: Curves.easeOut);
         break;

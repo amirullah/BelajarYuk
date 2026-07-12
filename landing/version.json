@@ -1,8 +1,8 @@
 {
-  "version": "2.2.1",
-  "build": 36,
+  "version": "2.2.2",
+  "build": 37,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Uku lebih besar & terlihat jelas dari 8 arah; Kunci Anak lebih andal (deteksi hidden + cold restart).",
+  "notes": "Uku selalu terlihat jelas dari semua arah; Kunci Anak kini benar-benar mengunci (pakai Overlay, tidak bisa dilewati).",
   "mandatory": false
 }
