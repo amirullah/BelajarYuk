@@ -15,3 +15,6 @@ backend/config.php
 # APK staging untuk deploy (build artifact, jangan di-commit)
 landing/BelajarYuk.apk
 *.apk
+
+# Output sementara dari mksfx.py (sudah disalin ke assets/sfx/)
+kidlearn_game/tools/art/sfx/
