@@ -1,8 +1,8 @@
 {
-  "version": "2.1.8",
-  "build": 33,
-  "content": 1,
+  "version": "2.1.9",
+  "build": 34,
+  "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Perbaikan: layar biru lama saat buka aplikasi dihilangkan — UI kini tampil seketika, audio & konten dimuat di latar.",
+  "notes": "Bank soal diperluas 2× (5716 soal) — lebih variatif, menantang, & bebas ulang antar level.",
   "mandatory": false
 }
