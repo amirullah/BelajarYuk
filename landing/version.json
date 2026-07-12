@@ -1,8 +1,8 @@
 {
-  "version": "2.3.2",
-  "build": 47,
+  "version": "2.3.3",
+  "build": 48,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Pujian Bahasa Inggris kembali berbunyi; pujian tidak lagi terpotong di semua mapel.",
+  "notes": "Tes suara: hanya suara benar (ta-da) tanpa suara kedua.",
   "mandatory": false
 }
