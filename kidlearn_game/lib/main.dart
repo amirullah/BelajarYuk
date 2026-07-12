@@ -49,6 +49,20 @@ class _BelajarYukAppState extends State<BelajarYukApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Periksa cold-start: bila app dikill saat di latar belakang dan kunci aktif,
+    // flag _prefBg masih tersimpan di disk → tampilkan layar kunci.
+    _checkColdStartLock();
+  }
+
+  Future<void> _checkColdStartLock() async {
+    // Beri waktu AppLockService.load() selesai (dipanggil unawaited di main()).
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+    if (AppLockService.instance.enabled && AppLockService.instance.wasBackgrounded) {
+      await AppLockService.instance.clearBackground();
+      _wasBackground = true;
+      _showLockScreen();
+    }
   }
 
   @override
@@ -66,18 +80,26 @@ class _BelajarYukAppState extends State<BelajarYukApp>
       }
       _wasBackground = false;
     } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
+      // paused = app tidak terlihat (Home ditekan).
+      // hidden = semua view tersembunyi (beberapa versi Android/perangkat mengirim
+      //          hidden tanpa paused) — tangkap keduanya agar deteksi lebih andal.
       SfxService.instance.pauseMusic();
-      if (state == AppLifecycleState.paused) _wasBackground = true;
+      _wasBackground = true;
+      unawaited(AppLockService.instance.markBackground());
+    } else if (state == AppLifecycleState.inactive) {
+      SfxService.instance.pauseMusic();
+      // inactive = selingan singkat (dialog sistem, notifikasi) — bukan ke background.
     }
   }
 
   void _showLockScreen() {
     if (_lockShowing) return;
     _lockShowing = true;
-    // Tunggu satu frame agar Navigator sudah siap.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Delay 80ms agar Navigator benar-benar siap setelah app kembali aktif.
+    // addPostFrameCallback tidak selalu fire bila tidak ada frame yang dijadwalkan
+    // segera setelah resumed; Future.delayed lebih andal di sini.
+    Future.delayed(const Duration(milliseconds: 80), () {
       if (!mounted) { _lockShowing = false; return; }
       final nav = _navKey.currentState;
       if (nav == null) { _lockShowing = false; return; }
@@ -90,6 +112,7 @@ class _BelajarYukAppState extends State<BelajarYukApp>
           onUnlock: () {
             _navKey.currentState?.pop();
             _lockShowing = false;
+            unawaited(AppLockService.instance.clearBackground());
           },
         ),
         transitionsBuilder: (_, anim, __, child) =>

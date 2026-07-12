@@ -155,8 +155,11 @@ class _PlayScreenState extends State<PlayScreen> {
   /// soal ada di area atas, sedangkan Uku muncul di tepi/pojok.
   Widget _ukuEdgePeek() {
     const ukuSz = 112.0;
-    const vis = 42.0;           // seberapa banyak Uku terlihat (peek)
-    const off = ukuSz - vis;    // seberapa banyak yang tersembunyi di luar layar
+    // vis = porsi Uku yang TERLIHAT; diperbesar agar jelas & tidak hilang di tepi.
+    // Tepi atas/bawah: 68px dari 112 → lebih dari setengah badan terlihat.
+    // Pojok: 72px per sisi → ~2/3 Uku terlihat secara diagonal.
+    const visEdge = 68.0;
+    const visCorner = 72.0;
 
     final sw = MediaQuery.sizeOf(context).width;
 
@@ -166,40 +169,42 @@ class _PlayScreenState extends State<PlayScreen> {
     );
 
     double? left, right, top, bottom;
-    // moveY/moveX begin: berapa banyak widget digeser SEBELUM animasi
-    // (positif = ke bawah/kanan, negatif = ke atas/kiri)
+    // moveY/moveX begin: berapa banyak widget digeser SEBELUM animasi masuk
     double mx = 0, my = 0;
 
+    const offEdge   = ukuSz - visEdge;    // 44 — tersembunyi di tepi atas/bawah
+    const offCorner = ukuSz - visCorner;  // 40 — tersembunyi di pojok
+
     switch (_hintDir) {
-      case 2: // atas-tengah: kepala Uku tersembunyi, badan mengintip dari atas
+      case 2: // atas-tengah
         left = sw / 2 - ukuSz / 2;
-        top = -off;
-        my = -56; // mulai lebih jauh ke atas, meluncur ke bawah
+        top = -offEdge;
+        my = -offEdge - 8;
         break;
-      case 3: // bawah-tengah: kaki Uku tersembunyi, kepala mengintip dari bawah
+      case 3: // bawah-tengah
         left = sw / 2 - ukuSz / 2;
-        bottom = -off;
-        my = 56;
+        bottom = -offEdge;
+        my = offEdge + 8;
         break;
       case 4: // pojok kiri-atas
-        left = -off;
-        top = -off;
-        mx = -44; my = -44;
+        left = -offCorner;
+        top = -offCorner;
+        mx = -offCorner; my = -offCorner;
         break;
       case 5: // pojok kanan-atas
-        right = -off;
-        top = -off;
-        mx = 44; my = -44;
+        right = -offCorner;
+        top = -offCorner;
+        mx = offCorner; my = -offCorner;
         break;
       case 6: // pojok kiri-bawah
-        left = -off;
-        bottom = -off;
-        mx = -44; my = 44;
+        left = -offCorner;
+        bottom = -offCorner;
+        mx = -offCorner; my = offCorner;
         break;
       default: // 7 — pojok kanan-bawah
-        right = -off;
-        bottom = -off;
-        mx = 44; my = 44;
+        right = -offCorner;
+        bottom = -offCorner;
+        mx = offCorner; my = offCorner;
         break;
     }
 

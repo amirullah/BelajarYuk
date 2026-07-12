@@ -1,8 +1,8 @@
 {
-  "version": "2.2.0",
-  "build": 35,
+  "version": "2.2.1",
+  "build": 36,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Uku lebih besar & muncul dari 8 arah (atas/bawah/pojok); Kunci Anak — cegah keluar app tanpa PIN orang tua.",
+  "notes": "Uku lebih besar & terlihat jelas dari 8 arah; Kunci Anak lebih andal (deteksi hidden + cold restart).",
   "mandatory": false
 }
