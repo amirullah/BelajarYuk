@@ -85,9 +85,12 @@ class _BelajarYukAppState extends State<BelajarYukApp>
     }
   }
 
-  // Intercept back dari beranda (root) — satu-satunya jalan keluar yang diizinkan.
+  // Intercept back hanya di beranda (root) — bila Navigator masih bisa pop,
+  // biarkan dia menangani (pengguna sedang di sub-layar, bukan beranda).
   @override
   Future<bool> didPopRoute() async {
+    final nav = _navKey.currentState;
+    if (nav != null && nav.canPop()) return false;
     if (AppLockService.instance.enabled) {
       _showExitLock();
       return true;

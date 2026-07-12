@@ -9,6 +9,7 @@ import '../models/profile.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../services/update_service.dart';
+import '../services/app_lock_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/uku_mascot.dart';
 import '../widgets/avatar_view.dart';
@@ -153,6 +154,8 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
   /// Buka tautan unduh APK di browser. Bila gagal, salin tautan ke papan klip
   /// sebagai cadangan agar pengguna tetap bisa mengunduh manual.
   Future<void> _openUpdate(String url) async {
+    // Nonaktifkan lock task dulu agar browser bisa dibuka dari Lock Task Mode.
+    await AppLockService.instance.exitLockTask();
     final uri = Uri.tryParse(url);
     bool opened = false;
     if (uri != null) {

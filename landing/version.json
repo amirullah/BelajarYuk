@@ -1,8 +1,8 @@
 {
-  "version": "2.2.5",
-  "build": 40,
+  "version": "2.2.6",
+  "build": 41,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Kunci Anak: tidak perlu PIN saat buka; PIN + Batal hanya muncul saat back dari beranda.",
+  "notes": "Kunci Anak: tombol Batal lebih besar; back di sub-menu tidak minta PIN; Update otomatis buka browser.",
   "mandatory": false
 }

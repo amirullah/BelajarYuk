@@ -185,10 +185,26 @@ class _LockScreenState extends State<LockScreen> {
               ),
               const Spacer(),
               if (widget.onCancel != null)
-                TextButton(
-                  onPressed: widget.onCancel,
-                  child: Text('Batal — Tetap di Aplikasi',
-                      style: GoogleFonts.nunito(fontSize: 13, color: kMuted)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onCancel,
+                      icon: const Icon(Icons.arrow_back_rounded, size: 22),
+                      label: Text('Batal — Kembali Belajar',
+                          style: GoogleFonts.nunito(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: kPrimary,
+                        side: BorderSide(color: kPrimary, width: 2),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18)),
+                      ),
+                    ),
+                  ),
                 )
               else
                 Padding(
