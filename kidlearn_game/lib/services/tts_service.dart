@@ -46,6 +46,16 @@ class TtsService {
   static const _encourages = [
     'Coba lagi ya!', 'Hampir benar!', 'Ayo semangat!', 'Tidak apa-apa, coba lagi!',
   ];
+  static const _englishEncourages = [
+    'Try again!', 'Keep going!', 'Almost there!', "Don't give up!", 'One more try!',
+  ];
+  // Frasa penyemangat Islami — dibacakan dalam bahasa Arab (fasih) bila voice Arab tersedia.
+  static const List<List<String>> _religionEncourages = [
+    ['La ba\'sa, coba lagi!', 'لَا بَأْسَ، حَاوِلْ مَرَّةً أُخْرَى'],
+    ['Hayyaa, semangat!', 'هَيَّا، اِجْتَهِدْ'],
+    ['Tasabbar, hampir betul!', 'تَصَبَّرْ، أَنْتَ قَرِيْبٌ'],
+    ['Inna ma\'al usri yusra!', 'إِنَّ مَعَ الْعُسْرِ يُسْرًا'],
+  ];
 
   // Pujian KHAS mapel Agama Islam: diucapkan dalam bahasa Arab yang FASIH
   // (pakai voice Arab bila tersedia), dengan transliterasi Latin sebagai
@@ -223,9 +233,31 @@ class TtsService {
   }
 
   /// Kata penyemangat lembut saat jawaban salah.
-  Future<void> encourage() async {
+  /// Bahasa mengikuti [subject]: Inggris → English, Agama → Arab/Latin, lainnya → Indonesia.
+  Future<void> encourage({Subject? subject}) async {
     await _ensure();
     await _tts.stop();
+    if (subject == Subject.religion) {
+      final pair = _religionEncourages[_rng.nextInt(_religionEncourages.length)];
+      if (_arabicLang != null) {
+        try {
+          await _tts.setLanguage(_arabicLang!);
+          await _tts.setPitch(1.38);
+          await _tts.setSpeechRate(0.44);
+          await _tts.awaitSpeakCompletion(true);
+          await _tts.speak(pair[1]);
+          return;
+        } catch (_) {}
+      }
+      await _configure(english: false, pitch: 1.5, rate: 0.46);
+      await _tts.speak(pair[0]);
+      return;
+    }
+    if (subject == Subject.english) {
+      await _configure(english: true, pitch: 1.75, rate: 0.46);
+      await _tts.speak(_englishEncourages[_rng.nextInt(_englishEncourages.length)]);
+      return;
+    }
     await _configure(english: false, pitch: 1.45, rate: 0.5);
     await _tts.speak(_encourages[_rng.nextInt(_encourages.length)]);
   }

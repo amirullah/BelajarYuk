@@ -1,8 +1,8 @@
 {
-  "version": "2.3.3",
-  "build": 48,
+  "version": "2.3.4",
+  "build": 49,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Tes suara: hanya suara benar (ta-da) tanpa suara kedua.",
+  "notes": "Suara jawaban benar lebih meriah; suara sorak anak (yay) lebih natural; pujian salah kini pakai bahasa mapel (Inggris/Arab).",
   "mandatory": false
 }
