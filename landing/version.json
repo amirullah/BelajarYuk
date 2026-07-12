@@ -1,8 +1,8 @@
 {
-  "version": "2.1.6",
-  "build": 31,
+  "version": "2.1.7",
+  "build": 32,
   "content": 1,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Matematika tak lagi monoton: tiap beberapa level membuka TOPIK BARU (perbandingan, pola bilangan, cari yang hilang, soal cerita) — bukan sekadar angka berubah.",
+  "notes": "Semua mapel kini tak monoton: tiap level menyelang-nyeling jenis soal (pilihan ganda, benar/salah, isian, pasangkan, susun urutan, pilih gambar) merata dari awal sampai akhir.",
   "mandatory": false
 }

@@ -51,7 +51,7 @@ class LevelService {
           final pos = 1 + _rng.nextInt(qs.length);
           qs.insert(pos.clamp(0, qs.length), _shuffleOptions(extras[k]));
         }
-        return _avoidMonotony(qs.take(level.questionCount).toList());
+        return _interleaveByType(qs.take(level.questionCount).toList());
       }
       return qs;
     }
@@ -104,7 +104,7 @@ class LevelService {
     final rng = _seed != null ? _rng : Random(level.id.hashCode + 7);
     final out = [for (final q in slice) _shuffleOptionsWith(q, rng)];
     out.shuffle(rng); // acak URUTAN dalam level (soal tetap set yang sama)
-    return _avoidMonotony(out);
+    return _interleaveByType(out);
   }
 
   /// Kolam soal UNIK utuh untuk (mapel, kelas), diurutkan kesulitan MENAIK.
@@ -437,8 +437,8 @@ class LevelService {
     // level (tidak menggerombol di satu level).
     extras.addAll(_matchingExtras(s));
     extras.addAll(_sequenceExtras(s));
-    // Pilih-gambar & menyimak bersifat bantu-baca → untuk kelas awal saja.
-    if (grade <= 3) extras.addAll(_imageChoiceExtras(s));
+    // Pilih-gambar & menyimak bersifat bantu-baca → untuk kelas awal.
+    if (grade <= 4) extras.addAll(_imageChoiceExtras(s));
     if (grade <= 2) extras.addAll(_listeningExtras(s));
     return extras.isEmpty ? base : [...base, ...extras];
   }
@@ -466,18 +466,30 @@ class LevelService {
     }
   }
 
-  /// Hindari tipe soal yang sama muncul >2 kali berturut-turut.
-  List<Question> _avoidMonotony(List<Question> qs) {
-    for (int i = 2; i < qs.length; i++) {
-      if (qs[i].type == qs[i - 1].type && qs[i].type == qs[i - 2].type) {
-        final j = qs.indexWhere((q) => q.type != qs[i].type, i + 1);
-        if (j > i) {
-          final tmp = qs[i];
-          qs[i] = qs[j];
-          qs[j] = tmp;
-        }
-      }
+  /// Selang-seling JENIS soal secara MERATA agar tiap level terasa beragam
+  /// (tak ada deretan tipe yang sama, mis. banyak pilihan-ganda beruntun).
+  /// Tiap tipe disebar merata sepanjang level memakai posisi pecahan
+  /// (i+0.5)/jumlah — sehingga tipe yang dominan pun TIDAK menggerombol di
+  /// ujung, melainkan tersebar dari awal sampai akhir. Deterministik.
+  List<Question> _interleaveByType(List<Question> qs) {
+    if (qs.length < 3) return qs;
+    final byType = <QuestionType, List<Question>>{};
+    for (final q in qs) {
+      byType.putIfAbsent(q.type, () => <Question>[]).add(q);
     }
-    return qs;
+    if (byType.length < 2) return qs; // hanya satu tipe → tak ada yg diselang
+    final entries = <MapEntry<double, Question>>[];
+    int ordinal = 0;
+    for (final g in byType.values) {
+      for (int i = 0; i < g.length; i++) {
+        // Posisi target 0..1 yang merata untuk tiap tipe; nudge kecil per-tipe
+        // agar penyelesaian seri bersifat deterministik & stabil.
+        final key = (i + 0.5) / g.length + ordinal * 1e-6;
+        entries.add(MapEntry(key, g[i]));
+      }
+      ordinal++;
+    }
+    entries.sort((a, b) => a.key.compareTo(b.key));
+    return [for (final e in entries) e.value];
   }
 }
