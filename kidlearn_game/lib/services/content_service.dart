@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/question.dart';
@@ -30,6 +31,7 @@ class ContentService {
       'https://belajaryuk.mkz.my.id/version.json';
   static const String _prefJson = 'content_json';
   static const String _prefVersion = 'content_version';
+  static const String bundledAsset = 'assets/content.json';
 
   final http.Client _client;
 
@@ -43,7 +45,21 @@ class ContentService {
   /// Bank soal server untuk (mapel, kelas); null bila belum ada → pakai bawaan.
   List<Question>? forSubject(Subject s, int grade) => _banks[_key(s, grade)];
 
-  /// Muat konten dari cache lokal (cepat, tanpa jaringan).
+  /// Muat konten yang DIBUNDEL di APK (assets/content.json) sebagai basis.
+  /// Selalu tersedia (offline / pemasangan baru). Dipakai bila versinya lebih
+  /// tinggi dari yang sudah dimuat (mis. APK baru membawa konten lebih baru
+  /// daripada cache server lama).
+  Future<void> loadBundledAsset() async {
+    try {
+      final raw = await rootBundle.loadString(bundledAsset);
+      _parseInto(raw);
+    } catch (_) {
+      // aset tak ada / rusak → abaikan, LevelService pakai bank Dart bawaan
+    }
+  }
+
+  /// Muat konten dari cache lokal (hasil unduhan server sebelumnya) — cepat,
+  /// tanpa jaringan. Dipakai bila versinya lebih tinggi dari yang sudah dimuat.
   Future<void> loadFromCache() async {
     try {
       final sp = await SharedPreferences.getInstance();
@@ -113,13 +129,18 @@ class ContentService {
     }
   }
 
+  /// Adopsi konten [body] HANYA bila versinya lebih tinggi dari yang sudah
+  /// dimuat — sehingga sumber terbaru (bundel APK / cache server) selalu menang,
+  /// apa pun urutan pemanggilannya.
   void _parseInto(String body) {
+    final version = _versionOf(body);
+    if (_banks.isNotEmpty && version <= _loadedVersion) return;
     final parsed = _parse(body);
     if (parsed.isEmpty) return;
     _banks
       ..clear()
       ..addAll(parsed);
-    _loadedVersion = _versionOf(body);
+    _loadedVersion = version;
   }
 
   Map<String, List<Question>> _parse(String body) {

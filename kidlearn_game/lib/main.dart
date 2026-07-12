@@ -19,11 +19,14 @@ void main() async {
   runApp(const BelajarYukApp());
   // Muat aset & konten di LATAR (tak memblokir frame pertama):
   //  - audio (SFX/musik) dimuat sambil splash tampil;
-  //  - konten soal dari cache (untuk update tanpa APK), lalu segarkan dari server.
+  //  - konten soal: aset bundel (basis) + cache server (bila lebih baru), lalu
+  //    segarkan dari server (update soal tanpa pasang APK). Versi TERTINGGI menang.
   unawaited(SfxService.instance.load());
-  unawaited(ContentService.instance
-      .loadFromCache()
-      .then((_) => ContentService.instance.refreshFromServer()));
+  unawaited(() async {
+    await ContentService.instance.loadBundledAsset();
+    await ContentService.instance.loadFromCache();
+    await ContentService.instance.refreshFromServer();
+  }());
 }
 
 class BelajarYukApp extends StatefulWidget {

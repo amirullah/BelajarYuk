@@ -50,3 +50,4 @@ flutter:
     - assets/img/
     - assets/img/subjects/
     - assets/img/ukus/
+    - assets/content.json
