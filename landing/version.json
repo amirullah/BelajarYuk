@@ -1,8 +1,8 @@
 {
-  "version": "2.2.3",
-  "build": 38,
+  "version": "2.2.4",
+  "build": 39,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Kunci Anak kini mencegah keluar: tombol back minta PIN orang tua; Batal untuk tetap di aplikasi.",
+  "notes": "Kunci Anak: home gesture & drag bawah diblokir penuh (Android Lock Task); PIN hanya untuk keluar.",
   "mandatory": false
 }

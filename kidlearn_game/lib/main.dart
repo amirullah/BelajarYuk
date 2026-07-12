@@ -63,6 +63,13 @@ class _BelajarYukAppState extends State<BelajarYukApp>
       await AppLockService.instance.clearBackground();
       _wasBackground = true;
       _showResumeLock();
+      // enterLockTask() dipanggil oleh _showResumeLock → onUnlock
+    } else if (AppLockService.instance.enabled) {
+      // Cold start normal dengan kunci aktif — pin app segera.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(AppLockService.instance.enterLockTask());
+      });
     }
   }
 
@@ -78,6 +85,10 @@ class _BelajarYukAppState extends State<BelajarYukApp>
       SfxService.instance.resumeMusic();
       if (_wasBackground && AppLockService.instance.enabled) {
         _showResumeLock();
+        // enterLockTask() dipanggil oleh _showResumeLock → onUnlock
+      } else if (AppLockService.instance.enabled && !_lockShowing) {
+        // Resume singkat (misal notifikasi ditutup) — pin kembali bila belum.
+        unawaited(AppLockService.instance.enterLockTask());
       }
       _wasBackground = false;
     } else if (state == AppLifecycleState.paused ||
@@ -120,6 +131,8 @@ class _BelajarYukAppState extends State<BelajarYukApp>
             entry.remove();
             _lockShowing = false;
             unawaited(AppLockService.instance.clearBackground());
+            // Pin ulang — anak tetap terkunci meski orang tua buka layar.
+            unawaited(AppLockService.instance.enterLockTask());
           },
         ),
       );
@@ -141,7 +154,9 @@ class _BelajarYukAppState extends State<BelajarYukApp>
           onUnlock: () {
             entry.remove();
             _lockShowing = false;
-            SystemNavigator.pop();
+            // Unpin dulu, baru keluar — agar OS tak menolak penutupan task.
+            AppLockService.instance.exitLockTask()
+                .whenComplete(SystemNavigator.pop);
           },
           onCancel: () {
             entry.remove();

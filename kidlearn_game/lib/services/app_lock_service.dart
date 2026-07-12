@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Kunci Aplikasi Anak — mencegah anak keluar app tanpa PIN orang tua.
@@ -63,4 +64,18 @@ class AppLockService {
   }
 
   bool verifyPin(String input) => _pin != null && _pin!.isNotEmpty && input == _pin;
+
+  static const _ch = MethodChannel('kidlearn/lock_task');
+
+  /// Pin app via Android Lock Task Mode — mencegah anak keluar lewat gesture home.
+  /// Pertama kali dipanggil, OS menampilkan dialog konfirmasi "Pin app?" ke pengguna.
+  Future<void> enterLockTask() async {
+    if (!_enabled) return;
+    try { await _ch.invokeMethod<void>('start'); } catch (_) {}
+  }
+
+  /// Unpin app — dipanggil sebelum orang tua keluar atau menonaktifkan kunci.
+  Future<void> exitLockTask() async {
+    try { await _ch.invokeMethod<void>('stop'); } catch (_) {}
+  }
 }

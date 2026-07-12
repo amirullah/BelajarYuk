@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
@@ -220,6 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final pin = await _showPinDialog();
     if (pin == null || !mounted) return;
     await AppLockService.instance.enable(pin);
+    unawaited(AppLockService.instance.enterLockTask());
     if (!mounted) return;
     setState(() => _lockEnabled = true);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -261,6 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     if (result == 'disable') {
       await AppLockService.instance.disable();
+      unawaited(AppLockService.instance.exitLockTask());
       if (!mounted) return;
       setState(() => _lockEnabled = false);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
