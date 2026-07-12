@@ -27,6 +27,7 @@ class SfxService {
   final List<int> _ukuVoiceIds = []; // suara KHAS Uku (celoteh sintetis)
   int _ukuTurn = -1;
   int? _ukuStream; // stream suara Uku yang sedang berbunyi (agar bisa dihentikan)
+  bool _ukuMuted = false; // flag untuk membatalkan ukuVoice yang masih await
   final _rng = Random();
 
   int? _musicStream; // stream musik yang sedang berputar
@@ -271,15 +272,21 @@ class SfxService {
     }
     if (i < 0) i = 0;
     _ukuTurn = i;
+    _ukuMuted = false;
     try {
-      _ukuStream = await pool.play(_ukuVoiceIds[i]);
+      final stream = await pool.play(_ukuVoiceIds[i]);
+      // Bila stopUku() dipanggil saat play masih await, batalkan segera.
+      if (_ukuMuted) {
+        try { await pool.stop(stream); } catch (_) {}
+        return;
+      }
+      _ukuStream = stream;
     } catch (_) {}
   }
 
-  /// Hentikan suara Uku bila sedang berbunyi. Dipakai agar suara Uku (mengintip)
-  /// TIDAK menumpuk dengan audio benar/salah saat anak menjawab — keduanya
-  /// dijaga terpisah.
+  /// Hentikan suara Uku bila sedang berbunyi — termasuk yang masih dalam await.
   Future<void> stopUku() async {
+    _ukuMuted = true;
     final pool = _pool;
     final s = _ukuStream;
     if (pool != null && s != null) {

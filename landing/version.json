@@ -1,8 +1,8 @@
 {
-  "version": "2.2.7",
-  "build": 42,
+  "version": "2.2.8",
+  "build": 43,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Bahasa Inggris: pujian benar diucapkan dalam bahasa Inggris (Great job! Well done! dst).",
+  "notes": "Pujian B.Inggris lebih jelas & mirip anak; suara Uku tidak lagi bertumpuk saat menjawab.",
   "mandatory": false
 }

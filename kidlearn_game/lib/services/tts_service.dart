@@ -190,8 +190,10 @@ class TtsService {
       return;
     }
     if (subject == Subject.english) {
-      final pitch = 1.68 + _rng.nextInt(5) * 0.045;
-      await _configure(english: true, pitch: pitch, rate: 0.50);
+      // Pitch lebih tinggi (1.85–2.0) & rate lebih pelan (0.44) agar terdengar
+      // seperti anak dan setiap kata terucap jelas dalam bahasa Inggris.
+      final pitch = 1.85 + _rng.nextInt(4) * 0.05;
+      await _configure(english: true, pitch: pitch, rate: 0.44);
       await _tts.speak(_englishPraises[_rng.nextInt(_englishPraises.length)]);
       return;
     }
