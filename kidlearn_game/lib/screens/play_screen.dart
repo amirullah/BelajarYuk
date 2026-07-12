@@ -255,15 +255,18 @@ class _PlayScreenState extends State<PlayScreen> {
   int _comboBonus = 0; // koin bonus dari combo (diteruskan ke hasil)
   void _feedback(bool ok) {
     if (ok) {
-      // Chime cerah + SORAK "yay" ekspresif khas anak (sintesis, bukan TTS lemas).
+      // Chime cerah + sorak "yay" ekspresif + UCAPAN pujian (Hebat/Mantap/Keren…)
+      // digabung agar terasa hidup & khas anak (sound + kata, ala Duolingo).
       SfxService.instance.correct();
       SfxService.instance.cheer();
+      TtsService.instance.praise();
       _combo++;
       if (_combo >= 3) _comboBonus += 2; // bonus koin saat combo panas
     } else {
-      // Chime salah lembut + "aww" menyemangati (bukan menghukum).
+      // Chime salah lembut + "aww" + kata penyemangat (bukan menghukum).
       SfxService.instance.wrong();
       SfxService.instance.aww();
+      TtsService.instance.encourage();
       _combo = 0;
     }
     _idleTimer?.cancel();

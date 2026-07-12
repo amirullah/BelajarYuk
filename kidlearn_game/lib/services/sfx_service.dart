@@ -67,7 +67,8 @@ class SfxService {
         _sfxIds[name] = await _pool!.load(data);
       }
       for (final name in _musicFiles) {
-        final data = await rootBundle.load('assets/sfx/music_$name.wav');
+        // Musik dikompresi ke OGG (jauh lebih kecil dari WAV) — hemat ukuran APK.
+        final data = await rootBundle.load('assets/sfx/music_$name.ogg');
         _musicIds[name] = await _pool!.load(data);
       }
       for (final name in _ukuVoiceFiles) {

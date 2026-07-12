@@ -37,9 +37,10 @@ class TtsService {
   };
 
   static const _praises = [
-    'Yeay!', 'Mantap!', 'Keren!', 'Hebat!', 'Pintar!', 'Bagus sekali!',
-    'Asyik!', 'Hore!', 'Wah, jago!', 'Betul!', 'Wah, pintar!', 'Top!',
-    'Luar biasa!', 'Kamu hebat!',
+    'Hebat!', 'Mantap!', 'Keren!', 'Pintar!', 'Bagus sekali!', 'Hore, betul!',
+    'Wah, jagoan!', 'Luar biasa!', 'Top banget!', 'Kamu pintar!', 'Asyik, benar!',
+    'Wah, keren sekali!', 'Jenius!', 'Kereen!', 'Mantap jiwa!', 'Kamu hebat!',
+    'Betul sekali!', 'Pintar banget!', 'Yeay, hebat!', 'Wow, jago!',
   ];
   static const _encourages = [
     'Coba lagi ya!', 'Hampir benar!', 'Ayo semangat!', 'Tidak apa-apa, coba lagi!',
