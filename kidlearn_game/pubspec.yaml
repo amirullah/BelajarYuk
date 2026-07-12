@@ -1,7 +1,7 @@
 name: kidlearn_game
 description: BelajarYuk! - Game Edukasi Anak SD
 publish_to: 'none'
-version: 2.3.1+46
+version: 2.3.2+47
 
 environment:
   sdk: ^3.5.4

@@ -148,6 +148,9 @@ class TtsService {
     }
     await _tts.setPitch(pitch);
     await _tts.setSpeechRate(rate);
+    // setLanguage/setVoice pada beberapa engine Android mereset awaitSpeakCompletion;
+    // tegaskan ulang agar speak() selalu menunggu sampai ucapan benar-benar selesai.
+    await _tts.awaitSpeakCompletion(true);
   }
 
   /// Bacakan teks. Nada & tempo mengikuti [subject] bila diberikan.
@@ -181,6 +184,7 @@ class TtsService {
           await _tts.setLanguage(_arabicLang!);
           await _tts.setPitch(1.42);
           await _tts.setSpeechRate(0.42);
+          await _tts.awaitSpeakCompletion(true);
           await _tts.speak(pair[1]);
           return;
         } catch (_) {}

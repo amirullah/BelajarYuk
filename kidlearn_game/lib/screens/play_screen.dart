@@ -369,14 +369,15 @@ class _PlayScreenState extends State<PlayScreen> {
   void _feedback(bool ok) {
     SfxService.instance.stopUku();
     if (ok) {
-      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 2500));
+      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 7000));
       SfxService.instance.correct();
       SfxService.instance.cheer();
       _combo++;
       if (_combo >= 3) _comboBonus += 2;
-      // Maju ke soal berikutnya 300ms setelah pujian SELESAI diucapkan —
-      // timer 3 detik sebagai jaring pengaman bila TTS macet.
-      _timer = Timer(const Duration(milliseconds: 3000), _next);
+      // Maju ke soal berikutnya 300ms setelah pujian SELESAI diucapkan.
+      // Jaring pengaman 7 detik menangani kasus TTS macet atau frasa Inggris
+      // panjang ("You are so smart!" di rate 0.44 + konfigurasi bahasa ≈ 5 dtk).
+      _timer = Timer(const Duration(milliseconds: 7000), _next);
       TtsService.instance.praise(subject: widget.level.subject).then((_) {
         if (mounted && _locked) {
           _timer?.cancel();
@@ -384,10 +385,10 @@ class _PlayScreenState extends State<PlayScreen> {
         }
       });
     } else {
-      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 1600));
+      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 5000));
       SfxService.instance.wrong();
       SfxService.instance.aww();
-      _timer = Timer(const Duration(milliseconds: 2000), _next);
+      _timer = Timer(const Duration(milliseconds: 5000), _next);
       TtsService.instance.encourage().then((_) {
         if (mounted && _locked) {
           _timer?.cancel();
