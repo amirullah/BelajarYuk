@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../services/app_lock_service.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
@@ -26,6 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _loggedIn = false;
   bool _sfx = SfxService.instance.enabled;
   bool _music = SfxService.instance.musicEnabled;
+  bool _lockEnabled = AppLockService.instance.enabled;
   String? _email; // email akun yang login
   bool _google = false;
 
@@ -126,6 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           _soundTile(),
           _musicTile(),
+          _lockTile(),
           _tile(Icons.bar_chart_rounded, 'Progres Anak', 'Lihat kemajuan per mapel',
               _openDashboard),
           // Mode Review hanya untuk developer/admin (bukan orang tua umum).
@@ -151,6 +154,217 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _lockTile() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+          color: kSurface, borderRadius: BorderRadius.circular(16)),
+      child: ListTile(
+        leading: Icon(
+          _lockEnabled ? Icons.lock_rounded : Icons.lock_open_rounded,
+          color: _lockEnabled ? kSuccess : kPrimary,
+        ),
+        title: Text('Kunci Aplikasi Anak',
+            style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w800, color: kDark)),
+        subtitle: Text(
+          _lockEnabled
+              ? 'Aktif — anak tidak bisa keluar tanpa PIN'
+              : 'Nonaktif — ketuk untuk mengaktifkan',
+          style: GoogleFonts.nunito(fontSize: 12, color: kMuted),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_lockEnabled)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: kSuccess.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text('AKTIF',
+                    style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: kSuccess)),
+              ),
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right_rounded, color: kMuted),
+          ],
+        ),
+        onTap: _manageLock,
+      ),
+    );
+  }
+
+  Future<void> _manageLock() async {
+    if (!await ParentGate.show(context,
+        reason: 'Kunci Anak mencegah anak keluar app. '
+            'Jawab soal ini untuk mengelola pengaturan kunci.')) {
+      return;
+    }
+    if (!mounted) return;
+    if (_lockEnabled) {
+      await _showLockOptions();
+    } else {
+      await _setupLock();
+    }
+  }
+
+  Future<void> _setupLock() async {
+    final pin = await _showPinDialog();
+    if (pin == null || !mounted) return;
+    await AppLockService.instance.enable(pin);
+    if (!mounted) return;
+    setState(() => _lockEnabled = true);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('🔒 Kunci Anak aktif! Anak perlu PIN untuk keluar app.'),
+        behavior: SnackBarBehavior.floating));
+  }
+
+  Future<void> _showLockOptions() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Kunci Aplikasi Anak',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w900)),
+        content: Text('Kunci sedang aktif. Pilih tindakan:',
+            style: GoogleFonts.nunito()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'disable'),
+            child: Text('Nonaktifkan',
+                style: GoogleFonts.nunito(
+                    color: kError, fontWeight: FontWeight.w700)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'change'),
+            child: Text('Ganti PIN',
+                style: GoogleFonts.nunito(
+                    color: kPrimary, fontWeight: FontWeight.w700)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Tutup',
+                style: GoogleFonts.nunito(color: kMuted)),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (result == 'disable') {
+      await AppLockService.instance.disable();
+      if (!mounted) return;
+      setState(() => _lockEnabled = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Kunci Anak dinonaktifkan.'),
+          behavior: SnackBarBehavior.floating));
+    } else if (result == 'change') {
+      final pin = await _showPinDialog();
+      if (!mounted) return;
+      if (pin != null) {
+        await AppLockService.instance.enable(pin);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('PIN berhasil diperbarui ✅'),
+            behavior: SnackBarBehavior.floating));
+      }
+    }
+  }
+
+  Future<String?> _showPinDialog() async {
+    final c1 = TextEditingController();
+    final c2 = TextEditingController();
+    String? err;
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setLocal) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('Buat PIN Orang Tua',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w900)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('PIN 4 digit ini digunakan saat anak ingin keluar app.',
+                  style: GoogleFonts.nunito(fontSize: 12, color: kMuted)),
+              const SizedBox(height: 14),
+              TextField(
+                controller: c1,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                obscureText: true,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                    fontSize: 22, fontWeight: FontWeight.w800,
+                    letterSpacing: 10),
+                decoration: InputDecoration(
+                    labelText: 'PIN baru',
+                    counterText: '',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12))),
+                onChanged: (_) => setLocal(() => err = null),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: c2,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                obscureText: true,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                    fontSize: 22, fontWeight: FontWeight.w800,
+                    letterSpacing: 10),
+                decoration: InputDecoration(
+                    labelText: 'Konfirmasi PIN',
+                    counterText: '',
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12))),
+                onChanged: (_) => setLocal(() => err = null),
+              ),
+              if (err != null) ...[
+                const SizedBox(height: 8),
+                Text(err!,
+                    style:
+                        GoogleFonts.nunito(color: kError, fontSize: 12)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child:
+                  Text('Batal', style: GoogleFonts.nunito(color: kMuted)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+              onPressed: () {
+                if (c1.text.length != 4) {
+                  setLocal(() => err = 'PIN harus tepat 4 digit.');
+                  return;
+                }
+                if (c1.text != c2.text) {
+                  setLocal(() => err = 'PIN tidak cocok. Coba lagi.');
+                  return;
+                }
+                Navigator.pop(ctx, c1.text);
+              },
+              child: Text('Simpan',
+                  style: GoogleFonts.nunito(
+                      color: Colors.white, fontWeight: FontWeight.w800)),
+            ),
+          ],
+        );
+      }),
     );
   }
 

@@ -62,7 +62,10 @@ class _PlayScreenState extends State<PlayScreen> {
     'Wah, kamu pintar! Ayo jawab 🌈', 'Uku temani kamu, semangat! ❤️',
   ];
   int _hintTurn = -1;
-  int _hintDir = 0; // sisi masuk Uku: 0=kiri, 1=kanan
+  // Arah masuk Uku: 0=kiri inline, 1=kanan inline,
+  // 2=atas-tengah, 3=bawah-tengah, 4=pojok-kiriatas,
+  // 5=pojok-kananas, 6=pojok-kiribawah, 7=pojok-kananbawah
+  int _hintDir = 0;
   final _rng = Random();
 
   SubjectInfo get _info => SubjectInfo.of(widget.level.subject);
@@ -83,7 +86,7 @@ class _PlayScreenState extends State<PlayScreen> {
       _hintTurn = next;
       setState(() {
         _hintText = _hintPhrases[next];
-        _hintDir = _rng.nextInt(2); // masuk dari sisi KIRI (0) atau KANAN (1)
+        _hintDir = _rng.nextInt(8); // 0-7: inline-kiri/kanan, atas/bawah, 4 pojok
         _showHint = true;
       });
       // Suara KHAS Uku (celoteh) saat mengintip menyemangati.
@@ -91,38 +94,34 @@ class _PlayScreenState extends State<PlayScreen> {
     });
   }
 
-  /// Uku menyemangati dalam BARIS-nya sendiri (di antara soal & pilihan),
-  /// sehingga TIDAK menutupi soal/gambar dan teksnya SELALU tampil PENUH
-  /// (tak terpotong). Uku "masuk" dari sisi kiri/kanan (animasi geser samping),
-  /// bisa disentuh untuk bersuara & mengganti kalimat semangat.
+  void _ukuTap() {
+    SfxService.instance.ukuVoice();
+    int next = _hintTurn;
+    while (next == _hintTurn && _hintPhrases.length > 1) {
+      next = _rng.nextInt(_hintPhrases.length);
+    }
+    setState(() { _hintTurn = next; _hintText = _hintPhrases[next]; });
+  }
+
+  /// Uku inline (dirs 0–1): besar, muncul dari kiri/kanan dengan gelembung kata.
+  /// Tidak menutup soal karena berada di baris tersendiri antara soal & jawaban.
   Widget _ukuPeekInline() {
     final onRight = _hintDir == 1;
+    const sz = 96.0;
     final uku = GestureDetector(
-      onTap: () {
-        SfxService.instance.ukuVoice();
-        int next = _hintTurn;
-        while (next == _hintTurn && _hintPhrases.length > 1) {
-          next = _rng.nextInt(_hintPhrases.length);
-        }
-        setState(() {
-          _hintTurn = next;
-          _hintText = _hintPhrases[next];
-        });
-      },
-      child: const UkuMascot(size: 56), // besar tapi muat penuh di barisnya
+      onTap: _ukuTap,
+      child: const UkuMascot(size: sz, bubble: false),
     );
     final bubble = Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: _info.color.withOpacity(0.14),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Text(_hintText,
             style: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: _info.color)),
+                fontSize: 14, fontWeight: FontWeight.w800, color: _info.color)),
       ),
     );
     final row = Padding(
@@ -134,15 +133,119 @@ class _PlayScreenState extends State<PlayScreen> {
             : [uku, const SizedBox(width: 8), bubble],
       ),
     );
-    // Masuk dari samping (geser horizontal), muncul UTUH.
-    return row
+    // Dir 0: slide dari kiri + easeOutBack; Dir 1: slide dari kanan + slight rotate
+    final base = row
         .animate(key: ValueKey(_hintTurn))
-        .fadeIn(duration: 240.ms)
+        .fadeIn(duration: 220.ms)
         .slideX(
-            begin: onRight ? 0.5 : -0.5,
+            begin: onRight ? 0.55 : -0.55,
             end: 0,
-            duration: 440.ms,
+            duration: 460.ms,
             curve: Curves.easeOutBack);
+    if (onRight) {
+      return base.then().rotate(begin: 0.04, end: 0, duration: 350.ms,
+          curve: Curves.easeOut);
+    }
+    return base;
+  }
+
+  /// Uku mengintip dari tepi/pojok layar (dirs 2–7).
+  /// Stack + clipBehavior.hardEdge memotong bagian yang melewati tepi layar
+  /// sehingga Uku terlihat "mengintip" dari luar — TIDAK menutup soal karena
+  /// soal ada di area atas, sedangkan Uku muncul di tepi/pojok.
+  Widget _ukuEdgePeek() {
+    const ukuSz = 112.0;
+    const vis = 42.0;           // seberapa banyak Uku terlihat (peek)
+    const off = ukuSz - vis;    // seberapa banyak yang tersembunyi di luar layar
+
+    final sw = MediaQuery.sizeOf(context).width;
+
+    final uku = GestureDetector(
+      onTap: _ukuTap,
+      child: const UkuMascot(size: ukuSz, bubble: false),
+    );
+
+    double? left, right, top, bottom;
+    // moveY/moveX begin: berapa banyak widget digeser SEBELUM animasi
+    // (positif = ke bawah/kanan, negatif = ke atas/kiri)
+    double mx = 0, my = 0;
+
+    switch (_hintDir) {
+      case 2: // atas-tengah: kepala Uku tersembunyi, badan mengintip dari atas
+        left = sw / 2 - ukuSz / 2;
+        top = -off;
+        my = -56; // mulai lebih jauh ke atas, meluncur ke bawah
+        break;
+      case 3: // bawah-tengah: kaki Uku tersembunyi, kepala mengintip dari bawah
+        left = sw / 2 - ukuSz / 2;
+        bottom = -off;
+        my = 56;
+        break;
+      case 4: // pojok kiri-atas
+        left = -off;
+        top = -off;
+        mx = -44; my = -44;
+        break;
+      case 5: // pojok kanan-atas
+        right = -off;
+        top = -off;
+        mx = 44; my = -44;
+        break;
+      case 6: // pojok kiri-bawah
+        left = -off;
+        bottom = -off;
+        mx = -44; my = 44;
+        break;
+      default: // 7 — pojok kanan-bawah
+        right = -off;
+        bottom = -off;
+        mx = 44; my = 44;
+        break;
+    }
+
+    // Animasi dasar: fade + gerak masuk dari tepi
+    var anim = uku
+        .animate(key: ValueKey(_hintTurn))
+        .fadeIn(duration: 260.ms)
+        .move(
+            begin: Offset(mx, my),
+            end: Offset.zero,
+            duration: 560.ms,
+            curve: Curves.easeOutBack);
+
+    // Animasi lanjutan unik per arah
+    switch (_hintDir) {
+      case 2: // atas: goyang kecil setelah muncul
+        anim = anim.then().shakeX(hz: 3, amount: 4, duration: 420.ms);
+        break;
+      case 3: // bawah: sedikit memantul setelah muncul
+        anim = anim.then().moveY(
+            begin: -8, end: 0, duration: 380.ms, curve: Curves.bounceOut);
+        break;
+      case 4: // pojok kiri-atas: berputar masuk
+        anim = anim.then().rotate(
+            begin: -0.15, end: 0, duration: 480.ms, curve: Curves.elasticOut);
+        break;
+      case 5: // pojok kanan-atas: skala meletup
+        anim = anim.then().scaleXY(
+            begin: 0.8, end: 1.0, duration: 380.ms, curve: Curves.elasticOut);
+        break;
+      case 6: // pojok kiri-bawah: bergoyang senang
+        anim = anim.then()
+            .rotate(begin: 0.1, end: -0.05, duration: 300.ms)
+            .then()
+            .rotate(begin: -0.05, end: 0, duration: 300.ms, curve: Curves.easeOut);
+        break;
+      default: // pojok kanan-bawah: flip skala
+        anim = anim.then().scaleXY(
+            begin: 1.2, end: 1.0, duration: 320.ms, curve: Curves.easeOut);
+        break;
+    }
+
+    return Positioned(
+      left: left, right: right, top: top, bottom: bottom,
+      child: anim,
+    );
   }
 
   @override
@@ -356,11 +459,16 @@ class _PlayScreenState extends State<PlayScreen> {
     }
     final double progress = (_index + 1) / _questions.length;
 
+    // Stack + clipBehavior.hardEdge memungkinkan Uku mengintip dari tepi layar
+    // tanpa menutup soal (soal di area atas, Uku di tepi/pojok).
     return Scaffold(
       backgroundColor: kBg,
-      body: SafeArea(
-        child: Column(
-          children: [
+      body: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          SafeArea(
+            child: Column(
+              children: [
             // ── Header: progress + skor ──
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -472,9 +580,8 @@ class _PlayScreenState extends State<PlayScreen> {
               ),
             ),
 
-            // ── Uku menyemangati: MASUK dari samping, di ruangnya sendiri
-            // (tak menutupi soal/gambar), teks tampil PENUH (tak terpotong). ──
-            if (_showHint) _ukuPeekInline(),
+            // ── Uku inline (kiri/kanan): di ruangnya sendiri, tak menutup soal ──
+            if (_showHint && _hintDir < 2) _ukuPeekInline(),
 
             // ── Opsi jawaban ── (beranimasi masuk tiap soal)
             Padding(
@@ -486,6 +593,10 @@ class _PlayScreenState extends State<PlayScreen> {
             ),
           ],
         ),
+          ),
+          // ── Uku mengintip dari tepi/pojok (dirs 2–7) ──
+          if (_showHint && _hintDir >= 2) _ukuEdgePeek(),
+        ],
       ),
     );
   }
