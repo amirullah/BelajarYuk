@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -86,6 +87,12 @@ class SfxService {
       }
     } catch (_) {
       _pool = null; // audio tak tersedia — app tetap jalan tanpa suara
+    }
+    // Karena load() kini berjalan di LATAR, sebuah layar mungkin sudah meminta
+    // musik (mis. beranda) sebelum pool siap → permintaan itu terlewat. Setelah
+    // pool siap, mulai musik yang terakhir diminta agar tetap berbunyi.
+    if (_pool != null && _musicEnabled && _currentMusic != null) {
+      unawaited(playMusic(_currentMusic!));
     }
   }
 

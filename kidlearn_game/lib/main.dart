@@ -14,12 +14,16 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  await SfxService.instance.load();
-  // Muat konten soal dari cache (bila ada) lebih dulu agar update soal tanpa
-  // pasang APK bisa langsung dipakai; penyegaran dari server berjalan di latar.
-  await ContentService.instance.loadFromCache();
-  unawaited(ContentService.instance.refreshFromServer());
+  // Tampilkan UI SEGERA — jangan menunggu muat audio/konten dulu, agar tak ada
+  // "layar biru" lama di awal (frame pertama tak tertahan).
   runApp(const BelajarYukApp());
+  // Muat aset & konten di LATAR (tak memblokir frame pertama):
+  //  - audio (SFX/musik) dimuat sambil splash tampil;
+  //  - konten soal dari cache (untuk update tanpa APK), lalu segarkan dari server.
+  unawaited(SfxService.instance.load());
+  unawaited(ContentService.instance
+      .loadFromCache()
+      .then((_) => ContentService.instance.refreshFromServer()));
 }
 
 class BelajarYukApp extends StatefulWidget {
