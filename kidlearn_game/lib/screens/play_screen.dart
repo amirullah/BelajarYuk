@@ -371,10 +371,6 @@ class _PlayScreenState extends State<PlayScreen> {
     if (ok) {
       unawaited(SfxService.instance.duckMusic(restoreAfterMs: 7000));
       SfxService.instance.correct();
-      // Sorak anak (yay1/2/3) dimulai setelah arpeggio ta-da selesai (~0.7 dtk).
-      Timer(const Duration(milliseconds: 700), () {
-        if (mounted) SfxService.instance.cheer();
-      });
       _combo++;
       if (_combo >= 3) _comboBonus += 2;
       // Maju ke soal berikutnya 300ms setelah pujian SELESAI diucapkan.
