@@ -1,8 +1,8 @@
 {
-  "version": "2.1.5",
-  "build": 30,
+  "version": "2.1.6",
+  "build": 31,
   "content": 1,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Tanjakan kesulitan & anti-pengulangan kini merata di SEMUA level semua mapel, termasuk Matematika kelas 4-6.",
+  "notes": "Matematika tak lagi monoton: tiap beberapa level membuka TOPIK BARU (perbandingan, pola bilangan, cari yang hilang, soal cerita) — bukan sekadar angka berubah.",
   "mandatory": false
 }
