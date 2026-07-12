@@ -62,7 +62,7 @@ class _BelajarYukAppState extends State<BelajarYukApp>
     if (AppLockService.instance.enabled && AppLockService.instance.wasBackgrounded) {
       await AppLockService.instance.clearBackground();
       _wasBackground = true;
-      _showLockScreen();
+      _showResumeLock();
     }
   }
 
@@ -77,7 +77,7 @@ class _BelajarYukAppState extends State<BelajarYukApp>
     if (state == AppLifecycleState.resumed) {
       SfxService.instance.resumeMusic();
       if (_wasBackground && AppLockService.instance.enabled) {
-        _showLockScreen();
+        _showResumeLock();
       }
       _wasBackground = false;
     } else if (state == AppLifecycleState.paused ||
@@ -94,12 +94,21 @@ class _BelajarYukAppState extends State<BelajarYukApp>
     }
   }
 
-  void _showLockScreen() {
+  // Intercept tombol back sistem saat tidak ada route yang bisa di-pop:
+  // jika kunci aktif, tampilkan layar PIN untuk konfirmasi keluar.
+  @override
+  Future<bool> didPopRoute() async {
+    if (AppLockService.instance.enabled) {
+      _showExitLock();
+      return true; // konsumsi event — cegah exit
+    }
+    return false;
+  }
+
+  // Kunci resume: muncul saat app kembali dari background, tidak bisa dibatal.
+  void _showResumeLock() {
     if (_lockShowing) return;
     _lockShowing = true;
-    // addPostFrameCallback menjamin Overlay sudah ada saat callback jalan.
-    // OverlayEntry disisipkan di atas SEMUA route — tidak bergantung pada
-    // Navigator.push sehingga tidak bisa gagal karena navigator belum siap.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) { _lockShowing = false; return; }
       final overlay = _navKey.currentState?.overlay;
@@ -111,6 +120,32 @@ class _BelajarYukAppState extends State<BelajarYukApp>
             entry.remove();
             _lockShowing = false;
             unawaited(AppLockService.instance.clearBackground());
+          },
+        ),
+      );
+      overlay.insert(entry);
+    });
+  }
+
+  // Kunci exit: muncul saat back ditekan di root; benar → keluar, batal → tetap.
+  void _showExitLock() {
+    if (_lockShowing) return;
+    _lockShowing = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) { _lockShowing = false; return; }
+      final overlay = _navKey.currentState?.overlay;
+      if (overlay == null) { _lockShowing = false; return; }
+      late OverlayEntry entry;
+      entry = OverlayEntry(
+        builder: (_) => LockScreen(
+          onUnlock: () {
+            entry.remove();
+            _lockShowing = false;
+            SystemNavigator.pop();
+          },
+          onCancel: () {
+            entry.remove();
+            _lockShowing = false;
           },
         ),
       );

@@ -6,11 +6,13 @@ import '../services/app_lock_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/uku_mascot.dart';
 
-/// Layar kunci — muncul saat app kembali dari latar belakang (kunci anak aktif).
-/// Membutuhkan PIN 4-digit orang tua untuk dibuka.
+/// Layar kunci — dua mode:
+///  - resume (onCancel null): muncul saat app kembali dari background; tidak bisa dibatal.
+///  - exit (onCancel tidak null): muncul saat back ditekan; "Batal" tetap di app.
 class LockScreen extends StatefulWidget {
   final VoidCallback onUnlock;
-  const LockScreen({super.key, required this.onUnlock});
+  final VoidCallback? onCancel;
+  const LockScreen({super.key, required this.onUnlock, this.onCancel});
 
   @override
   State<LockScreen> createState() => _LockScreenState();
@@ -139,18 +141,21 @@ class _LockScreenState extends State<LockScreen> {
                       duration: 600.ms,
                       curve: Curves.elasticOut),
               const SizedBox(height: 18),
-              Text('🔒 Kunci Anak Aktif',
-                  style: GoogleFonts.nunito(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: kDark)),
+              Text(
+                widget.onCancel != null ? '🔒 Keluar Aplikasi' : '🔒 Kunci Anak Aktif',
+                style: GoogleFonts.nunito(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: kDark)),
               const SizedBox(height: 6),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
                   _waiting
                       ? 'Terlalu banyak percobaan. Coba lagi dalam $_waitSec detik…'
-                      : 'Masukkan PIN orang tua untuk membuka aplikasi',
+                      : widget.onCancel != null
+                          ? 'Masukkan PIN orang tua untuk keluar dari aplikasi'
+                          : 'Masukkan PIN orang tua untuk membuka aplikasi',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.nunito(
                       fontSize: 13,
@@ -179,12 +184,19 @@ class _LockScreenState extends State<LockScreen> {
                 ],
               ),
               const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text('Uku menunggu orang tua ya! 🦉',
-                    style:
-                        GoogleFonts.nunito(fontSize: 12, color: kMuted)),
-              ),
+              if (widget.onCancel != null)
+                TextButton(
+                  onPressed: widget.onCancel,
+                  child: Text('Batal — Tetap di Aplikasi',
+                      style: GoogleFonts.nunito(fontSize: 13, color: kMuted)),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text('Uku menunggu orang tua ya! 🦉',
+                      style: GoogleFonts.nunito(fontSize: 12, color: kMuted)),
+                ),
+              const SizedBox(height: 8),
             ],
           ),
         ),
