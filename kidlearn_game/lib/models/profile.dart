@@ -40,6 +40,13 @@ class ChildProfile {
   String? dailyDate;
   int dailyCount;
   bool dailyClaimed;
+  int dailyStars; // bintang terkumpul hari ini (untuk misi harian)
+  bool dailyPerfect; // sudah dapat 1 level sempurna (3⭐) hari ini?
+
+  /// Target mingguan: minggu (tahun-minggu) & bintang terkumpul minggu itu.
+  String? weekKey;
+  int weekStars;
+  bool weekClaimed;
 
   ChildProfile({
     required this.id,
@@ -58,6 +65,11 @@ class ChildProfile {
     this.dailyDate,
     this.dailyCount = 0,
     this.dailyClaimed = false,
+    this.dailyStars = 0,
+    this.dailyPerfect = false,
+    this.weekKey,
+    this.weekStars = 0,
+    this.weekClaimed = false,
   })  : stars = stars ?? {},
         bestPct = bestPct ?? {},
         badges = badges ?? [],
@@ -110,6 +122,11 @@ class ChildProfile {
         'dailyDate': dailyDate,
         'dailyCount': dailyCount,
         'dailyClaimed': dailyClaimed,
+        'dailyStars': dailyStars,
+        'dailyPerfect': dailyPerfect,
+        'weekKey': weekKey,
+        'weekStars': weekStars,
+        'weekClaimed': weekClaimed,
       };
 
   factory ChildProfile.fromJson(Map<String, dynamic> j) => ChildProfile(
@@ -139,5 +156,10 @@ class ChildProfile {
         dailyDate: j['dailyDate'] as String?,
         dailyCount: (j['dailyCount'] as num?)?.toInt() ?? 0,
         dailyClaimed: j['dailyClaimed'] as bool? ?? false,
+        dailyStars: (j['dailyStars'] as num?)?.toInt() ?? 0,
+        dailyPerfect: j['dailyPerfect'] as bool? ?? false,
+        weekKey: j['weekKey'] as String?,
+        weekStars: (j['weekStars'] as num?)?.toInt() ?? 0,
+        weekClaimed: j['weekClaimed'] as bool? ?? false,
       );
 }

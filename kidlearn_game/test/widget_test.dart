@@ -19,8 +19,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     // Kartu teratas pasti terlihat di viewport test (800x600).
+    // Mapel pertama pasti terlihat di viewport tes; sapaan beranda ada.
+    // (mapel lain ada di list yang dapat digulir — tak diuji posisinya.)
     expect(find.text('Matematika'), findsOneWidget);
-    expect(find.text('Bahasa Inggris'), findsOneWidget);
     // Sapaan beranda "Halo, <nama>!" (koma membedakan dari tombol intro Uku).
     expect(find.textContaining('Halo,'), findsOneWidget);
   });

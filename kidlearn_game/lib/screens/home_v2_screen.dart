@@ -125,6 +125,21 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
     );
   }
 
+  /// Klaim hadiah Target Mingguan (bila bintang minggu ini cukup).
+  Future<void> _claimWeekly() async {
+    final p = _profile;
+    if (p == null) return;
+    final coins = await _storage.claimWeeklyTarget(p);
+    if (coins > 0 && mounted) {
+      SfxService.instance.coin();
+      SfxService.instance.cheer();
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('🎉 Target mingguan tercapai! +$coins koin 🪙'),
+          behavior: SnackBarBehavior.floating));
+    }
+  }
+
   /// Buka mapel. Bila sudah membuka kelas >1, tampilkan pemilih kelas dulu
   /// sehingga anak bisa memainkan kelas yang sudah terbuka.
   Future<void> _openSubject(Subject s) async {
@@ -313,7 +328,8 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
                   .fadeIn(duration: 400.ms)
                   .slideY(begin: 0.1, end: 0),
               const SizedBox(height: 12),
-              if (_profile != null) _DailyChallengeCard(profile: _profile!),
+              if (_profile != null)
+                _MissionsCard(profile: _profile!, onClaimWeekly: _claimWeekly),
               const SizedBox(height: 18),
 
               // ── Judul bagian ──
@@ -434,17 +450,28 @@ class _SubjectCard extends StatelessWidget {
 }
 
 /// Kartu tantangan harian: main 3 level untuk bonus koin.
-class _DailyChallengeCard extends StatelessWidget {
+/// Kartu Misi Harian (3 misi) + Target Mingguan (cincin bintang).
+/// Sederhana & tak membingungkan: pakai bintang & koin yang sudah dikenal.
+class _MissionsCard extends StatelessWidget {
   final ChildProfile profile;
-  const _DailyChallengeCard({required this.profile});
+  final Future<void> Function() onClaimWeekly;
+  const _MissionsCard({required this.profile, required this.onClaimWeekly});
 
   @override
   Widget build(BuildContext context) {
-    const target = 3;
     final today = StorageService.dayKey();
-    final count = profile.dailyDate == today ? profile.dailyCount : 0;
-    final done = count >= target;
-    final progress = (count / target).clamp(0.0, 1.0);
+    final isToday = profile.dailyDate == today;
+    final levels = isToday ? profile.dailyCount : 0;
+    final starsToday = isToday ? profile.dailyStars : 0;
+    final perfect = isToday && profile.dailyPerfect;
+
+    final isWeek = profile.weekKey == StorageService.weekKey();
+    final wStars = isWeek ? profile.weekStars : 0;
+    const wTarget = StorageService.weeklyTarget;
+    final wPct = (wStars / wTarget).clamp(0.0, 1.0);
+    final wReady = wStars >= wTarget && !(isWeek && profile.weekClaimed);
+    final wClaimed = isWeek && profile.weekClaimed;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -452,35 +479,109 @@ class _DailyChallengeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: kStar.withOpacity(0.4), width: 1.5),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Target Mingguan (cincin) ──
+          Row(
+            children: [
+              SizedBox(
+                width: 46,
+                height: 46,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: wPct,
+                      strokeWidth: 5,
+                      backgroundColor: kMuted.withOpacity(0.15),
+                      valueColor: AlwaysStoppedAnimation(
+                          wClaimed ? kSuccess : kStar),
+                    ),
+                    const Text('⭐', style: TextStyle(fontSize: 18)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Target Mingguan',
+                        style: GoogleFonts.nunito(
+                            fontWeight: FontWeight.w900, color: kDark)),
+                    Text(
+                        wClaimed
+                            ? 'Selesai! Hebat 🎉'
+                            : 'Kumpulkan $wTarget ⭐ minggu ini ($wStars/$wTarget)',
+                        style: GoogleFonts.nunito(
+                            fontSize: 12, color: kMuted)),
+                  ],
+                ),
+              ),
+              if (wReady)
+                ElevatedButton(
+                  onPressed: onClaimWeekly,
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: kStar,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8)),
+                  child: Text('Klaim 🪙',
+                      style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w900, color: kDark)),
+                ),
+            ],
+          ),
+          const Divider(height: 18),
+          Text('Misi Harian',
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w900, color: kDark, fontSize: 13)),
+          const SizedBox(height: 6),
+          _mission('🎯', 'Selesaikan 3 level', levels, 3),
+          _mission('⭐', 'Kumpulkan 8 bintang', starsToday, 8),
+          _missionBool('🌟', 'Dapat 1 level sempurna (3⭐)', perfect),
+        ],
+      ),
+    );
+  }
+
+  Widget _mission(String emoji, String label, int val, int target) {
+    final done = val >= target;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          Text(done ? '🎉' : '🎯', style: const TextStyle(fontSize: 30)),
-          const SizedBox(width: 12),
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 8),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(done ? 'Tantangan hari ini selesai! 🪙+20' : 'Tantangan Harian',
-                    style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w800, color: kDark)),
-                const SizedBox(height: 2),
-                Text(done
-                    ? 'Datang lagi besok untuk tantangan baru'
-                    : 'Selesaikan 3 level hari ini ($count/$target)',
-                    style: GoogleFonts.nunito(fontSize: 12, color: kMuted)),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 7,
-                    backgroundColor: kMuted.withOpacity(0.15),
-                    valueColor: AlwaysStoppedAnimation(done ? kSuccess : kStar),
-                  ),
-                ),
-              ],
-            ),
+            child: Text('$label  ($val/$target)',
+                style: GoogleFonts.nunito(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: done ? kSuccess : kDark)),
           ),
+          Text(done ? '✅' : '⬜',
+              style: const TextStyle(fontSize: 15)),
+        ],
+      ),
+    );
+  }
+
+  Widget _missionBool(String emoji, String label, bool done) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(label,
+                style: GoogleFonts.nunito(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: done ? kSuccess : kDark)),
+          ),
+          Text(done ? '✅' : '⬜', style: const TextStyle(fontSize: 15)),
         ],
       ),
     );

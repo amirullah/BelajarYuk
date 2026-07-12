@@ -148,11 +148,52 @@ class StorageService {
   /// Catat hasil level pada profil lokal & simpan. Return true bila rekor baru.
   Future<bool> recordLevelResult(
       ChildProfile profile, String levelId, int stars, int pct) async {
+    // Bintang BARU (di atas rekor level ini) → untuk misi harian & target mingguan.
+    final gained = stars > (profile.stars[levelId] ?? 0)
+        ? stars - (profile.stars[levelId] ?? 0)
+        : 0;
     final isRecord = profile.recordStars(levelId, stars);
-    // Simpan persentase terbaik (untuk statistik server).
     if (pct > (profile.bestPct[levelId] ?? 0)) profile.bestPct[levelId] = pct;
+    // Reset penghitung harian bila ganti hari.
+    final today = dayKey();
+    if (profile.dailyDate != today) {
+      profile.dailyDate = today;
+      profile.dailyCount = 0;
+      profile.dailyClaimed = false;
+      profile.dailyStars = 0;
+      profile.dailyPerfect = false;
+    }
+    profile.dailyStars += gained;
+    if (stars >= 3) profile.dailyPerfect = true;
+    // Reset target mingguan bila ganti minggu.
+    final wk = weekKey();
+    if (profile.weekKey != wk) {
+      profile.weekKey = wk;
+      profile.weekStars = 0;
+      profile.weekClaimed = false;
+    }
+    profile.weekStars += gained;
     await upsertProfile(profile);
     return isRecord;
+  }
+
+  /// Kunci minggu (bucket 7-harian) untuk target mingguan.
+  static String weekKey([DateTime? d]) {
+    final x = d ?? DateTime.now();
+    return 'W${x.difference(DateTime(2020)).inDays ~/ 7}';
+  }
+
+  /// Klaim hadiah Target Mingguan bila bintang minggu ini ≥ [target].
+  /// Return koin yang diberikan (0 bila belum layak / sudah diklaim).
+  static const weeklyTarget = 40;
+  Future<int> claimWeeklyTarget(ChildProfile p) async {
+    if (p.weekKey != weekKey()) return 0; // minggu sudah berganti
+    if (p.weekClaimed || p.weekStars < weeklyTarget) return 0;
+    p.weekClaimed = true;
+    p.coins += 50;
+    await upsertProfile(p);
+    syncProfile(p);
+    return 50;
   }
 
   // ── Sinkronisasi ke backend ──
