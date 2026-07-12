@@ -60,6 +60,13 @@ class TtsService {
     ['Tabaarakallah!', 'تَبَارَكَ اللّٰهُ'],
   ];
 
+  // Pujian khusus mapel Bahasa Inggris — diucapkan dalam bahasa Inggris.
+  static const _englishPraises = [
+    'Great job!', 'Excellent!', 'Well done!', 'Amazing!', 'Fantastic!',
+    'You are so smart!', 'Perfect!', 'Brilliant!', 'Awesome!', 'Super!',
+    'Correct! Good job!', 'Wonderful!', 'You did it!', 'Spectacular!',
+  ];
+
   Future<void> _ensure() async {
     if (_init) return;
     await _tts.setVolume(1.0);
@@ -172,15 +179,20 @@ class TtsService {
       if (_arabicLang != null) {
         try {
           await _tts.setLanguage(_arabicLang!);
-          await _tts.setPitch(1.42); // sedikit tinggi tapi tetap khusyuk
-          await _tts.setSpeechRate(0.42); // pelan → pelafalan fasih & jelas
-          await _tts.speak(pair[1]); // teks Arab
+          await _tts.setPitch(1.42);
+          await _tts.setSpeechRate(0.42);
+          await _tts.speak(pair[1]);
           return;
         } catch (_) {}
       }
-      // Cadangan: transliterasi Latin, nada anak yang ceria.
       await _configure(english: false, pitch: 1.6, rate: 0.44);
       await _tts.speak(pair[0]);
+      return;
+    }
+    if (subject == Subject.english) {
+      final pitch = 1.68 + _rng.nextInt(5) * 0.045;
+      await _configure(english: true, pitch: pitch, rate: 0.50);
+      await _tts.speak(_englishPraises[_rng.nextInt(_englishPraises.length)]);
       return;
     }
     final pitch = 1.68 + _rng.nextInt(5) * 0.045; // 1.68..1.86

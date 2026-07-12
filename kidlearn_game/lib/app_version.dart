@@ -1,6 +1,6 @@
 /// Versi aplikasi yang TERPASANG. Dibump tiap rilis agar deteksi update akurat.
 /// [build] harus sama dengan angka setelah '+' di pubspec.yaml (versionCode).
 class AppVersion {
-  static const String name = '2.2.6';
-  static const int build = 41;
+  static const String name = '2.2.7';
+  static const int build = 42;
 }
