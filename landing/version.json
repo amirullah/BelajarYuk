@@ -1,8 +1,8 @@
 {
-  "version": "2.2.8",
-  "build": 43,
+  "version": "2.2.9",
+  "build": 44,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Pujian B.Inggris lebih jelas & mirip anak; suara Uku tidak lagi bertumpuk saat menjawab.",
+  "notes": "Audio: musik di-duck saat feedback; pujian masuk 450ms setelah yay agar tidak bertumpuk.",
   "mandatory": false
 }

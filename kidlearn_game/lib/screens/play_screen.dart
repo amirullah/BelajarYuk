@@ -369,22 +369,24 @@ class _PlayScreenState extends State<PlayScreen> {
   int _combo = 0; // jawaban benar beruntun
   int _comboBonus = 0; // koin bonus dari combo (diteruskan ke hasil)
   void _feedback(bool ok) {
-    // Hentikan suara Uku (mengintip) lebih dulu agar TIDAK menumpuk dengan
-    // audio benar/salah — keduanya dijaga terpisah.
     SfxService.instance.stopUku();
     if (ok) {
-      // Chime cerah + sorak "yay" ekspresif + UCAPAN pujian (Hebat/Mantap/Keren…
-      // atau frasa Islami untuk mapel Agama) — hidup & khas anak, ala Duolingo.
+      // Turunkan musik dulu agar chime+yay+pujian terdengar jelas.
+      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 2400));
       SfxService.instance.correct();
       SfxService.instance.cheer();
-      TtsService.instance.praise(subject: widget.level.subject);
+      // Tunda TTS pujian ~450 ms agar tidak tenggelam di balik yay.
+      final subj = widget.level.subject;
+      Future.delayed(const Duration(milliseconds: 450),
+          () => TtsService.instance.praise(subject: subj));
       _combo++;
-      if (_combo >= 3) _comboBonus += 2; // bonus koin saat combo panas
+      if (_combo >= 3) _comboBonus += 2;
     } else {
-      // Chime salah lembut + "aww" + kata penyemangat (bukan menghukum).
+      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 1800));
       SfxService.instance.wrong();
       SfxService.instance.aww();
-      TtsService.instance.encourage();
+      Future.delayed(const Duration(milliseconds: 350),
+          () => TtsService.instance.encourage());
       _combo = 0;
     }
     _idleTimer?.cancel();
