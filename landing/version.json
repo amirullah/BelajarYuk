@@ -1,8 +1,8 @@
 {
-  "version": "2.2.9",
-  "build": 44,
+  "version": "2.3.0",
+  "build": 45,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Audio: musik di-duck saat feedback; pujian masuk 450ms setelah yay agar tidak bertumpuk.",
+  "notes": "Pujian langsung saat benar; TTS dihentikan saat pindah soal agar tidak terbawa ke soal berikutnya.",
   "mandatory": false
 }

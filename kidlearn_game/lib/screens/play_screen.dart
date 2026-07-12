@@ -371,22 +371,19 @@ class _PlayScreenState extends State<PlayScreen> {
   void _feedback(bool ok) {
     SfxService.instance.stopUku();
     if (ok) {
-      // Turunkan musik dulu agar chime+yay+pujian terdengar jelas.
-      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 2400));
+      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 2200));
       SfxService.instance.correct();
       SfxService.instance.cheer();
-      // Tunda TTS pujian ~450 ms agar tidak tenggelam di balik yay.
-      final subj = widget.level.subject;
-      Future.delayed(const Duration(milliseconds: 450),
-          () => TtsService.instance.praise(subject: subj));
+      // Pujian langsung — TTS punya startup async sendiri (~200ms) yang
+      // menjadi jeda alami setelah chime. Tidak perlu tunda lebih.
+      TtsService.instance.praise(subject: widget.level.subject);
       _combo++;
       if (_combo >= 3) _comboBonus += 2;
     } else {
-      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 1800));
+      unawaited(SfxService.instance.duckMusic(restoreAfterMs: 1600));
       SfxService.instance.wrong();
       SfxService.instance.aww();
-      Future.delayed(const Duration(milliseconds: 350),
-          () => TtsService.instance.encourage());
+      TtsService.instance.encourage();
       _combo = 0;
     }
     _idleTimer?.cancel();
@@ -424,6 +421,8 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   void _next() {
+    // Hentikan TTS pujian/semangat agar tidak terbawa ke soal berikutnya.
+    TtsService.instance.stop();
     if (_index + 1 >= _questions.length) {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (_) => LevelResultScreen(
