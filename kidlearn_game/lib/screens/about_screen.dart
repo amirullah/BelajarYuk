@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/app_colors.dart';
+import '../app_version.dart';
 
 /// Layar "Tentang" — info aplikasi & pengembang.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
-  static const String version = '2.1.2';
+  static const String version = AppVersion.name;
   static const String developer = 'Amirullah';
 
   @override

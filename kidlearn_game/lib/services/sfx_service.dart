@@ -25,6 +25,7 @@ class SfxService {
   final Map<String, int> _musicIds = {};
   final List<int> _ukuVoiceIds = []; // suara KHAS Uku (celoteh sintetis)
   int _ukuTurn = -1;
+  int? _ukuStream; // stream suara Uku yang sedang berbunyi (agar bisa dihentikan)
   final _rng = Random();
 
   int? _musicStream; // stream musik yang sedang berputar
@@ -264,8 +265,21 @@ class SfxService {
     if (i < 0) i = 0;
     _ukuTurn = i;
     try {
-      await pool.play(_ukuVoiceIds[i]);
+      _ukuStream = await pool.play(_ukuVoiceIds[i]);
     } catch (_) {}
   }
 
+  /// Hentikan suara Uku bila sedang berbunyi. Dipakai agar suara Uku (mengintip)
+  /// TIDAK menumpuk dengan audio benar/salah saat anak menjawab — keduanya
+  /// dijaga terpisah.
+  Future<void> stopUku() async {
+    final pool = _pool;
+    final s = _ukuStream;
+    if (pool != null && s != null) {
+      try {
+        await pool.stop(s);
+      } catch (_) {}
+    }
+    _ukuStream = null;
+  }
 }

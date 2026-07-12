@@ -62,7 +62,8 @@ class _PlayScreenState extends State<PlayScreen> {
     'Wah, kamu pintar! Ayo jawab 🌈', 'Uku temani kamu, semangat! ❤️',
   ];
   int _hintTurn = -1;
-  int _hintDir = 0; // arah kemunculan Uku: 0=kiri, 1=kanan, 2=atas
+  int _hintDir = 0; // sisi kemunculan Uku: 0=kiri, 1=kanan (dari tepi samping)
+  double _hintV = 0.42; // posisi vertikal (fraksi tinggi) — bervariasi tiap kali
   final _rng = Random();
 
   SubjectInfo get _info => SubjectInfo.of(widget.level.subject);
@@ -83,7 +84,9 @@ class _PlayScreenState extends State<PlayScreen> {
       _hintTurn = next;
       setState(() {
         _hintText = _hintPhrases[next];
-        _hintDir = _rng.nextInt(3); // muncul dari sisi berbeda-beda
+        _hintDir = _rng.nextInt(2); // dari tepi KIRI (0) atau KANAN (1)
+        // Tinggi kemunculan bervariasi (agak naik / agak turun) — tak monoton.
+        _hintV = 0.30 + _rng.nextDouble() * 0.34; // 0.30..0.64 dari tinggi layar
         _showHint = true;
       });
       // Suara KHAS Uku (celoteh) saat mengintip menyemangati.
@@ -91,43 +94,72 @@ class _PlayScreenState extends State<PlayScreen> {
     });
   }
 
-  /// Uku BESAR & interaktif yang "mengintip" dari sisi acak (kiri/kanan/atas).
-  /// Bisa disentuh → berganti ekspresi + bersuara khas.
-  Widget _ukuPeek() {
-    final bubble = Expanded(
+  /// Uku BESAR & interaktif yang "mengintip" SEBAGIAN dari tepi samping
+  /// (kiri/kanan) pada ketinggian yang bervariasi. Sebagian tubuhnya tetap di
+  /// balik tepi layar (seperti benar-benar mengintip). Bisa disentuh → bersuara
+  /// khas & memberi semangat baru. Dipasang sebagai overlay (Positioned) di
+  /// dalam Stack agar tak lagi muncul dari bawah.
+  Widget _ukuPeekOverlay(Size screen) {
+    final onRight = _hintDir == 1;
+    const mascot = 84.0;
+    const hidden = 26.0; // bagian Uku yang tersembunyi di balik tepi (mengintip)
+    final top = (screen.height * _hintV).clamp(70.0, screen.height - 160.0);
+
+    final uku = GestureDetector(
+      onTap: () {
+        // Disentuh → Uku bersuara & memberi kalimat semangat baru.
+        SfxService.instance.ukuVoice();
+        int next = _hintTurn;
+        while (next == _hintTurn && _hintPhrases.length > 1) {
+          next = _rng.nextInt(_hintPhrases.length);
+        }
+        setState(() {
+          _hintTurn = next;
+          _hintText = _hintPhrases[next];
+        });
+      },
+      child: const UkuMascot(size: mascot),
+    );
+
+    final bubble = ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: screen.width * 0.46),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
-          color: _info.color.withOpacity(0.12),
+          color: _info.color.withOpacity(0.14),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(_hintText,
             style: GoogleFonts.nunito(
-                fontSize: 13.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: _info.color)),
       ),
     );
-    const uku = UkuMascot(size: 66); // besar & bisa disentuh (ekspresi + suara)
-    final onRight = _hintDir == 1;
-    final row = Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
-      child: Row(
-        children: onRight
-            ? [bubble, const SizedBox(width: 8), uku]
-            : [uku, const SizedBox(width: 8), bubble],
-      ),
+
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: onRight
+          ? [bubble, const SizedBox(width: 6), uku]
+          : [uku, const SizedBox(width: 6), bubble],
     );
-    final anim = row.animate(key: ValueKey(_hintTurn)).fadeIn(duration: 280.ms);
-    // Masuk dari sisi sesuai arah: atas (2) turun, kiri (0)/kanan (1) menggeser.
-    return _hintDir == 2
-        ? anim.slideY(
-            begin: -0.9, end: 0, duration: 480.ms, curve: Curves.easeOutBack)
-        : anim.slideX(
-            begin: onRight ? 0.8 : -0.8,
+
+    final anim = content
+        .animate(key: ValueKey(_hintTurn))
+        .fadeIn(duration: 240.ms)
+        .slideX(
+            begin: onRight ? 0.5 : -0.5,
             end: 0,
-            duration: 480.ms,
+            duration: 460.ms,
             curve: Curves.easeOutBack);
+
+    return Positioned(
+      top: top,
+      left: onRight ? null : -hidden, // sebagian Uku di balik tepi kiri
+      right: onRight ? -hidden : null, // atau di balik tepi kanan
+      child: anim,
+    );
   }
 
   @override
@@ -254,12 +286,15 @@ class _PlayScreenState extends State<PlayScreen> {
   int _combo = 0; // jawaban benar beruntun
   int _comboBonus = 0; // koin bonus dari combo (diteruskan ke hasil)
   void _feedback(bool ok) {
+    // Hentikan suara Uku (mengintip) lebih dulu agar TIDAK menumpuk dengan
+    // audio benar/salah — keduanya dijaga terpisah.
+    SfxService.instance.stopUku();
     if (ok) {
-      // Chime cerah + sorak "yay" ekspresif + UCAPAN pujian (Hebat/Mantap/Keren…)
-      // digabung agar terasa hidup & khas anak (sound + kata, ala Duolingo).
+      // Chime cerah + sorak "yay" ekspresif + UCAPAN pujian (Hebat/Mantap/Keren…
+      // atau frasa Islami untuk mapel Agama) — hidup & khas anak, ala Duolingo.
       SfxService.instance.correct();
       SfxService.instance.cheer();
-      TtsService.instance.praise();
+      TtsService.instance.praise(subject: widget.level.subject);
       _combo++;
       if (_combo >= 3) _comboBonus += 2; // bonus koin saat combo panas
     } else {
@@ -341,7 +376,9 @@ class _PlayScreenState extends State<PlayScreen> {
     return Scaffold(
       backgroundColor: kBg,
       body: SafeArea(
-        child: Column(
+        child: Stack(
+          children: [
+            Column(
           children: [
             // ── Header: progress + skor ──
             Padding(
@@ -454,9 +491,6 @@ class _PlayScreenState extends State<PlayScreen> {
               ),
             ),
 
-            // ── Uku "mengintip" menyemangati (besar, interaktif, dari sisi acak) ──
-            if (_showHint) _ukuPeek(),
-
             // ── Opsi jawaban ── (beranimasi masuk tiap soal)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -465,6 +499,10 @@ class _PlayScreenState extends State<PlayScreen> {
                   .fadeIn(duration: 300.ms)
                   .slideY(begin: 0.25, end: 0, curve: Curves.easeOut),
             ),
+          ],
+            ),
+            // ── Uku "mengintip" SEBAGIAN dari tepi samping (overlay) ──
+            if (_showHint) _ukuPeekOverlay(MediaQuery.of(context).size),
           ],
         ),
       ),

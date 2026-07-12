@@ -1,7 +1,7 @@
 name: kidlearn_game
 description: BelajarYuk! - Game Edukasi Anak SD
 publish_to: 'none'
-version: 2.1.2+27
+version: 2.1.3+28
 
 environment:
   sdk: ^3.5.4
@@ -17,6 +17,7 @@ dependencies:
   google_sign_in: ^6.2.1
   flutter_tts: ^3.8.5 # read-aloud (versi kompatibel Kotlin 1.9 / SDK 34)
   soundpool: ^2.4.1 # efek suara pendek (benar/salah/level) — ringan, kompatibel Kotlin 1.9
+  url_launcher: ^6.3.0 # buka tautan unduh saat menyarankan pembaruan
 
 dev_dependencies:
   flutter_test:

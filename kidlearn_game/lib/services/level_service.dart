@@ -55,72 +55,155 @@ class LevelService {
       return qs;
     }
 
-    // Kolam soal UNIK (base + extras), dedup berdasarkan teks soal agar tak ada
-    // duplikat identik dalam satu level.
-    final pool = <Question>[];
-    final seen = <String>{};
-    for (final q in _bankFor(level.subject, level.grade)) {
-      if (seen.add(q.question)) pool.add(q);
-    }
-    if (pool.isEmpty) return const [];
+    // Kolam soal UNIK utuh untuk (mapel, kelas), diurutkan kesulitan MENAIK &
+    // stabil (seed dari mapel+kelas). Urutan stabil ini dipakai untuk membagi
+    // soal ke 12 level secara DISJOIN.
+    final ordered = _orderedPool(level.subject, level.grade);
+    if (ordered.isEmpty) return const [];
 
-    // Seed deterministik per level (bila tak ada seed eksplisit): isi tiap level
-    // stabil saat diulang, dan berbeda antar level (seed beda per level.id).
-    final rng = _seed != null ? _rng : Random(level.id.hashCode);
-
-    // Kesulitan naik seiring level DAN antar-kelas (B2): kelas lebih tinggi
-    // memulai dari tingkat lebih sulit (melewati intro mudah) sehingga tak ada
-    // "reset ke mudah". within = tanjakan dalam kelas; base = dasar per kelas
-    // (Kelas 1-2 mulai mudah; 3-4 mulai sedang; 5-6 fokus sulit).
-    // Bila band kurang, diisi dari band terdekat.
-    final within = level.index <= 4 ? 0 : level.index <= 8 ? 1 : 2;
-    // Kelas 1-2 mulai dari mudah; Kelas 3+ melewati intro mudah (mulai sedang),
-    // tetapi TETAP menanjak ke sulit di level akhir → menantang tanpa kehilangan
-    // tanjakan per level.
-    final base = level.grade <= 2 ? 0 : 1;
-    final target = (1 + base + within).clamp(1, 3);
-    final buckets = <int, List<Question>>{1: [], 2: [], 3: []};
-    for (final q in pool) {
-      buckets[q.difficulty.clamp(1, 3)]!.add(q);
+    // ── Pembagian DISJOIN + tanjakan kesulitan per level ──
+    // Setiap level mengambil potongan LANJUTAN dari kolam terurut kesulitan.
+    // Akibatnya: (a) TAK ADA soal yang sama muncul di dua level berbeda dalam
+    // satu kelas (menghapus pengulangan antar-level yang dikeluhkan), dan
+    // (b) makin tinggi level → potongannya dari bagian kolam yang lebih sulit,
+    // jadi setiap naik level soalnya benar-benar lebih menantang.
+    // Antar-kelas (B2) otomatis lebih sulit karena bank tiap kelas ditulis
+    // sesuai jenjangnya (Kelas 2 lebih sulit dari Kelas 1, dst.).
+    final levels = GameLevel.buildGrade(level.subject, level.grade);
+    int start = 0;
+    for (final l in levels) {
+      if (l.index >= level.index) break;
+      start += l.questionCount;
     }
-    for (final b in buckets.values) {
-      b.shuffle(rng);
-    }
-    final order = [1, 2, 3]
-      ..sort((a, b) => (a - target).abs().compareTo((b - target).abs()));
-    final ordered = [for (final d in order) ...buckets[d]!];
-
     final want = level.questionCount;
-    final take = ordered.length >= want ? want : ordered.length;
-    final out = [for (int k = 0; k < take; k++) _shuffleOptions(ordered[k])];
+    final n = ordered.length;
+
+    final List<Question> slice;
+    if (start < n) {
+      final end = (start + want) <= n ? start + want : n;
+      final chosen = ordered.sublist(start, end).toList();
+      // Bila kolam habis sebelum level ini penuh (hanya mungkin di level akhir/
+      // boss karena total slot ≈ ukuran bank), lengkapi dari EKOR TERSULIT.
+      // Pengulangan — bila ada — hanya terjadi di sini, sebagai "review" boss.
+      if (chosen.length < want) {
+        final have = chosen.map((q) => q.question).toSet();
+        for (final q in ordered.reversed) {
+          if (chosen.length >= want) break;
+          if (have.add(q.question)) chosen.add(q);
+        }
+      }
+      slice = chosen;
+    } else {
+      // start di luar kolam (boss saat bank < total slot): ambil soal TERSULIT.
+      slice = ordered.sublist((n - want).clamp(0, n)).toList();
+    }
+
+    // Seed untuk pengacakan opsi & urutan penyajian (deterministik bila diberi
+    // seed eksplisit; acak alami saat bermain agar tiap main terasa segar).
+    final rng = _seed != null ? _rng : Random(level.id.hashCode + 7);
+    final out = [for (final q in slice) _shuffleOptionsWith(q, rng)];
+    out.shuffle(rng); // acak URUTAN dalam level (soal tetap set yang sama)
     return _avoidMonotony(out);
   }
 
-  /// Beberapa soal "pasangkan" untuk menambah variasi tipe (Kelas 1-2).
+  /// Kolam soal UNIK utuh untuk (mapel, kelas), diurutkan kesulitan MENAIK.
+  /// Diacak stabil (seed dari mapel+kelas) lebih dulu agar dalam tiap tingkat
+  /// kesulitan yang sama, TIPE soal tetap bervariasi (tak menggerombol satu
+  /// jenis). Urutan yang dihasilkan sama tiap kali → pembagian antar-level
+  /// konsisten & disjoin.
+  List<Question> _orderedPool(Subject s, int grade) {
+    final pool = <Question>[];
+    final seen = <String>{};
+    for (final q in _bankFor(s, grade)) {
+      if (seen.add(q.question)) pool.add(q);
+    }
+    if (pool.isEmpty) return const [];
+    final r = Random('${s.name}-$grade'.hashCode);
+    pool.shuffle(r);
+    // Stable-sort manual (Dart List.sort tak dijamin stabil): dekorasi indeks
+    // agar urutan hasil-acak DIPERTAHANKAN untuk kesulitan yang sama.
+    final idx = List<int>.generate(pool.length, (i) => i);
+    idx.sort((a, b) {
+      final c = pool[a]
+          .difficulty
+          .clamp(1, 3)
+          .compareTo(pool[b].difficulty.clamp(1, 3));
+      return c != 0 ? c : a.compareTo(b);
+    });
+    return [for (final i in idx) pool[i]];
+  }
+
+  /// Seperti [_shuffleOptions] tetapi memakai [rng] yang diberikan.
+  Question _shuffleOptionsWith(Question q, Random rng) {
+    if (q.options.length < 2 ||
+        q.type == QuestionType.trueFalse ||
+        q.type == QuestionType.fillBlank) {
+      return q;
+    }
+    final idx = List<int>.generate(q.options.length, (i) => i)..shuffle(rng);
+    final opts = [for (final i in idx) q.options[i]];
+    return q.copyWith(options: opts, correctIndex: idx.indexOf(q.correctIndex));
+  }
+
+  /// Beberapa soal "pasangkan" untuk menambah variasi tipe. Ditandai kesulitan
+  /// beragam agar tersebar ke level-level berbeda.
   List<Question> _matchingExtras(Subject s) {
     switch (s) {
       case Subject.english:
         return [
-          Question.matching(question: 'Match the animal to its sound', emoji: '🔗', pairs: {
+          Question.matching(question: 'Match the animal to its sound', emoji: '🔗', difficulty: 1, pairs: {
             'Cat': 'Meow', 'Dog': 'Woof', 'Cow': 'Moo', 'Duck': 'Quack',
+          }),
+          Question.matching(question: 'Match the word to its opposite', emoji: '🔗', difficulty: 2, pairs: {
+            'Big': 'Small', 'Hot': 'Cold', 'Up': 'Down', 'Day': 'Night',
+          }),
+          Question.matching(question: 'Match the number to the word', emoji: '🔗', difficulty: 3, pairs: {
+            '1': 'One', '3': 'Three', '5': 'Five', '8': 'Eight',
           }),
         ];
       case Subject.science:
         return [
-          Question.matching(question: 'Pasangkan hewan dengan tempat hidupnya', emoji: '🔗', pairs: {
+          Question.matching(question: 'Pasangkan hewan dengan tempat hidupnya', emoji: '🔗', difficulty: 1, pairs: {
             'Ikan': 'Air', 'Burung': 'Udara', 'Cacing': 'Tanah',
+          }),
+          Question.matching(question: 'Pasangkan bagian tubuh dengan fungsinya', emoji: '🔗', difficulty: 2, pairs: {
+            'Mata': 'Melihat', 'Telinga': 'Mendengar', 'Hidung': 'Mencium', 'Lidah': 'Mengecap',
+          }),
+          Question.matching(question: 'Pasangkan hewan dengan jenis makanannya', emoji: '🔗', difficulty: 3, pairs: {
+            'Sapi': 'Rumput', 'Singa': 'Daging', 'Ayam': 'Biji-bijian',
           }),
         ];
       case Subject.indonesian:
         return [
-          Question.matching(question: 'Pasangkan kata dengan lawan katanya', emoji: '🔗', pairs: {
+          Question.matching(question: 'Pasangkan kata dengan lawan katanya', emoji: '🔗', difficulty: 1, pairs: {
             'Besar': 'Kecil', 'Panas': 'Dingin', 'Tinggi': 'Rendah',
+          }),
+          Question.matching(question: 'Pasangkan benda dengan kegunaannya', emoji: '🔗', difficulty: 2, pairs: {
+            'Sapu': 'Menyapu', 'Pensil': 'Menulis', 'Payung': 'Hujan',
+          }),
+          Question.matching(question: 'Pasangkan kata dengan jenisnya', emoji: '🔗', difficulty: 3, pairs: {
+            'Lari': 'Kata kerja', 'Meja': 'Kata benda', 'Merah': 'Kata sifat',
           }),
         ];
       case Subject.socialStudies:
         return [
-          Question.matching(question: 'Pasangkan profesi dengan tempat kerjanya', emoji: '🔗', pairs: {
+          Question.matching(question: 'Pasangkan profesi dengan tempat kerjanya', emoji: '🔗', difficulty: 1, pairs: {
             'Guru': 'Sekolah', 'Petani': 'Sawah', 'Nelayan': 'Laut',
+          }),
+          Question.matching(question: 'Pasangkan alat dengan penggunanya', emoji: '🔗', difficulty: 2, pairs: {
+            'Cangkul': 'Petani', 'Jala': 'Nelayan', 'Papan tulis': 'Guru',
+          }),
+          Question.matching(question: 'Pasangkan pulau dengan ibu kotanya', emoji: '🔗', difficulty: 3, pairs: {
+            'Jawa': 'Jakarta', 'Sumatra': 'Medan', 'Bali': 'Denpasar',
+          }),
+        ];
+      case Subject.religion:
+        return [
+          Question.matching(question: 'Pasangkan waktu dengan salatnya', emoji: '🔗', difficulty: 2, pairs: {
+            'Subuh': 'Pagi', 'Zuhur': 'Siang', 'Magrib': 'Senja',
+          }),
+          Question.matching(question: 'Pasangkan nabi dengan mukjizatnya', emoji: '🔗', difficulty: 3, pairs: {
+            'Nabi Musa': 'Tongkat', 'Nabi Nuh': 'Bahtera', 'Nabi Sulaiman': 'Bahasa hewan',
           }),
         ];
       default:
@@ -271,7 +354,7 @@ class LevelService {
     ];
   }
 
-  /// Soal "susun urutan" khas tiap mapel.
+  /// Soal "susun urutan" khas tiap mapel — kesulitan beragam agar tersebar.
   List<Question> _sequenceExtras(Subject s) {
     switch (s) {
       case Subject.english:
@@ -279,6 +362,12 @@ class LevelService {
           Question.sequence(
               question: 'Arrange the letters in order',
               order: const ['A', 'B', 'C', 'D'],
+              difficulty: 1,
+              emoji: '🔤'),
+          Question.sequence(
+              question: 'Arrange the words alphabetically',
+              order: const ['Apple', 'Ball', 'Cat', 'Dog'],
+              difficulty: 3,
               emoji: '🔤'),
         ];
       case Subject.indonesian:
@@ -286,21 +375,52 @@ class LevelService {
           Question.sequence(
               question: 'Urutkan huruf sesuai abjad',
               order: const ['A', 'B', 'C', 'D'],
+              difficulty: 1,
               emoji: '🔤'),
+          Question.sequence(
+              question: 'Susun kata jadi kalimat yang benar',
+              order: const ['Saya', 'suka', 'membaca', 'buku'],
+              difficulty: 3,
+              emoji: '📝'),
         ];
       case Subject.science:
         return [
           Question.sequence(
               question: 'Urutkan tahap pertumbuhan kupu-kupu',
               order: const ['Telur', 'Ulat', 'Kepompong', 'Kupu-kupu'],
+              difficulty: 2,
               emoji: '🦋'),
+          Question.sequence(
+              question: 'Urutkan daur air',
+              order: const ['Menguap', 'Awan', 'Hujan', 'Sungai'],
+              difficulty: 3,
+              emoji: '💧'),
         ];
       case Subject.socialStudies:
         return [
           Question.sequence(
               question: 'Urutkan hari dalam seminggu',
               order: const ['Senin', 'Selasa', 'Rabu', 'Kamis'],
+              difficulty: 1,
               emoji: '📅'),
+          Question.sequence(
+              question: 'Urutkan tingkatan wilayah dari kecil',
+              order: const ['RT', 'Desa', 'Kecamatan', 'Kabupaten'],
+              difficulty: 3,
+              emoji: '🗺️'),
+        ];
+      case Subject.religion:
+        return [
+          Question.sequence(
+              question: 'Urutkan gerakan salat',
+              order: const ['Takbir', 'Rukuk', 'Sujud', 'Salam'],
+              difficulty: 2,
+              emoji: '🕌'),
+          Question.sequence(
+              question: 'Urutkan wudu dengan benar',
+              order: const ['Tangan', 'Kumur', 'Muka', 'Kaki'],
+              difficulty: 3,
+              emoji: '💧'),
         ];
       default:
         return const [];
@@ -310,12 +430,15 @@ class LevelService {
   List<Question> _bankFor(Subject s, int grade) {
     final base = _rawBank(s, grade);
     final extras = <Question>[];
-    if (grade <= 3) {
-      extras.addAll(_matchingExtras(s));
-      extras.addAll(_imageChoiceExtras(s));
-      if (grade <= 2) extras.addAll(_listeningExtras(s));
-    }
+    // Soal berformat-beda (pasangkan/susun-urutan) disertakan di SEMUA kelas
+    // agar tiap kelas punya variasi bentuk — bukan hanya pilihan ganda. Karena
+    // ditandai kesulitan yang beragam, format-format ini tersebar ke banyak
+    // level (tidak menggerombol di satu level).
+    extras.addAll(_matchingExtras(s));
     extras.addAll(_sequenceExtras(s));
+    // Pilih-gambar & menyimak bersifat bantu-baca → untuk kelas awal saja.
+    if (grade <= 3) extras.addAll(_imageChoiceExtras(s));
+    if (grade <= 2) extras.addAll(_listeningExtras(s));
     return extras.isEmpty ? base : [...base, ...extras];
   }
 

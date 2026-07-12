@@ -17,6 +17,7 @@ class TtsService {
   bool _init = false;
   String? _idVoice;
   String? _enVoice;
+  String? _arabicLang; // kode bahasa Arab yang tersedia (mis. 'ar-SA'), bila ada
 
   // Nada tinggi khas anak, dibuat sedikit berbeda tiap mapel.
   static const Map<Subject, double> _subjectPitch = {
@@ -46,12 +47,46 @@ class TtsService {
     'Coba lagi ya!', 'Hampir benar!', 'Ayo semangat!', 'Tidak apa-apa, coba lagi!',
   ];
 
+  // Pujian KHAS mapel Agama Islam: diucapkan dalam bahasa Arab yang FASIH
+  // (pakai voice Arab bila tersedia), dengan transliterasi Latin sebagai
+  // cadangan. Frasa dipilih agar COCOK sebagai pujian atas jawaban benar.
+  // ( Latin , teks Arab untuk pelafalan fasih ).
+  static const List<List<String>> _religionPraises = [
+    ['Alhamdulillah!', 'اَلْحَمْدُ لِلّٰهِ'],
+    ['Masyaallah!', 'مَا شَاءَ اللّٰهُ'],
+    ['Subhanallah!', 'سُبْحَانَ اللّٰهِ'],
+    ['Baarakallahu fiik!', 'بَارَكَ اللّٰهُ فِيْكَ'],
+    ['Ahsanta!', 'أَحْسَنْتَ'],
+    ['Tabaarakallah!', 'تَبَارَكَ اللّٰهُ'],
+  ];
+
   Future<void> _ensure() async {
     if (_init) return;
     await _tts.setVolume(1.0);
     await _tts.awaitSpeakCompletion(true);
     await _pickBestVoices();
+    await _detectArabic();
     _init = true;
+  }
+
+  /// Cari bahasa Arab yang terpasang (untuk pelafalan pujian Agama yang fasih).
+  Future<void> _detectArabic() async {
+    try {
+      final langs = (await _tts.getLanguages) as List?;
+      if (langs == null) return;
+      String? found;
+      for (final l in langs) {
+        final s = '$l'.toLowerCase();
+        if (s.startsWith('ar-') || s == 'ar') {
+          if (s == 'ar-sa') {
+            found = '$l';
+            break;
+          }
+          found ??= '$l';
+        }
+      }
+      _arabicLang = found;
+    } catch (_) {}
   }
 
   Future<void> _pickBestVoices() async {
@@ -124,9 +159,30 @@ class TtsService {
   /// Seruan pujian singkat saat jawaban benar (nada anak yang ceria).
   /// Pitch di-acak tipis tiap kali agar terdengar bernada/melodius (tak monoton),
   /// tetap tinggi khas anak; tempo sedikit lebih lambat agar artikulasi jelas.
-  Future<void> praise() async {
+  ///
+  /// Khusus mapel Agama Islam ([subject] == Subject.religion): pujian memakai
+  /// frasa Islami (Alhamdulillah, Masyaallah, Subhanallah, …) yang diucapkan
+  /// FASIH dalam bahasa Arab bila voice Arab tersedia; jika tidak, transliterasi
+  /// Latin dibacakan dengan nada anak.
+  Future<void> praise({Subject? subject}) async {
     await _ensure();
     await _tts.stop();
+    if (subject == Subject.religion) {
+      final pair = _religionPraises[_rng.nextInt(_religionPraises.length)];
+      if (_arabicLang != null) {
+        try {
+          await _tts.setLanguage(_arabicLang!);
+          await _tts.setPitch(1.42); // sedikit tinggi tapi tetap khusyuk
+          await _tts.setSpeechRate(0.42); // pelan → pelafalan fasih & jelas
+          await _tts.speak(pair[1]); // teks Arab
+          return;
+        } catch (_) {}
+      }
+      // Cadangan: transliterasi Latin, nada anak yang ceria.
+      await _configure(english: false, pitch: 1.6, rate: 0.44);
+      await _tts.speak(pair[0]);
+      return;
+    }
     final pitch = 1.68 + _rng.nextInt(5) * 0.045; // 1.68..1.86
     await _configure(english: false, pitch: pitch, rate: 0.50);
     await _tts.speak(_praises[_rng.nextInt(_praises.length)]);

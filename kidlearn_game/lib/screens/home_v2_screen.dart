@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/subject.dart';
 import '../models/profile.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
+import '../services/update_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/uku_mascot.dart';
 import '../widgets/avatar_view.dart';
@@ -53,7 +57,122 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
     if (reward > 0 && mounted) {
       setState(() {});
       SfxService.instance.coin();
-      _showDailyReward(reward);
+      await _showDailyReward(reward);
+    }
+    // Cek versi baru & sarankan perbarui (best-effort; diam bila offline/gagal).
+    await _checkUpdate();
+  }
+
+  /// Cek apakah ada versi baru di server; bila ada, tampilkan saran perbarui.
+  Future<void> _checkUpdate() async {
+    final info = await UpdateService().check();
+    if (info == null || !mounted) return;
+    final sp = await SharedPreferences.getInstance();
+    final dismissed = sp.getInt('update_dismissed_build') ?? 0;
+    // Bila bukan wajib & pengguna sudah menunda build ini, jangan ganggu lagi.
+    if (!info.mandatory && dismissed >= info.build) return;
+    if (!mounted) return;
+    await _showUpdateDialog(info, sp);
+  }
+
+  Future<void> _showUpdateDialog(
+      UpdateInfo info, SharedPreferences sp) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: !info.mandatory,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Column(children: [
+          Image.asset('assets/img/ukus/uku_cheer.png', width: 84, height: 84)
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                  begin: const Offset(0.94, 0.94),
+                  end: const Offset(1.06, 1.06),
+                  duration: 700.ms),
+          const SizedBox(height: 8),
+          Text('Ada Versi Baru! 🎉',
+              style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w900, color: kDark)),
+        ]),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+                info.version.isNotEmpty
+                    ? 'Versi ${info.version} sudah tersedia. '
+                        'Yuk perbarui agar dapat perbaikan & fitur terbaru!'
+                    : 'Versi terbaru sudah tersedia. Yuk perbarui!',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                    fontSize: 14, height: 1.4, color: kDark)),
+            if (info.notes.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kSurface,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Text(info.notes,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(fontSize: 12.5, color: kMuted)),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          Row(
+            mainAxisAlignment: info.mandatory
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.spaceBetween,
+            children: [
+              if (!info.mandatory)
+                TextButton(
+                  onPressed: () async {
+                    await sp.setInt('update_dismissed_build', info.build);
+                    if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                  },
+                  child: Text('Nanti',
+                      style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w800, color: kMuted)),
+                ),
+              ElevatedButton(
+                onPressed: () => _openUpdate(info.url),
+                style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+                child: Text('Perbarui Sekarang',
+                    style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w800, color: Colors.white)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Buka tautan unduh APK di browser. Bila gagal, salin tautan ke papan klip
+  /// sebagai cadangan agar pengguna tetap bisa mengunduh manual.
+  Future<void> _openUpdate(String url) async {
+    final uri = Uri.tryParse(url);
+    bool opened = false;
+    if (uri != null) {
+      try {
+        opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        opened = false;
+      }
+    }
+    if (!mounted) return;
+    if (opened) {
+      Navigator.pop(context);
+    } else {
+      await Clipboard.setData(ClipboardData(text: url));
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Tautan unduh disalin: $url',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w700)),
+      ));
     }
   }
 
