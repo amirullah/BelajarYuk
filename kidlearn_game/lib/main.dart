@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/splash_screen.dart';
 import 'services/sfx_service.dart';
+import 'services/content_service.dart';
 import 'utils/app_colors.dart';
+import 'utils/nav_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +15,10 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   await SfxService.instance.load();
+  // Muat konten soal dari cache (bila ada) lebih dulu agar update soal tanpa
+  // pasang APK bisa langsung dipakai; penyegaran dari server berjalan di latar.
+  await ContentService.instance.loadFromCache();
+  unawaited(ContentService.instance.refreshFromServer());
   runApp(const BelajarYukApp());
 }
 
@@ -68,6 +75,7 @@ class _BelajarYukAppState extends State<BelajarYukApp>
           ),
         ),
       ),
+      navigatorObservers: [routeObserver],
       home: const SplashScreen(),
     );
   }

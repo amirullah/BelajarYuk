@@ -71,6 +71,50 @@ class Question {
         difficulty: difficulty,
       );
 
+  /// Serialisasi ke JSON (untuk konten soal yang bisa diperbarui dari server
+  /// tanpa memasang ulang APK).
+  Map<String, dynamic> toJson() => {
+        'q': question,
+        if (emoji.isNotEmpty) 'e': emoji,
+        if (options.isNotEmpty) 'o': options,
+        'c': correctIndex,
+        if (explanation != null) 'x': explanation,
+        't': type.name,
+        if (audioText != null) 'a': audioText,
+        if (answer != null) 'ans': answer,
+        if (pairs != null) 'p': pairs,
+        if (sequence != null) 'seq': sequence,
+        if (objectiveCode != null) 'oc': objectiveCode,
+        'd': difficulty,
+      };
+
+  /// Bangun dari JSON. Tahan-banting: tipe tak dikenal → multipleChoice.
+  factory Question.fromJson(Map<String, dynamic> j) {
+    QuestionType parseType(Object? v) {
+      final name = '$v';
+      for (final t in QuestionType.values) {
+        if (t.name == name) return t;
+      }
+      return QuestionType.multipleChoice;
+    }
+
+    return Question(
+      question: (j['q'] as String?) ?? '',
+      emoji: (j['e'] as String?) ?? '',
+      options: (j['o'] as List?)?.map((e) => '$e').toList() ?? const [],
+      correctIndex: (j['c'] as num?)?.toInt() ?? 0,
+      explanation: j['x'] as String?,
+      type: parseType(j['t']),
+      audioText: j['a'] as String?,
+      answer: j['ans'] as String?,
+      pairs: (j['p'] as Map?)
+          ?.map((k, v) => MapEntry('$k', '$v')),
+      sequence: (j['seq'] as List?)?.map((e) => '$e').toList(),
+      objectiveCode: j['oc'] as String?,
+      difficulty: (j['d'] as num?)?.toInt() ?? 2,
+    );
+  }
+
   /// Pintasan membuat soal Pasangkan (kiri → kanan).
   factory Question.matching({
     required String question,

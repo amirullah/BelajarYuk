@@ -36,11 +36,12 @@ class MathGenerator {
   Question _one(int grade, double d) {
     switch (grade) {
       case 1:
-        return _addSub(maxResult: _lerp(10, 20, d));
+        return _addSub(maxResult: _lerp(10, 30, d), minResult: _lerp(0, 16, d));
       case 2:
-        return _addSub(maxResult: _lerp(30, 100, d));
+        return _addSub(
+            maxResult: _lerp(20, 100, d), minResult: _lerp(0, 55, d));
       case 3:
-        return _mulDiv(maxFactor: _lerp(5, 10, d));
+        return _mulDiv(maxFactor: _lerp(4, 12, d), minFactor: _lerp(1, 6, d));
       case 4:
         // Pecahan, KPK & FPB (sesuai rencana Kelas 4).
         return _rng.nextBool() ? _factors(d) : _fractionOf(d);
@@ -101,17 +102,24 @@ class MathGenerator {
   }
 
   // ── Penjumlahan / pengurangan ──
-  Question _addSub({required int maxResult}) {
+  // [minResult] adalah "lantai" hasil yang NAIK seiring level → tiap level
+  // memakai rentang angka yang berbeda (band tak tumpang-tindih), sehingga
+  // soal jarang berulang antar-level DAN tanjakan kesulitan terasa jelas.
+  Question _addSub({required int maxResult, int minResult = 0}) {
     final bool add = _rng.nextBool();
+    final int lo = minResult.clamp(0, maxResult);
     late int a, b, result;
     if (add) {
-      a = _rng.nextInt(maxResult);
-      b = _rng.nextInt(maxResult - a + 1);
-      result = a + b;
+      // Jumlah (hasil) berada di [lo, maxResult] → level tinggi mulai lebih besar.
+      result = lo + _rng.nextInt(maxResult - lo + 1);
+      a = _rng.nextInt(result + 1);
+      b = result - a;
       return _mc('$a + $b = ?', result, spread: max(2, maxResult ~/ 20),
           emoji: '➕', objectiveCode: _mathCode(maxResult));
     } else {
-      a = _rng.nextInt(maxResult) + 1;
+      // Bilangan yang dikurangi minimal [lo] → angka membesar tiap naik level.
+      a = lo + _rng.nextInt(maxResult - lo + 1);
+      if (a < 1) a = 1;
       b = _rng.nextInt(a + 1);
       result = a - b;
       return _mc('$a − $b = ?', result, spread: max(2, maxResult ~/ 20),
@@ -120,9 +128,11 @@ class MathGenerator {
   }
 
   // ── Perkalian / pembagian ──
-  Question _mulDiv({required int maxFactor}) {
-    final int a = _rng.nextInt(maxFactor) + 1;
-    final int b = _rng.nextInt(maxFactor) + 1;
+  // [minFactor] naik seiring level → faktor makin besar tiap level (band beda).
+  Question _mulDiv({required int maxFactor, int minFactor = 1}) {
+    final int lo = minFactor.clamp(1, maxFactor);
+    final int a = lo + _rng.nextInt(maxFactor - lo + 1);
+    final int b = lo + _rng.nextInt(maxFactor - lo + 1);
     if (_rng.nextBool()) {
       return _mc('$a × $b = ?', a * b, spread: max(2, a), emoji: '✖️');
     } else {

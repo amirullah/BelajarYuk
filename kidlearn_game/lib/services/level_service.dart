@@ -9,6 +9,7 @@ import '../data/content_kelas3.dart';
 import '../data/content_kelas4.dart';
 import '../data/content_kelas5.dart';
 import '../data/content_kelas6.dart';
+import '../services/content_service.dart';
 
 /// Merakit daftar soal untuk sebuah level.
 /// - Matematika: dihasilkan algoritmik (tak pernah habis).
@@ -443,6 +444,10 @@ class LevelService {
   }
 
   List<Question> _rawBank(Subject s, int grade) {
+    // Bila ada bank dari server (update tanpa APK), pakai itu; jika tidak, bank
+    // BAWAAN aplikasi (selalu tersedia, bahkan offline / sebelum sempat unduh).
+    final override = ContentService.instance.forSubject(s, grade);
+    if (override != null && override.isNotEmpty) return override;
     switch (grade) {
       case 1:
         return ContentKelas1.forSubject(s);

@@ -7,6 +7,7 @@ import '../models/profile.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/nav_observer.dart';
 import 'play_screen.dart';
 
 /// Peta 12 level untuk satu mata pelajaran (Kelas tertentu).
@@ -20,7 +21,7 @@ class LevelMapScreen extends StatefulWidget {
   State<LevelMapScreen> createState() => _LevelMapScreenState();
 }
 
-class _LevelMapScreenState extends State<LevelMapScreen> {
+class _LevelMapScreenState extends State<LevelMapScreen> with RouteAware {
   final _storage = StorageService();
   ChildProfile? _profile;
   late List<GameLevel> _levels;
@@ -37,7 +38,21 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) routeObserver.subscribe(this, route);
+  }
+
+  /// Dipanggil saat layar di ATAS peta ini ditutup (mis. selesai main / hasil
+  /// level). Muat ulang agar bintang & level yang baru terbuka SEGERA tampil —
+  /// memperbaiki bug "level baru tidak langsung muncul setelah selesai".
+  @override
+  void didPopNext() => _load();
+
+  @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     // Kembali ke beranda → musik beranda.
     SfxService.instance.playMusic('home');
     super.dispose();
