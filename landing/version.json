@@ -1,8 +1,8 @@
 {
-  "version": "2.1.4",
-  "build": 29,
+  "version": "2.1.5",
+  "build": 30,
   "content": 1,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Perbaikan: level baru langsung terbuka; Uku tak menutup soal; soal Matematika lebih menantang & jarang berulang; soal bisa diperbarui tanpa pasang APK.",
+  "notes": "Tanjakan kesulitan & anti-pengulangan kini merata di SEMUA level semua mapel, termasuk Matematika kelas 4-6.",
   "mandatory": false
 }

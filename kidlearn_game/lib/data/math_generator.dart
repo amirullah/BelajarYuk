@@ -57,10 +57,13 @@ class MathGenerator {
   }
 
   // ── KPK & FPB (Kelas 4) ──
+  // Lantai [lo] naik per level → faktor makin besar tiap naik level (band beda,
+  // jarang berulang), konsisten dgn kelas 1-3.
   Question _factors(double d) {
     final int r = _lerp(6, 12, d);
-    final int a = _rng.nextInt(r) + 2;
-    final int b = _rng.nextInt(r) + 2;
+    final int lo = _lerp(2, 6, d);
+    final int a = lo + _rng.nextInt(max(1, r - lo + 1));
+    final int b = lo + _rng.nextInt(max(1, r - lo + 1));
     if (_rng.nextBool()) {
       return _mc('FPB dari $a dan $b = ?', _gcd(a, b), spread: 2, emoji: '🔢');
     }
@@ -71,32 +74,33 @@ class MathGenerator {
 
   // ── Pecahan dari bilangan (Kelas 4) ──
   Question _fractionOf(double d) {
-    // Level tinggi: penyebut lebih beragam & bilangan lebih besar.
+    // Level tinggi: penyebut lebih beragam & bilangan lebih besar (lantai naik).
     final denoms = d < 0.5 ? [2, 3, 4, 5] : [2, 3, 4, 5, 6, 8];
     final int denom = denoms[_rng.nextInt(denoms.length)];
-    final int whole = (_rng.nextInt(_lerp(6, 12, d)) + 1) * denom;
+    final int m = _lerp(1, 6, d) + _rng.nextInt(_lerp(5, 8, d));
+    final int whole = m * denom;
     return _mc('1/$denom dari $whole = ?', whole ~/ denom,
         spread: 2, emoji: '🍰');
   }
 
   // ── Luas persegi (Kelas 5) ──
   Question _areaSquare(double d) {
-    final int s = _rng.nextInt(_lerp(6, 14, d)) + 2;
+    final int s = _lerp(2, 8, d) + _rng.nextInt(_lerp(4, 8, d));
     return _mc('Luas persegi sisi $s = ?', s * s, spread: max(2, s), emoji: '⬛');
   }
 
   // ── Rata-rata / statistik dasar (Kelas 6) ──
   Question _average(double d) {
-    final int avg = _rng.nextInt(_lerp(6, 15, d)) + 2;
+    final int avg = _lerp(2, 10, d) + _rng.nextInt(_lerp(4, 8, d));
     return _mc('Rata-rata dari ${avg - 1}, $avg, ${avg + 1} = ?', avg,
         spread: 2, emoji: '📊');
   }
 
   // ── Rasio sederhana (Kelas 6) ──
   Question _ratio(double d) {
-    final int k = _rng.nextInt(_lerp(3, 6, d)) + 2; // pengali
-    final int a = _rng.nextInt(_lerp(4, 8, d)) + 1;
-    final int b = _rng.nextInt(_lerp(4, 8, d)) + 1;
+    final int k = _lerp(2, 6, d) + _rng.nextInt(3); // pengali (lantai naik)
+    final int a = _lerp(1, 5, d) + _rng.nextInt(_lerp(3, 6, d));
+    final int b = _lerp(1, 5, d) + _rng.nextInt(_lerp(3, 6, d));
     return _mc('$a : $b sama dengan ${a * k} : ?', b * k,
         spread: max(2, b), emoji: '⚖️');
   }
@@ -146,8 +150,10 @@ class MathGenerator {
     final List<int> pcts =
         d < 0.5 ? [10, 20, 25, 50] : [10, 15, 20, 25, 40, 50, 75];
     final int pct = pcts[_rng.nextInt(pcts.length)];
-    // pilih basis yang menghasilkan bilangan bulat
-    final int base = (_rng.nextInt(_lerp(10, 20, d)) + 1) * (100 ~/ _gcd(pct, 100));
+    // Basis kelipatan yang menghasilkan bilangan bulat; lantai naik per level.
+    final int unit = 100 ~/ _gcd(pct, 100);
+    final int m = _lerp(1, 6, d) + _rng.nextInt(_lerp(6, 12, d));
+    final int base = m * unit;
     final int result = base * pct ~/ 100;
     return _mc('$pct% dari $base = ?', result, spread: max(2, result ~/ 5),
         emoji: '％');
