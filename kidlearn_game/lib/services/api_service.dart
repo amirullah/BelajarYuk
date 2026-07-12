@@ -61,12 +61,15 @@ class ApiService {
   }
 
   Map<String, dynamic> _decode(http.Response res) {
+    final body = res.body.trim();
     try {
-      final j = jsonDecode(res.body);
+      final j = jsonDecode(body);
       if (j is Map<String, dynamic>) return j;
       return {'ok': false, 'error': 'Respons tidak valid'};
     } catch (_) {
-      return {'ok': false, 'error': 'Gagal membaca respons (${res.statusCode})'};
+      // Server mengembalikan non-JSON (mis. PHP error, HTML hosting).
+      // Tunjukkan pesan yang bisa dicoba lagi, bukan kode teknis.
+      return {'ok': false, 'error': 'Server sedang sibuk. Coba lagi sebentar.', 'retry': true};
     }
   }
 

@@ -1,6 +1,11 @@
 <?php
 // Helper bersama: koneksi DB, respons JSON, token sesi, CORS.
 
+// Matikan output error PHP ke body (agar JSON tidak rusak oleh warning/notice).
+ini_set('display_errors', '0');
+error_reporting(0);
+ob_start(); // Tangkap semua output sebelum send_json — dibuang saat kirim respons.
+
 function cfg(): array {
     static $c = null;
     if ($c === null) {
@@ -24,12 +29,20 @@ function db(): PDO {
 }
 
 function send_json($data, int $status = 200): void {
+    // Buang semua output yang mungkin bocor (PHP warning, notice, dsb.)
+    while (ob_get_level() > 0) ob_end_clean();
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    $encoded = json_encode($data, JSON_UNESCAPED_UNICODE);
+    if ($encoded === false) {
+        // Fallback jika json_encode gagal (data tidak valid UTF-8)
+        echo '{"ok":false,"error":"Encoding error"}';
+    } else {
+        echo $encoded;
+    }
     exit;
 }
 
