@@ -11,3 +11,7 @@ backend/config.php
 **/key.properties
 **/*.jks
 **/*.keystore
+
+# APK staging untuk deploy (build artifact, jangan di-commit)
+landing/BelajarYuk.apk
+*.apk
