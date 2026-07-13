@@ -307,20 +307,22 @@ function sync(): void {
     send_json(['ok' => true, 'progress' => $progress, 'state' => $stateRow]);
 }
 
-// ── Leaderboard per kelas per minggu ──
+// ── Leaderboard per kelas (all-time best) ──
 function leaderboard(): void {
     $grade = (int) ($_GET['grade'] ?? 1);
-    $week = $_GET['week'] ?? date('o-W');
     $st = db()->prepare(
-        'SELECT p.id AS profile_id, p.name, p.avatar, l.score FROM leaderboard l
+        'SELECT p.id AS profile_id, p.name, p.avatar, MAX(l.score) AS score
+         FROM leaderboard l
          JOIN profiles p ON p.id = l.profile_id
-         WHERE l.grade = ? AND l.week = ? ORDER BY l.score DESC LIMIT 50'
+         WHERE l.grade = ?
+         GROUP BY p.id, p.name, p.avatar
+         ORDER BY score DESC LIMIT 50'
     );
-    $st->execute([$grade, $week]);
+    $st->execute([$grade]);
     $top = array_map(function ($r) {
         $r['profile_id'] = (int) $r['profile_id'];
         $r['score'] = (int) $r['score'];
         return $r;
     }, $st->fetchAll());
-    send_json(['ok' => true, 'grade' => $grade, 'week' => $week, 'top' => $top]);
+    send_json(['ok' => true, 'grade' => $grade, 'top' => $top]);
 }
