@@ -8,6 +8,7 @@ import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
 import '../widgets/parent_gate.dart';
+import '../services/review_mode_service.dart';
 import 'about_screen.dart';
 import 'parent_dashboard_screen.dart';
 import 'profile_select_screen.dart';
@@ -524,25 +525,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  /// Mode Review: buka semua kelas (1–6) agar orang tua/guru bisa meninjau soal
-  /// tanpa harus menuntaskan setiap kelas. Dilindungi gerbang orang tua.
+  /// Mode Review: buka semua kelas (1–6) agar developer bisa meninjau soal.
+  /// Hanya aktif di sesi ini (in-memory) — profil anak TIDAK diubah sama sekali.
   Future<void> _openReviewMode() async {
     if (!await ParentGate.show(context,
         reason: 'Mode Review membuka semua kelas untuk ditinjau. '
             'Jawab soal ini dulu ya.')) {
       return;
     }
-    final storage = StorageService();
-    final p = await storage.currentProfile();
-    if (p == null) return;
-    if (p.unlockedGrade < 6) {
-      p.unlockedGrade = 6;
-      await storage.upsertProfile(p);
-      storage.syncProfile(p);
-    }
+    ReviewModeService.instance.activate();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Semua kelas (1–6) terbuka untuk ditinjau ✅'),
+          content: Text('Mode Review aktif — semua kelas (1–6) terbuka sesi ini ✅'),
           behavior: SnackBarBehavior.floating));
     }
   }

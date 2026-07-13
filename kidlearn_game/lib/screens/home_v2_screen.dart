@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/subject.dart';
 import '../models/profile.dart';
+import '../services/review_mode_service.dart';
 import '../services/sfx_service.dart';
 import '../services/storage_service.dart';
 import '../services/update_service.dart';
@@ -261,7 +262,11 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
   /// Buka mapel. Bila sudah membuka kelas >1, tampilkan pemilih kelas dulu
   /// sehingga anak bisa memainkan kelas yang sudah terbuka.
   Future<void> _openSubject(Subject s) async {
-    final unlocked = _profile?.unlockedGrade ?? 1;
+    // Mode Review (hanya admin markazvirtual) → buka semua kelas sesi ini
+    // tanpa mengubah profil anak. Pengguna biasa pakai unlockedGrade asli.
+    final unlocked = ReviewModeService.instance.isActive
+        ? 6
+        : (_profile?.unlockedGrade ?? 1);
     int grade = 1;
     if (unlocked > 1) {
       final chosen = await showModalBottomSheet<int>(

@@ -29,7 +29,7 @@ class Avatars {
 
   /// Label nama tier (untuk toko avatar).
   static String? tierLabel(String a) {
-    if (isDewa(a))     return 'Dewa';
+    if (isDewa(a))     return 'Sultan';
     if (isLegenda(a))  return 'Legenda';
     if (isAnimated(a)) return 'Bergerak';
     return null;

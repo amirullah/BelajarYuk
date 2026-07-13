@@ -1,8 +1,8 @@
 {
-  "version": "2.4.1",
-  "build": 52,
+  "version": "2.4.3",
+  "build": 54,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Lencana tampil di papan peringkat; Uku merayakan setelah jawab soal; ganti profil dikunci orang tua; avatar tier Legenda & Dewa.",
+  "notes": "Mode Review tidak lagi mengubah profil anak; tier Sultan di toko avatar; lencana tersinkron sebelum papan peringkat dimuat.",
   "mandatory": false
 }

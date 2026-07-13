@@ -20,7 +20,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   List<Map<String, dynamic>> _top = [];
   bool _loading = true;
   int _grade = 1;
-  int _maxGrade = 1; // kelas tertinggi yang boleh dilihat (= kelas terbuka)
   String? _myName;
   String? _myId;
 
@@ -30,17 +29,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     _init();
   }
 
-  /// Sekali: tentukan profil & kelas terbuka, lalu muat peringkat kelas aktif.
+  /// Sekali: tentukan profil & kelas aktif, dorong state terbaru (termasuk
+  /// lencana), lalu muat peringkat agar tampil lencana terbaru.
   Future<void> _init() async {
     final p = await _storage.currentProfile();
-    _maxGrade = (p?.unlockedGrade ?? 1).clamp(1, 6);
-    _grade = _maxGrade;
+    _grade = (p?.unlockedGrade ?? 1).clamp(1, 6);
     _myName = p?.name;
     _myId = p?.id;
+    if (p != null) await _storage.syncProfile(p); // pastikan lencana ter-upload
     await _fetch();
   }
 
-  /// Muat peringkat untuk [_grade] (bisa kelas sebelumnya).
   Future<void> _fetch() async {
     setState(() => _loading = true);
     List<Map<String, dynamic>> top = [];
@@ -56,12 +55,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         _loading = false;
       });
     }
-  }
-
-  void _selectGrade(int g) {
-    if (g == _grade) return;
-    setState(() => _grade = g);
-    _fetch();
   }
 
   @override
@@ -80,31 +73,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       ),
       body: Column(
         children: [
-          // Pemilih kelas: bisa lihat peringkat kelas sebelumnya (1..kelas terbuka).
-          if (_maxGrade > 1)
-            SizedBox(
-              height: 48,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                children: [
-                  for (int g = 1; g <= _maxGrade; g++)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text('Kelas $g',
-                            style: GoogleFonts.nunito(
-                                fontWeight: FontWeight.w800,
-                                color: g == _grade ? Colors.white : kDark)),
-                        selected: g == _grade,
-                        selectedColor: kPrimary,
-                        backgroundColor: kSurface,
-                        onSelected: (_) => _selectGrade(g),
-                      ),
-                    ),
-                ],
-              ),
-            ),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())

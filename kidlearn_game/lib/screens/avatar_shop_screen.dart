@@ -195,7 +195,7 @@ class _AvatarTile extends StatelessWidget {
             ),
             if (tier != null)
               Text(
-                tier == 'Dewa' ? '👑 Dewa' : tier == 'Legenda' ? '⭐ Legenda' : '✨ Bergerak',
+                tier == 'Sultan' ? '👑 Sultan' : tier == 'Legenda' ? '⭐ Legenda' : '✨ Bergerak',
                 style: GoogleFonts.nunito(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w800,
