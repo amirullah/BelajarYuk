@@ -1,8 +1,8 @@
 {
-  "version": "2.3.4",
-  "build": 49,
+  "version": "2.3.5",
+  "build": 50,
   "content": 2,
   "url": "https://belajaryuk.mkz.my.id/BelajarYuk.apk",
-  "notes": "Suara jawaban benar lebih meriah (ta-da); pujian salah kini pakai bahasa mapel (Inggris/Arab).",
+  "notes": "Notif pembaruan muncul setiap buka aplikasi; papan peringkat menampilkan skor terbaik sepanjang waktu.",
   "mandatory": false
 }
