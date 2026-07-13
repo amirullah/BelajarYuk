@@ -142,20 +142,38 @@ class _AvatarTile extends StatelessWidget {
     required this.onTap,
   });
 
+  static const _goldColor   = Color(0xFFD4AF37);
+  static const _dewaColor   = Color(0xFFFF8C00);
+
   @override
   Widget build(BuildContext context) {
+    final tier = Avatars.tierLabel(emoji);
+    final isDewa = Avatars.isDewa(emoji);
+    final isLegenda = Avatars.isLegenda(emoji);
+
+    Color borderColor = Colors.transparent;
+    double borderWidth = 3;
+    if (equipped) {
+      borderColor = kPrimary;
+    } else if (isDewa) {
+      borderColor = _dewaColor;
+      borderWidth = 2.5;
+    } else if (isLegenda) {
+      borderColor = _goldColor;
+      borderWidth = 2.5;
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: kSurface,
           borderRadius: BorderRadius.circular(18),
-          border: equipped
-              ? Border.all(color: kPrimary, width: 3)
-              : Border.all(color: Colors.transparent, width: 3),
+          border: Border.all(color: borderColor, width: borderWidth),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: (isDewa ? _dewaColor : isLegenda ? _goldColor : Colors.black)
+                    .withOpacity(isDewa || isLegenda ? 0.18 : 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 3))
           ],
@@ -175,12 +193,14 @@ class _AvatarTile extends StatelessWidget {
                   const Icon(Icons.lock_rounded, size: 20, color: kMuted),
               ],
             ),
-            if (Avatars.isAnimated(emoji))
-              Text('✨ Bergerak',
-                  style: GoogleFonts.nunito(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w800,
-                      color: kPrimary)),
+            if (tier != null)
+              Text(
+                tier == 'Dewa' ? '👑 Dewa' : tier == 'Legenda' ? '⭐ Legenda' : '✨ Bergerak',
+                style: GoogleFonts.nunito(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDewa ? _dewaColor : isLegenda ? _goldColor : kPrimary),
+              ),
             const SizedBox(height: 6),
             if (equipped)
               Text('Dipakai',

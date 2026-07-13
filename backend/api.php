@@ -310,8 +310,10 @@ function sync(): void {
 // ── Leaderboard per kelas (all-time best) ──
 function leaderboard(): void {
     $grade = (int) ($_GET['grade'] ?? 1);
+    ensure_state_column();
     $st = db()->prepare(
-        'SELECT p.id AS profile_id, p.name, p.avatar, MAX(l.score) AS score
+        'SELECT p.id AS profile_id, p.name, p.avatar,
+                ANY_VALUE(p.state) AS state, MAX(l.score) AS score
          FROM leaderboard l
          JOIN profiles p ON p.id = l.profile_id
          WHERE l.grade = ?
@@ -322,6 +324,15 @@ function leaderboard(): void {
     $top = array_map(function ($r) {
         $r['profile_id'] = (int) $r['profile_id'];
         $r['score'] = (int) $r['score'];
+        $badges = [];
+        if (!empty($r['state'])) {
+            $s = json_decode($r['state'], true);
+            if (is_array($s) && !empty($s['badges'])) {
+                $badges = array_values(array_filter((array) $s['badges']));
+            }
+        }
+        $r['badges'] = $badges;
+        unset($r['state']);
         return $r;
     }, $st->fetchAll());
     send_json(['ok' => true, 'grade' => $grade, 'top' => $top]);

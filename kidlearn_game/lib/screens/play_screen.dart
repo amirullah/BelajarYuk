@@ -52,8 +52,24 @@ class _PlayScreenState extends State<PlayScreen> {
   bool _showHint = false;
   String _hintText = '';
 
+  // ── State Uku umpan balik (muncul setelah jawab, bisa digeser) ──
+  bool _feedbackUkuVisible = false;
+  bool _feedbackUkuOk = false;
+  String _feedbackBubble = '';
+  Timer? _feedbackUkuTimer;
+  double? _ukuFbLeft;
+  double? _ukuFbTop;
+
   // Uku "mengintip" menyemangati — kata-katanya selalu berganti (tak berulang
   // berturut-turut) agar tak membosankan.
+  static const _cheerPhrases = [
+    'Luar biasa! 🎉', 'Hebat sekali! ⭐', 'Kamu juara! 🥳',
+    'Wah keren! 🌟', 'Sempurna! 💫', 'Terus semangat! 🔥',
+  ];
+  static const _awwPhrases = [
+    'Ayo coba lagi! 💪', 'Semangat! 🌟',
+    'Jangan menyerah! 🤗', 'Hampir benar! 💡',
+  ];
   static const _hintPhrases = [
     'Ayo, kamu pasti bisa! 💪', 'Baca lagi pelan-pelan ya 🧐',
     'Huu-huu! Aku percaya padamu! 🌟', 'Tenang, pikirkan dulu ya 😊',
@@ -245,6 +261,57 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
+  /// Uku merayakan/menyemangati setelah menjawab — bisa digeser bebas.
+  Widget _feedbackUkuOverlay() {
+    final mq = MediaQuery.of(context);
+    final defaultLeft = mq.size.width - 115.0;
+    final defaultTop  = mq.size.height * 0.36;
+    final left = (_ukuFbLeft ?? defaultLeft).clamp(0.0, mq.size.width - 110.0);
+    final top  = (_ukuFbTop  ?? defaultTop ).clamp(0.0, mq.size.height - 150.0);
+    final expr = _feedbackUkuOk ? 'cheer' : 'surprised';
+    final bubbleColor = _feedbackUkuOk ? kSuccess : kError;
+
+    return Positioned(
+      left: left,
+      top: top,
+      child: GestureDetector(
+        onPanUpdate: (d) => setState(() {
+          _ukuFbLeft = (left + d.delta.dx).clamp(0.0, mq.size.width - 110.0);
+          _ukuFbTop  = (top  + d.delta.dy).clamp(0.0, mq.size.height - 150.0);
+        }),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              constraints: const BoxConstraints(maxWidth: 140),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: bubbleColor.withOpacity(0.92),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(_feedbackBubble,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white)),
+            ),
+            const SizedBox(height: 4),
+            Image.asset('assets/img/ukus/uku_$expr.png',
+                width: 76, height: 76, fit: BoxFit.contain),
+          ],
+        )
+            .animate(key: ValueKey('fuku_$_cheerTick'))
+            .scale(
+                duration: 380.ms,
+                curve: Curves.elasticOut,
+                begin: const Offset(0.2, 0.2),
+                end: const Offset(1, 1))
+            .fadeIn(duration: 180.ms),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -356,6 +423,7 @@ class _PlayScreenState extends State<PlayScreen> {
   void dispose() {
     _timer?.cancel();
     _idleTimer?.cancel();
+    _feedbackUkuTimer?.cancel();
     _fill.dispose();
     TtsService.instance.stop();
     super.dispose();
@@ -397,10 +465,21 @@ class _PlayScreenState extends State<PlayScreen> {
       _combo = 0;
     }
     _idleTimer?.cancel();
+    _feedbackUkuTimer?.cancel();
     setState(() {
       _cheerOk = ok;
       _cheerTick++;
       _showHint = false;
+      _feedbackUkuVisible = true;
+      _feedbackUkuOk = ok;
+      _feedbackBubble = ok
+          ? _cheerPhrases[_rng.nextInt(_cheerPhrases.length)]
+          : _awwPhrases[_rng.nextInt(_awwPhrases.length)];
+      _ukuFbLeft = null;
+      _ukuFbTop = null;
+    });
+    _feedbackUkuTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) setState(() => _feedbackUkuVisible = false);
     });
   }
 
@@ -429,6 +508,7 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   void _next() {
+    _feedbackUkuTimer?.cancel();
     TtsService.instance.stop();
     if (_index + 1 >= _questions.length) {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
@@ -449,6 +529,7 @@ class _PlayScreenState extends State<PlayScreen> {
       _fill.clear();
       _setupMatching();
       _showHint = false;
+      _feedbackUkuVisible = false;
     });
     _maybeAutoPlay();
     _resetIdle();
@@ -601,6 +682,8 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
           // ── Uku mengintip dari tepi/pojok (dirs 2–7) ──
           if (_showHint && _hintDir >= 2) _ukuEdgePeek(),
+          // ── Uku merayakan/menyemangati setelah jawab ──
+          if (_feedbackUkuVisible) _feedbackUkuOverlay(),
         ],
       ),
     );

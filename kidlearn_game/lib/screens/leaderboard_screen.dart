@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/achievement.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../utils/app_colors.dart';
@@ -182,6 +183,18 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     fontWeight: FontWeight.w800,
                     color: isMe ? kPrimary : kDark)),
           ),
+          if ((e['badges'] as List?)?.isNotEmpty == true)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Text(
+                (e['badges'] as List)
+                    .take(3)
+                    .map((id) => Achievement.emojiFor('$id') ?? '')
+                    .where((s) => s.isNotEmpty)
+                    .join(''),
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
           Text('⭐ $score',
               style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w800, color: kAccent)),

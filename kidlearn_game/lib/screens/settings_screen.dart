@@ -139,7 +139,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _openReviewMode),
           if (_loggedIn)
             _tile(Icons.switch_account_rounded, 'Ganti Profil',
-                'Pilih anak lain', () => _push(const ProfileSelectScreen())),
+                'Pilih anak lain', () async {
+              if (!await ParentGate.show(context,
+                  reason: 'Ganti profil bisa membuat anak berpindah ke profil lain. '
+                      'Jawab soal ini untuk melanjutkan.')) return;
+              if (mounted) _push(const ProfileSelectScreen());
+            }),
           if (!_loggedIn)
             _tile(Icons.login_rounded, 'Masuk / Daftar',
                 'Simpan progres ke cloud', () => _push(const LoginScreen())),

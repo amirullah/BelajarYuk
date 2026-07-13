@@ -139,4 +139,10 @@ class Achievement {
         .where((a) => a.earned(p) && !p.badges.contains(a.id))
         .toList();
   }
+
+  /// Emoji lencana berdasarkan id (dipakai leaderboard).
+  static final Map<String, String> _emojiById = {
+    for (final a in all) a.id: a.emoji,
+  };
+  static String? emojiFor(String id) => _emojiById[id];
 }
