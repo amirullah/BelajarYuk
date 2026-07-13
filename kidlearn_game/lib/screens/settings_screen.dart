@@ -35,8 +35,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Akun developer/admin — hanya mereka yang boleh "Mode Review" (buka semua
   /// kelas). Orang tua biasa tak melihat menu ini.
   static const _adminEmails = {
-    'amir.pnl08@gmail.com',
-    'amirullah.pnl@gmail.com',
     'markazvirtual@gmail.com',
   };
   bool get _isAdmin =>
