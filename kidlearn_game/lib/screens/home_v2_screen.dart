@@ -69,10 +69,6 @@ class _HomeV2ScreenState extends State<HomeV2Screen> {
     final info = await UpdateService().check();
     if (info == null || !mounted) return;
     final sp = await SharedPreferences.getInstance();
-    final dismissed = sp.getInt('update_dismissed_build') ?? 0;
-    // Bila bukan wajib & pengguna sudah menunda build ini, jangan ganggu lagi.
-    if (!info.mandatory && dismissed >= info.build) return;
-    if (!mounted) return;
     await _showUpdateDialog(info, sp);
   }
 
