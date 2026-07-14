@@ -432,6 +432,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _changePassword() async {
+    if (!await ParentGate.show(context,
+        reason: 'Ganti kata sandi akun butuh verifikasi orang tua.')) return;
     final oldC = TextEditingController();
     final newC = TextEditingController();
     final ok = await showDialog<bool>(
@@ -559,6 +561,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
     if (ok == true) {
+      ReviewModeService.instance.deactivate();
       await _auth.logout();
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(

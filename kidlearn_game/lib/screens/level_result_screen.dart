@@ -126,7 +126,7 @@ class _LevelResultScreenState extends State<LevelResultScreen> {
         _result.passed(widget.level) &&
         profile.unlockedGrade == widget.level.grade &&
         gradeCleared == Subject.values.length) {
-      profile.unlockedGrade = widget.level.grade + 1;
+      profile.unlockedGrade = (widget.level.grade + 1).clamp(1, 6);
       await storage.upsertProfile(profile);
       gradeUp = true;
     }

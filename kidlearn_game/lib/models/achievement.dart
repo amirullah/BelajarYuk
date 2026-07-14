@@ -64,7 +64,7 @@ class Achievement {
     Achievement(
       id: 'streak7',
       title: 'Sepekan Rajin',
-      emoji: '🔥',
+      emoji: '⚡',
       desc: 'Main 7 hari beruntun',
       earned: (p) => p.streak >= 7,
     ),

@@ -39,7 +39,7 @@ function register(): void {
     $hash = password_hash($pass, PASSWORD_DEFAULT);
     try {
         $st = db()->prepare('INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?)');
-        $st->execute([$email, $hash, $b['name'] ?? null]);
+        $st->execute([$email, $hash, mb_substr($b['name'] ?? '', 0, 100) ?: null]);
     } catch (PDOException $e) {
         fail('Email sudah terdaftar', 409);
     }
@@ -249,7 +249,7 @@ function sync(): void {
             $av = $b['state']['avatar'] ?? null;
             if (is_string($av) && $av !== '') {
                 db()->prepare('UPDATE profiles SET avatar = ? WHERE id = ?')
-                    ->execute([$av, $profileId]);
+                    ->execute([mb_substr($av, 0, 16), $profileId]);
             }
         } catch (Throwable $e) {}
     }
@@ -257,15 +257,16 @@ function sync(): void {
     // Upsert progres yang dikirim app.
     if (!empty($b['progress']) && is_array($b['progress'])) {
         $up = db()->prepare(
-            'INSERT INTO progress (profile_id, level_id, stars, best_pct) VALUES (?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE stars = GREATEST(stars, VALUES(stars)),
-             best_pct = GREATEST(best_pct, VALUES(best_pct))'
+            'INSERT INTO progress (profile_id, level_id, stars, best_pct) VALUES (?, ?, ?, ?) AS new_row
+             ON DUPLICATE KEY UPDATE stars = GREATEST(stars, new_row.stars),
+             best_pct = GREATEST(best_pct, new_row.best_pct)'
         );
         foreach ($b['progress'] as $p) {
-            $up->execute([
-                $profileId, (string) ($p['level_id'] ?? ''),
-                (int) ($p['stars'] ?? 0), (int) ($p['best_pct'] ?? 0),
-            ]);
+            if (!is_array($p)) continue;
+            $stars = max(0, min(3, (int) ($p['stars'] ?? 0)));
+            $pct   = max(0, min(100, (int) ($p['best_pct'] ?? 0)));
+            $lid   = mb_substr((string) ($p['level_id'] ?? ''), 0, 32);
+            $up->execute([$profileId, $lid, $stars, $pct]);
         }
     }
     if (isset($b['unlocked_grade'])) {
@@ -285,8 +286,8 @@ function sync(): void {
     $grade = (int) $gr->fetchColumn();
     $week = date('o-W'); // tahun-minggu ISO
     db()->prepare(
-        'INSERT INTO leaderboard (profile_id, grade, week, score) VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE score = GREATEST(score, VALUES(score))'
+        'INSERT INTO leaderboard (profile_id, grade, week, score) VALUES (?, ?, ?, ?) AS new_row
+         ON DUPLICATE KEY UPDATE score = GREATEST(score, new_row.score)'
     )->execute([$profileId, $grade, $week, $totalStars]);
 
     // Kembalikan progres + state terbaru dari server (angka sebagai INT).
@@ -304,23 +305,25 @@ function sync(): void {
         $raw = $sq->fetchColumn();
         if ($raw) $stateRow = json_decode($raw, true);
     } catch (Throwable $e) {}
-    send_json(['ok' => true, 'progress' => $progress, 'state' => $stateRow]);
+    send_json(['ok' => true, 'progress' => $progress, 'state' => $stateRow,
+               'unlocked_grade' => $grade]);
 }
 
-// ── Leaderboard per kelas (all-time best) ──
+// ── Leaderboard per kelas (skor minggu berjalan) ──
 function leaderboard(): void {
-    $grade = (int) ($_GET['grade'] ?? 1);
+    $grade = max(1, min(6, (int) ($_GET['grade'] ?? 1)));
+    $week  = date('o-W');
     ensure_state_column();
     $st = db()->prepare(
         'SELECT p.id AS profile_id, p.name, p.avatar,
                 ANY_VALUE(p.state) AS state, MAX(l.score) AS score
          FROM leaderboard l
          JOIN profiles p ON p.id = l.profile_id
-         WHERE l.grade = ?
+         WHERE l.grade = ? AND l.week = ?
          GROUP BY p.id, p.name, p.avatar
          ORDER BY score DESC LIMIT 50'
     );
-    $st->execute([$grade]);
+    $st->execute([$grade, $week]);
     $top = array_map(function ($r) {
         $r['profile_id'] = (int) $r['profile_id'];
         $r['score'] = (int) $r['score'];

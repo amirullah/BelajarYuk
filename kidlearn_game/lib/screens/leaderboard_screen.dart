@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/achievement.dart';
@@ -36,7 +37,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     _grade = (p?.unlockedGrade ?? 1).clamp(1, 6);
     _myName = p?.name;
     _myId = p?.id;
-    if (p != null) await _storage.syncProfile(p); // pastikan lencana ter-upload
+    if (p != null) unawaited(_storage.syncProfile(p)); // lencana ter-upload, tak tunda tampil
     await _fetch();
   }
 
@@ -68,7 +69,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         title: Text('🏆 Peringkat Kelas $_grade',
             style: GoogleFonts.nunito(fontWeight: FontWeight.w800)),
         actions: [
-          IconButton(onPressed: _fetch, icon: const Icon(Icons.refresh_rounded)),
+          IconButton(onPressed: _init, icon: const Icon(Icons.refresh_rounded)),
         ],
       ),
       body: Column(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/profile.dart';
@@ -192,7 +193,7 @@ class StorageService {
     p.weekClaimed = true;
     p.coins += 50;
     await upsertProfile(p);
-    syncProfile(p);
+    unawaited(syncProfile(p));
     return 50;
   }
 
@@ -234,6 +235,11 @@ class StorageService {
             'dailyDate': profile.dailyDate,
             'dailyCount': profile.dailyCount,
             'dailyClaimed': profile.dailyClaimed,
+            'weekKey': profile.weekKey,
+            'weekStars': profile.weekStars,
+            'weekClaimed': profile.weekClaimed,
+            'dailyStars': profile.dailyStars,
+            'dailyPerfect': profile.dailyPerfect,
           }
         : null;
 
@@ -277,6 +283,11 @@ class StorageService {
     }
     if (res['state'] is Map) {
       _mergeState(p, (res['state'] as Map).cast<String, dynamic>());
+    }
+    // Pulihkan kelas terbuka dari server (penting setelah pasang ulang).
+    final serverGrade = res['unlocked_grade'] as int?;
+    if (serverGrade != null && serverGrade > p.unlockedGrade) {
+      p.unlockedGrade = serverGrade.clamp(1, 6);
     }
   }
 
@@ -326,6 +337,24 @@ class StorageService {
       p.dailyCount = asInt(s['dailyCount']);
       p.dailyClaimed = s['dailyClaimed'] as bool? ?? false;
     }
+    // State mingguan: adopsi dari server bila lokal sudah berganti minggu.
+    final srvWeekKey = s['weekKey'] as String?;
+    if (srvWeekKey != null) {
+      final curWeek = StorageService.weekKey();
+      if (p.weekKey != curWeek) {
+        p.weekKey = srvWeekKey;
+        p.weekStars = asInt(s['weekStars']);
+        p.weekClaimed = s['weekClaimed'] as bool? ?? false;
+      } else if (srvWeekKey == curWeek) {
+        p.weekStars = mx(p.weekStars, s['weekStars']);
+        if (s['weekClaimed'] as bool? ?? false) p.weekClaimed = true;
+      }
+    }
+    p.dailyStars = mx(p.dailyStars, s['dailyStars']);
+    if (s['dailyPerfect'] as bool? ?? false) p.dailyPerfect = true;
+    // Avatar: terima dari server agar sinkron lintas perangkat.
+    final srvAvatar = s['avatar'] as String?;
+    if (srvAvatar != null && srvAvatar.isNotEmpty) p.avatar = srvAvatar;
   }
 
   /// Perbarui streak harian saat app dibuka. Beruntun bila main hari
